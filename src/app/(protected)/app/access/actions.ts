@@ -36,6 +36,9 @@ export async function setMembershipStatusAction(
       requestId,
       route: "/app/access",
     });
+    if (error instanceof AppError && error.code === "MFA_REQUIRED") {
+      return { error: "Confirme o MFA em Segurança da conta antes de alterar vínculos." };
+    }
     return { error: "Não foi possível alterar o vínculo. A ação pode não ser permitida." };
   }
 

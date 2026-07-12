@@ -4,7 +4,7 @@
 - Autorização: permissão server-side antes do caso de uso e nova validação transacional na função SQL.
 - Tenant: cookie indica seleção, mas o servidor resolve e valida membership ativa; nenhum `tenant_id` do formulário é confiado.
 - Sessão: cookies definidos pelo provedor e seleção de tenant `httpOnly`, `sameSite=lax`, `secure` em produção.
-- MFA: ações críticas dispõem de gate `aal2`; fluxos de enrollment/política dependem do ambiente Supabase.
+- MFA: ações críticas exigem `aal2`; enrollment TOTP, challenge de sessão e bloqueio sem MFA foram validados em Supabase real.
 - Headers: frame denial, MIME sniffing denial, referrer restrito e permissões de navegador fechadas por padrão.
 - CSRF: Server Actions/origin checks do Next.js e cookies SameSite; Route Handlers mutáveis deverão validar origem/nonce conforme contrato.
 - Logs: contrato operacional limitado a IDs/códigos/tempo; conteúdo clínico e identificadores pessoais não são aceitos.

@@ -24,3 +24,8 @@
 - Gates locais do checkpoint de autenticação: formatação, lint, typecheck, 22 unitários, 4 E2E e build verdes.
 - Criado validador de Supabase real com Session Pooler, sem persistir segredos.
 - Aplicada migration da Fase 1 em Supabase de teste autorizado e validados RLS, isolamento tenant A/B, bloqueio de membership e auditoria append-only.
+- Corrigida ambiguidade SQL em `get_my_authorization_context` identificada pelo E2E autenticado.
+- Adicionada tela de Segurança da conta com enrollment TOTP, desafio MFA e remoção de fator.
+- Ações críticas de unidades e memberships passaram a exigir `aal2` além de permissão RBAC.
+- Criado seed autenticado reproduzível para Supabase real, preservando auditoria append-only e limpando fatores MFA do usuário fictício.
+- E2E autenticado real passou com login, seleção de tenant, bloqueio sem MFA, cadastro TOTP, sessão `aal2` e criação de unidade auditada.

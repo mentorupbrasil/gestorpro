@@ -73,3 +73,26 @@
 - Validação RLS real: tenant A enxerga somente seu tenant; contexto do tenant B retorna `42501`; operação autorizada cria unidade; auto-bloqueio de membership retorna `42501`; audit log é append-only; membership bloqueada perde acesso.
 - Dados fictícios de validação foram executados dentro de transação com rollback; schema/migration permanece aplicado para continuidade dos testes.
 - pgTAP formal não foi executado porque a validação foi feita via script Node/Postgres sem Supabase CLI; cobertura equivalente dos cenários críticos foi registrada.
+
+## 2026-07-12 — MFA/AAL2 e E2E autenticado real
+
+- `scripts/run-e2e.mjs`: corrigido para repassar argumentos ao Playwright; permite rodar specs específicas.
+- `scripts/seed-authenticated-e2e.mjs`: passou via Session Pooler IPv4 com credenciais temporárias em variáveis de ambiente; nenhum segredo foi salvo em arquivo.
+- Seed autenticado: cria/atualiza usuário fictício, tenant, unidade base, membership ativa e papel `tenant_admin`; preserva `audit_logs` append-only e remove fatores MFA do usuário E2E para reprodutibilidade.
+- Login Supabase Auth real: validado por E2E com usuário fictício e senha temporária.
+- `pnpm test:e2e -- authenticated-workspace.spec.ts`: 1/1 passou no Chromium.
+- Cenário autenticado coberto: login, seleção de tenant, acesso a `/app/security`, bloqueio de criação de unidade sem `aal2`, enrollment TOTP real, verificação do código, sessão reforçada e criação de unidade auditada.
+- Durante o E2E, a função SQL `public.get_my_authorization_context` revelou ambiguidade de variável/coluna `membership_id`; a migration foi corrigida e a função foi atualizada no Supabase de teste.
+- Observação: o SDK Supabase emite aviso interno sobre `getSession()` durante chamadas MFA; o código da aplicação usa `getUser()` na validação de sessão própria.
+
+## 2026-07-12 — Gates finais do checkpoint MFA/AAL2
+
+- `pnpm format`: passou.
+- `pnpm format:check`: passou.
+- `pnpm lint`: passou com zero warnings.
+- `pnpm typecheck`: passou em TypeScript strict.
+- `pnpm test`: 10 arquivos e 24 testes unitários passaram.
+- `node scripts/validate-phase1-supabase.mjs`: passou contra Supabase real via Session Pooler.
+- `pnpm build`: passou com Next.js 16.2.10; rota `/app/security` incluída.
+- `pnpm test:e2e -- public-and-auth.spec.ts`: 4/4 passaram no Chromium.
+- `pnpm seed:e2e:auth` + `pnpm test:e2e -- authenticated-workspace.spec.ts`: seed passou e 1/1 E2E autenticado passou no Chromium com TOTP/AAL2 real.

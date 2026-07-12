@@ -36,7 +36,7 @@ export function requireClinicUnit(context: AuthorizationContext, clinicUnitId: s
 
 export function requireAal2(context: AuthorizationContext) {
   if (context.aal !== "aal2") {
-    throw new AppError("PERMISSION_DENIED", "Esta ação exige autenticação reforçada.", {
+    throw new AppError("MFA_REQUIRED", "Esta ação exige autenticação reforçada.", {
       status: 403,
     });
   }

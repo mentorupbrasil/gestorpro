@@ -16,6 +16,7 @@
     "format:check": "prettier --check .",
     "test": "vitest run",
     "test:watch": "vitest",
+    "seed:e2e:auth": "node scripts/seed-authenticated-e2e.mjs",
     "test:e2e": "node scripts/run-e2e.mjs"
   },
   "dependencies": {

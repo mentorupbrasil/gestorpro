@@ -1,6 +1,6 @@
 import "server-only";
 
-import { requirePermission } from "@/core/auth/authorization";
+import { requireAal2, requirePermission } from "@/core/auth/authorization";
 import { AppError } from "@/core/errors/app-error";
 import { resolveAuthorizationContext } from "@/core/auth/session";
 import {
@@ -15,6 +15,7 @@ export async function createClinicUnit(input: CreateClinicUnitInput, requestId: 
   const parsed = createClinicUnitSchema.parse(input);
   const context = await resolveAuthorizationContext(parsed.tenantId);
   requirePermission(context, "units.manage");
+  requireAal2(context);
 
   const supabase = await createServerSupabaseClient();
   const { data, error } = await supabase.rpc("create_clinic_unit", {
@@ -37,6 +38,7 @@ export async function setMembershipStatus(input: SetMembershipStatusInput, reque
   const parsed = setMembershipStatusSchema.parse(input);
   const context = await resolveAuthorizationContext(parsed.tenantId);
   requirePermission(context, "memberships.manage");
+  requireAal2(context);
 
   const supabase = await createServerSupabaseClient();
   const { error } = await supabase.rpc("set_membership_status", {

@@ -68,6 +68,11 @@ const nextEnv = {
   NEXT_PUBLIC_SUPABASE_URL: process.env.NEXT_PUBLIC_SUPABASE_URL ?? "http://127.0.0.1:54321",
 };
 
+const playwrightArgs = process.argv.slice(2);
+if (playwrightArgs[0] === "--") {
+  playwrightArgs.shift();
+}
+
 let server;
 let exitCode = 1;
 const alreadyRunning = await isServerReady(baseUrl);
@@ -86,13 +91,17 @@ try {
     await waitForServer(baseUrl);
   }
 
-  const playwright = spawn(process.execPath, ["./node_modules/@playwright/test/cli.js", "test"], {
-    env: {
-      ...nextEnv,
-      PLAYWRIGHT_SKIP_WEBSERVER: "1",
+  const playwright = spawn(
+    process.execPath,
+    ["./node_modules/@playwright/test/cli.js", "test", ...playwrightArgs],
+    {
+      env: {
+        ...nextEnv,
+        PLAYWRIGHT_SKIP_WEBSERVER: "1",
+      },
+      stdio: "inherit",
     },
-    stdio: "inherit",
-  });
+  );
 
   exitCode = await new Promise((resolve) => {
     playwright.on("exit", (code) => resolve(code ?? 1));

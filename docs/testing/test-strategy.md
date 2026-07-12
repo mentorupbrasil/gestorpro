@@ -6,6 +6,7 @@
 - Integração: casos de uso, transações e repositórios contra PostgreSQL/Supabase descartável.
 - RLS/segurança: SQL e API com sessões de papéis/tenants distintos.
 - E2E: Playwright em preview/staging com dados sintéticos.
+- E2E autenticado: opcional por ambiente, habilitado com `E2E_AUTH_ENABLED=1` após seed Supabase real.
 - Contrato: DTOs, webhooks, workflows e payloads versionados.
 
 ## Gates por alteração
@@ -19,3 +20,7 @@ Tenant A/B, rota sem sessão, permissão insuficiente, duplo clique, concorrênc
 ## Evidências
 
 Comandos, versão do ambiente, resultado e falhas ficam em `docs/status/TEST_RESULTS.md`. Testes não podem ser silenciados com `skip`, `only` ou remoção de asserções.
+
+## Seed autenticado
+
+O script `pnpm seed:e2e:auth` prepara um usuário fictício para E2E autenticado usando variáveis temporárias de Supabase/Postgres. Ele não grava segredos, preserva auditoria append-only e reseta fatores MFA do usuário de teste para repetir o cenário TOTP/AAL2.

@@ -36,6 +36,9 @@ export async function createUnitAction(
       requestId,
       route: "/app/units",
     });
+    if (error instanceof AppError && error.code === "MFA_REQUIRED") {
+      return { error: "Confirme o MFA em Segurança da conta antes de criar unidades." };
+    }
     return { error: "Não foi possível criar a unidade. Confirme seus dados e sua permissão." };
   }
 

@@ -229,11 +229,11 @@ security definer
 set search_path = ''
 as $$
 declare
-  membership_id uuid;
+  current_membership_id uuid;
   permission_codes jsonb;
   unit_ids jsonb;
 begin
-  select membership.id into membership_id
+  select membership.id into current_membership_id
   from public.tenant_memberships membership
   join public.user_profiles profile on profile.id = membership.user_id
   where membership.tenant_id = target_tenant_id
@@ -243,7 +243,7 @@ begin
     and membership.valid_from <= now()
     and (membership.valid_until is null or membership.valid_until > now());
 
-  if membership_id is null then
+  if current_membership_id is null then
     raise exception 'tenant access denied' using errcode = '42501';
   end if;
 
@@ -253,7 +253,7 @@ begin
   join public.roles role on role.id = membership_role.role_id
   join public.role_permissions role_permission on role_permission.role_id = role.id
   join public.permissions permission on permission.id = role_permission.permission_id
-  where membership_role.membership_id = membership_id
+  where membership_role.membership_id = current_membership_id
     and (role.tenant_id = target_tenant_id or role.tenant_id is null);
 
   select coalesce(jsonb_agg(distinct unit_scope.id), '[]'::jsonb)
@@ -263,12 +263,12 @@ begin
     and (
       exists (
         select 1 from public.membership_roles tenant_wide
-        where tenant_wide.membership_id = membership_id
+        where tenant_wide.membership_id = current_membership_id
           and tenant_wide.clinic_unit_id is null
       )
       or exists (
         select 1 from public.membership_roles scoped
-        where scoped.membership_id = membership_id
+        where scoped.membership_id = current_membership_id
           and scoped.clinic_unit_id = unit_scope.id
       )
     );
