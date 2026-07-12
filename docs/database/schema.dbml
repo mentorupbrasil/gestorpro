@@ -1,0 +1,295 @@
+Project gestorpro {
+  database_type: 'PostgreSQL'
+  Note: 'Modelo inicial da Fase 0; não é migration executável.'
+}
+
+Table tenants {
+  id uuid [pk]
+  legal_name varchar [not null]
+  trade_name varchar
+  status varchar [not null]
+  timezone varchar [not null, default: 'America/Fortaleza']
+  created_at timestamptz [not null]
+  updated_at timestamptz [not null]
+}
+
+Table clinic_units {
+  id uuid [pk]
+  tenant_id uuid [not null, ref: > tenants.id]
+  name varchar [not null]
+  code varchar [not null]
+  status varchar [not null]
+  created_at timestamptz [not null]
+  updated_at timestamptz [not null]
+  indexes { (tenant_id, code) [unique] }
+}
+
+Table user_profiles {
+  id uuid [pk, note: 'Mesmo ID do provedor de autenticação']
+  display_name varchar [not null]
+  status varchar [not null]
+  created_at timestamptz [not null]
+  updated_at timestamptz [not null]
+}
+
+Table tenant_memberships {
+  id uuid [pk]
+  tenant_id uuid [not null, ref: > tenants.id]
+  user_id uuid [not null, ref: > user_profiles.id]
+  status varchar [not null]
+  valid_from timestamptz [not null]
+  valid_until timestamptz
+  created_at timestamptz [not null]
+  indexes { (tenant_id, user_id) [unique] }
+}
+
+Table roles {
+  id uuid [pk]
+  tenant_id uuid [ref: > tenants.id, note: 'Nulo apenas para papel global documentado']
+  code varchar [not null]
+  name varchar [not null]
+  created_at timestamptz [not null]
+  indexes { (tenant_id, code) [unique] }
+}
+
+Table permissions {
+  id uuid [pk]
+  code varchar [not null, unique]
+  description varchar [not null]
+}
+
+Table role_permissions {
+  role_id uuid [not null, ref: > roles.id]
+  permission_id uuid [not null, ref: > permissions.id]
+  indexes { (role_id, permission_id) [pk] }
+}
+
+Table membership_roles {
+  membership_id uuid [not null, ref: > tenant_memberships.id]
+  role_id uuid [not null, ref: > roles.id]
+  clinic_unit_id uuid [ref: > clinic_units.id]
+  indexes { (membership_id, role_id, clinic_unit_id) [unique] }
+}
+
+Table companies {
+  id uuid [pk]
+  tenant_id uuid [not null, ref: > tenants.id]
+  legal_name varchar [not null]
+  tax_id_normalized varchar [not null]
+  status varchar [not null]
+  version int [not null, default: 1]
+  created_at timestamptz [not null]
+  updated_at timestamptz [not null]
+  indexes { (tenant_id, tax_id_normalized) [unique] }
+}
+
+Table workers {
+  id uuid [pk]
+  tenant_id uuid [not null, ref: > tenants.id]
+  full_name varchar [not null]
+  cpf_ciphertext text
+  cpf_lookup_hash varchar
+  status varchar [not null]
+  version int [not null, default: 1]
+  created_at timestamptz [not null]
+  updated_at timestamptz [not null]
+  indexes { (tenant_id, cpf_lookup_hash) }
+}
+
+Table employment_contracts {
+  id uuid [pk]
+  tenant_id uuid [not null, ref: > tenants.id]
+  company_id uuid [not null, ref: > companies.id]
+  worker_id uuid [not null, ref: > workers.id]
+  starts_on date [not null]
+  ends_on date
+  job_snapshot jsonb [not null]
+  status varchar [not null]
+  created_at timestamptz [not null]
+}
+
+Table pcmso_versions {
+  id uuid [pk]
+  tenant_id uuid [not null, ref: > tenants.id]
+  company_id uuid [not null, ref: > companies.id]
+  version_number int [not null]
+  valid_from date [not null]
+  valid_until date
+  status varchar [not null]
+  approved_at timestamptz
+  content_hash varchar
+  created_at timestamptz [not null]
+  indexes { (tenant_id, company_id, version_number) [unique] }
+}
+
+Table exam_catalog {
+  id uuid [pk]
+  tenant_id uuid [not null, ref: > tenants.id]
+  code varchar [not null]
+  name varchar [not null]
+  result_type varchar [not null]
+  active boolean [not null, default: true]
+  created_at timestamptz [not null]
+  indexes { (tenant_id, code) [unique] }
+}
+
+Table exam_protocols {
+  id uuid [pk]
+  tenant_id uuid [not null, ref: > tenants.id]
+  pcmso_version_id uuid [not null, ref: > pcmso_versions.id]
+  occupational_exam_type varchar [not null]
+  rule_version int [not null]
+  status varchar [not null]
+  created_at timestamptz [not null]
+}
+
+Table exam_protocol_items {
+  id uuid [pk]
+  tenant_id uuid [not null, ref: > tenants.id]
+  exam_protocol_id uuid [not null, ref: > exam_protocols.id]
+  exam_catalog_id uuid [not null, ref: > exam_catalog.id]
+  required boolean [not null]
+  conditions jsonb
+  created_at timestamptz [not null]
+}
+
+Table referrals {
+  id uuid [pk]
+  tenant_id uuid [not null, ref: > tenants.id]
+  company_id uuid [not null, ref: > companies.id]
+  worker_id uuid [not null, ref: > workers.id]
+  occupational_exam_type varchar [not null]
+  status varchar [not null]
+  idempotency_key varchar
+  created_at timestamptz [not null]
+  indexes { (tenant_id, idempotency_key) [unique] }
+}
+
+Table appointments {
+  id uuid [pk]
+  tenant_id uuid [not null, ref: > tenants.id]
+  clinic_unit_id uuid [not null, ref: > clinic_units.id]
+  referral_id uuid [ref: > referrals.id]
+  starts_at timestamptz [not null]
+  ends_at timestamptz [not null]
+  status varchar [not null]
+  version int [not null, default: 1]
+}
+
+Table encounters {
+  id uuid [pk]
+  tenant_id uuid [not null, ref: > tenants.id]
+  clinic_unit_id uuid [not null, ref: > clinic_units.id]
+  worker_id uuid [not null, ref: > workers.id]
+  appointment_id uuid [ref: > appointments.id]
+  status varchar [not null]
+  version int [not null, default: 1]
+  checked_in_at timestamptz [not null]
+  created_at timestamptz [not null]
+  indexes { (tenant_id, clinic_unit_id, status, checked_in_at) }
+}
+
+Table encounter_snapshots {
+  id uuid [pk]
+  tenant_id uuid [not null, ref: > tenants.id]
+  encounter_id uuid [not null, ref: > encounters.id]
+  schema_version int [not null]
+  payload jsonb [not null]
+  content_hash varchar [not null]
+  created_at timestamptz [not null]
+  indexes { encounter_id [unique] }
+}
+
+Table encounter_steps {
+  id uuid [pk]
+  tenant_id uuid [not null, ref: > tenants.id]
+  encounter_id uuid [not null, ref: > encounters.id]
+  step_type varchar [not null]
+  status varchar [not null]
+  sequence int [not null]
+  version int [not null, default: 1]
+  created_at timestamptz [not null]
+  updated_at timestamptz [not null]
+  indexes { (tenant_id, encounter_id, status, sequence) }
+}
+
+Table exam_orders {
+  id uuid [pk]
+  tenant_id uuid [not null, ref: > tenants.id]
+  encounter_id uuid [not null, ref: > encounters.id]
+  exam_catalog_id uuid [not null, ref: > exam_catalog.id]
+  status varchar [not null]
+  protocol_snapshot jsonb [not null]
+  created_at timestamptz [not null]
+}
+
+Table medical_conclusions {
+  id uuid [pk]
+  tenant_id uuid [not null, ref: > tenants.id]
+  encounter_id uuid [not null, ref: > encounters.id]
+  physician_user_id uuid [not null, ref: > user_profiles.id]
+  conclusion_code varchar [not null, note: 'Escolha humana autorizada']
+  version int [not null]
+  closed_at timestamptz [not null]
+  created_at timestamptz [not null]
+}
+
+Table generated_documents {
+  id uuid [pk]
+  tenant_id uuid [not null, ref: > tenants.id]
+  encounter_id uuid [ref: > encounters.id]
+  document_type varchar [not null]
+  current_version_id uuid
+  status varchar [not null]
+  created_at timestamptz [not null]
+}
+
+Table document_versions {
+  id uuid [pk]
+  tenant_id uuid [not null, ref: > tenants.id]
+  document_id uuid [not null, ref: > generated_documents.id]
+  version_number int [not null]
+  storage_object_key varchar [not null]
+  content_hash varchar [not null]
+  supersedes_id uuid [ref: > document_versions.id]
+  issued_at timestamptz [not null]
+  indexes { (tenant_id, document_id, version_number) [unique] }
+}
+
+Table audit_logs {
+  id uuid [pk]
+  tenant_id uuid [ref: > tenants.id]
+  actor_user_id uuid [ref: > user_profiles.id]
+  action varchar [not null]
+  entity_type varchar [not null]
+  entity_id uuid
+  request_id varchar [not null]
+  metadata_redacted jsonb
+  created_at timestamptz [not null]
+  indexes { (tenant_id, entity_type, entity_id, created_at) }
+}
+
+Table idempotency_keys {
+  id uuid [pk]
+  tenant_id uuid [not null, ref: > tenants.id]
+  scope varchar [not null]
+  key varchar [not null]
+  request_hash varchar [not null]
+  response_reference jsonb
+  expires_at timestamptz [not null]
+  indexes { (tenant_id, scope, key) [unique] }
+}
+
+Table outbox_events {
+  id uuid [pk]
+  tenant_id uuid [not null, ref: > tenants.id]
+  aggregate_type varchar [not null]
+  aggregate_id uuid [not null]
+  event_type varchar [not null]
+  payload_redacted jsonb [not null]
+  status varchar [not null]
+  attempts int [not null, default: 0]
+  next_attempt_at timestamptz
+  created_at timestamptz [not null]
+  indexes { (status, next_attempt_at) }
+}
