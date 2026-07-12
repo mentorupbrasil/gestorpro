@@ -7,3 +7,12 @@
 - Código/migrations/dependências: nenhum.
 
 O inventário exato deve ser obtido com `git status --short` e registrado novamente no fechamento.
+
+## Fase 1 — em andamento
+
+- Bootstrap Next.js, TypeScript, Tailwind, ESLint, Prettier, Vitest, Playwright e CI.
+- Núcleo de erros, autorização, tenancy, ambientes, Supabase SSR e banco lazy.
+- Schema Drizzle, migration SQL, RLS, auditoria e testes unitários/SQL iniciais.
+- Telas e ações reais de login, seleção de tenant, unidades e memberships; loading/error/empty/permission states.
+- Revisão de segurança da Fase 1 e ADR de fronteiras Auth/banco.
+- Alterações ainda não commitadas porque os gates permanecem pendentes.

@@ -1,11 +1,11 @@
 # Fase atual
 
 - Fase atual: Fase 1 — Plataforma, segurança e isolamento
-- Subfase atual: seleção técnica e bootstrap seguro
-- Tarefa atual: confirmar versões, compatibilidade, lock-in e custos em documentação oficial
-- Tarefas concluídas: Fase 0 integral, auditoria, inventário, arquitetura, DBML, governança e plano da Fase 1
-- Tarefa seguinte: inicializar workspace mínimo com TypeScript estrito e gates de qualidade
-- Bloqueios: nenhum bloqueio técnico da Fase 0
-- Testes pendentes: gates da Fase 1 ainda não existem
-- Último commit: `80b07f9` (base remota; alterações da Fase 0 ainda não commitadas)
-- Atualizado em: 2026-07-12 02:21:26 -03:00
+- Subfase atual: plataforma, autenticação e isolamento
+- Tarefa atual: revisar contratos de autorização, schema e migration antes dos gates
+- Tarefas concluídas: Fase 0; bootstrap; CI; clientes lazy; erros/request ID; autenticação SSR; seleção tenant; RBAC; schema e migration/RLS iniciais
+- Tarefa seguinte: atualizar lockfile e executar formatação, lint, typecheck, unitários e build quando a aprovação voltar
+- Bloqueios: Docker/Supabase CLI ausentes; execução fora do sandbox temporariamente limitada pela conta
+- Testes pendentes: lint, typecheck, unitários, build, E2E, migration e RLS
+- Último commit: `5fdba2e` (`docs(phase-0): establish architecture and project governance`)
+- Atualizado em: 2026-07-12

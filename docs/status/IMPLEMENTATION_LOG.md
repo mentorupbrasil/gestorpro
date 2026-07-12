@@ -8,3 +8,11 @@
 - Lidos os documentos obrigatórios e movidos para nomes canônicos em `docs/product/`.
 - Registrado conflito de continuidade no ADR-0006.
 - Criada fundação documental da Fase 0; nenhum código funcional, dependência, banco ou serviço foi criado.
+- Commit técnico da Fase 0: `5fdba2e`.
+- Fase 1 iniciada com Next.js 16.2.10, React 19.2.7 e TypeScript 5.9.3.
+- Criados bootstrap, CI, configuração estrita, clientes lazy, erros públicos, request ID, autorização tenant-aware, autenticação SSR e seleção explícita de tenant.
+- Criados schema Drizzle, migration inicial, políticas RLS, contexto de autorização no banco e auditoria append-only.
+- Criados fluxos reais de login, seleção de tenant, listagem/criação de unidades e bloqueio/reativação de memberships com confirmação e auditoria.
+- Revisão React adicionou navegação funcional, loading, error state, mensagens acessíveis e tabelas operacionais.
+- Revisão de segurança corrigiu escopo de unidade cruzado e removeu acesso autenticado à função genérica de auditoria.
+- Nenhuma migration foi aplicada e nenhum serviço externo foi conectado.

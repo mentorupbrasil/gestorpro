@@ -1,0 +1,7 @@
+.next
+node_modules
+coverage
+playwright-report
+phase1-scaffold
+pnpm-lock.yaml
+docs/product
