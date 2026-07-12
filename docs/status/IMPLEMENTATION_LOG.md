@@ -19,3 +19,6 @@
 - Commit `aef748a` foi publicado pelo usuário e abriu a PR #1; CI falhou em formatação do `tsconfig.json`.
 - Corrigidos o CI e o redirecionamento sem sessão, que antes aguardava Supabase indisponível.
 - Gates locais finais do checkpoint: formatação, lint, typecheck, 18 unitários, 2 E2E e build verdes.
+- Adicionados callback seguro de autenticação, allowlist de redirecionamento, política de senha forte, recuperação de senha, troca de senha e logout local.
+- Corrigido o runner E2E local no Windows para subir `next start`, executar Playwright e encerrar o servidor sem travar.
+- Gates locais do checkpoint de autenticação: formatação, lint, typecheck, 22 unitários, 4 E2E e build verdes.

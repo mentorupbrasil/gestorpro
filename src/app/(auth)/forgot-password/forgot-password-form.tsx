@@ -2,12 +2,12 @@
 
 import Link from "next/link";
 import { useActionState } from "react";
-import { signIn, type SignInState } from "./actions";
+import { requestPasswordReset, type ForgotPasswordState } from "./actions";
 
-const initialState: SignInState = {};
+const initialState: ForgotPasswordState = {};
 
-export function SignInForm() {
-  const [state, action, pending] = useActionState(signIn, initialState);
+export function ForgotPasswordForm() {
+  const [state, action, pending] = useActionState(requestPasswordReset, initialState);
 
   return (
     <form action={action} className="grid gap-4" noValidate>
@@ -21,20 +21,14 @@ export function SignInForm() {
           required
         />
       </label>
-      <label className="grid gap-1 text-sm font-medium">
-        Senha
-        <input
-          className="rounded border border-slate-300 px-3 py-2"
-          name="password"
-          type="password"
-          autoComplete="current-password"
-          minLength={8}
-          required
-        />
-      </label>
       {state.error ? (
         <p role="alert" aria-live="polite" className="text-sm text-red-700">
           {state.error}
+        </p>
+      ) : null}
+      {state.message ? (
+        <p role="status" aria-live="polite" className="text-sm text-emerald-800">
+          {state.message}
         </p>
       ) : null}
       <button
@@ -42,13 +36,10 @@ export function SignInForm() {
         disabled={pending}
         type="submit"
       >
-        {pending ? "Entrando…" : "Entrar"}
+        {pending ? "Enviando…" : "Enviar instruções"}
       </button>
-      <Link
-        className="text-sm font-semibold text-emerald-800 underline-offset-4 hover:underline"
-        href="/forgot-password"
-      >
-        Esqueci minha senha
+      <Link className="text-sm text-slate-700 underline-offset-4 hover:underline" href="/sign-in">
+        Voltar para o acesso
       </Link>
     </form>
   );

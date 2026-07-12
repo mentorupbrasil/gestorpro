@@ -49,3 +49,16 @@
 - CI remoto do commit `aef748a`: falhou somente porque `next build` havia alterado `tsconfig.json` depois da formatação; causa confirmada nos logs do job `86671905101` e corrigida.
 - Dev server: pronto em 8,4 s; sem deploy. O CLI `agent-browser` não estava instalado e o fallback persistente falhou por sandbox, mas o Playwright validou os fluxos reais.
 - Migration/RLS/pgTAP: ainda não executados por ausência de Supabase descartável.
+
+## 2026-07-12 — Checkpoint de autenticação segura
+
+- `pnpm format`: passou.
+- `pnpm format:check`: passou.
+- `pnpm lint`: passou com zero warnings.
+- `pnpm typecheck`: passou em TypeScript strict.
+- `pnpm test`: 9 arquivos e 22 testes unitários passaram.
+- `pnpm build`: passou com Next.js 16.2.10; rotas `/forgot-password`, `/update-password` e `/auth/callback` incluídas.
+- `pnpm test:e2e`: 4/4 passaram no Chromium usando servidor `next start` controlado por `scripts/run-e2e.mjs`.
+- Tentativas anteriores de E2E com `webServer` automático do Playwright passaram os testes, mas travaram no encerramento do processo no Windows; o runner dedicado corrigiu o encerramento local.
+- CI remoto passará a rodar E2E após o build; resultado remoto pendente até publicação do commit.
+- Migration/RLS/pgTAP: ainda não executados por ausência de Supabase descartável.

@@ -16,3 +16,11 @@ O inventário exato deve ser obtido com `git status --short` e registrado novame
 - Telas e ações reais de login, seleção de tenant, unidades e memberships; loading/error/empty/permission states.
 - Revisão de segurança da Fase 1 e ADR de fronteiras Auth/banco.
 - Alterações ainda não commitadas porque os gates permanecem pendentes.
+
+## Fase 1 — checkpoint de autenticação segura
+
+- Configuração: `.github/workflows/ci.yml`, `.env.example`, `next.config.ts`, `package.json`, `playwright.config.ts`.
+- Runner: `scripts/run-e2e.mjs`.
+- Autenticação: callback seguro, recuperação de senha, troca de senha, logout local, política de senha forte e allowlist de redirecionamento.
+- Testes: novos unitários de senha/redirecionamento e E2E cobrindo recuperação de senha e callback sem código.
+- Status: documentos atualizados com gates verdes da aplicação e bloqueio persistente de Supabase/RLS real.

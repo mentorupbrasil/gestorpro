@@ -2,33 +2,34 @@
 
 import Link from "next/link";
 import { useActionState } from "react";
-import { signIn, type SignInState } from "./actions";
+import { updatePassword, type UpdatePasswordState } from "./actions";
 
-const initialState: SignInState = {};
+const initialState: UpdatePasswordState = {};
 
-export function SignInForm() {
-  const [state, action, pending] = useActionState(signIn, initialState);
+export function UpdatePasswordForm() {
+  const [state, action, pending] = useActionState(updatePassword, initialState);
 
   return (
     <form action={action} className="grid gap-4" noValidate>
       <label className="grid gap-1 text-sm font-medium">
-        E-mail
-        <input
-          className="rounded border border-slate-300 px-3 py-2"
-          name="email"
-          type="email"
-          autoComplete="email"
-          required
-        />
-      </label>
-      <label className="grid gap-1 text-sm font-medium">
-        Senha
+        Nova senha
         <input
           className="rounded border border-slate-300 px-3 py-2"
           name="password"
           type="password"
-          autoComplete="current-password"
-          minLength={8}
+          autoComplete="new-password"
+          minLength={12}
+          required
+        />
+      </label>
+      <label className="grid gap-1 text-sm font-medium">
+        Confirmar nova senha
+        <input
+          className="rounded border border-slate-300 px-3 py-2"
+          name="passwordConfirmation"
+          type="password"
+          autoComplete="new-password"
+          minLength={12}
           required
         />
       </label>
@@ -37,18 +38,20 @@ export function SignInForm() {
           {state.error}
         </p>
       ) : null}
+      {state.message ? (
+        <p role="status" aria-live="polite" className="text-sm text-emerald-800">
+          {state.message}
+        </p>
+      ) : null}
       <button
         className="rounded bg-emerald-800 px-4 py-2 font-semibold text-white disabled:opacity-60"
         disabled={pending}
         type="submit"
       >
-        {pending ? "Entrando…" : "Entrar"}
+        {pending ? "Atualizando…" : "Atualizar senha"}
       </button>
-      <Link
-        className="text-sm font-semibold text-emerald-800 underline-offset-4 hover:underline"
-        href="/forgot-password"
-      >
-        Esqueci minha senha
+      <Link className="text-sm text-slate-700 underline-offset-4 hover:underline" href="/sign-in">
+        Voltar para o acesso
       </Link>
     </form>
   );
