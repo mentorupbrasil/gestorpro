@@ -61,4 +61,5 @@
 - `pnpm test:e2e`: 4/4 passaram no Chromium usando servidor `next start` controlado por `scripts/run-e2e.mjs`.
 - Tentativas anteriores de E2E com `webServer` automático do Playwright passaram os testes, mas travaram no encerramento do processo no Windows; o runner dedicado corrigiu o encerramento local.
 - CI remoto passará a rodar E2E após o build; resultado remoto pendente até publicação do commit.
+- Vercel remoto do commit `6b10dab` falhou procurando output `public` após `next build`; correção versionada em `vercel.json` para preset Next.js e output `.next`.
 - Migration/RLS/pgTAP: ainda não executados por ausência de Supabase descartável.

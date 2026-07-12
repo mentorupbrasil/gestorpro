@@ -19,7 +19,7 @@ O inventário exato deve ser obtido com `git status --short` e registrado novame
 
 ## Fase 1 — checkpoint de autenticação segura
 
-- Configuração: `.github/workflows/ci.yml`, `.env.example`, `next.config.ts`, `package.json`, `playwright.config.ts`.
+- Configuração: `.github/workflows/ci.yml`, `.env.example`, `next.config.ts`, `package.json`, `playwright.config.ts`, `vercel.json`.
 - Runner: `scripts/run-e2e.mjs`.
 - Autenticação: callback seguro, recuperação de senha, troca de senha, logout local, política de senha forte e allowlist de redirecionamento.
 - Testes: novos unitários de senha/redirecionamento e E2E cobrindo recuperação de senha e callback sem código.

@@ -14,5 +14,6 @@
 - `pnpm format`, `pnpm format:check`, `pnpm lint`, `pnpm typecheck`, `pnpm test`, `pnpm build` e `pnpm test:e2e` para o checkpoint de autenticação segura.
 - Diagnóstico do travamento do Playwright `webServer` no Windows e validação do runner dedicado `scripts/run-e2e.mjs`.
 - CI atualizado para instalar Chromium do Playwright e executar `pnpm test:e2e` após `pnpm build`.
+- Logs da Vercel consultados; falha remota causada por output directory `public` em projeto Next.js. Adicionado `vercel.json` com preset Next.js e saída `.next`.
 
 Saídas resumidas e resultados estão em `TEST_RESULTS.md`; valores de segredo nunca são registrados.
