@@ -22,3 +22,5 @@
 - Adicionados callback seguro de autenticação, allowlist de redirecionamento, política de senha forte, recuperação de senha, troca de senha e logout local.
 - Corrigido o runner E2E local no Windows para subir `next start`, executar Playwright e encerrar o servidor sem travar.
 - Gates locais do checkpoint de autenticação: formatação, lint, typecheck, 22 unitários, 4 E2E e build verdes.
+- Criado validador de Supabase real com Session Pooler, sem persistir segredos.
+- Aplicada migration da Fase 1 em Supabase de teste autorizado e validados RLS, isolamento tenant A/B, bloqueio de membership e auditoria append-only.

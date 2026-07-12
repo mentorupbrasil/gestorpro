@@ -24,3 +24,9 @@ O inventário exato deve ser obtido com `git status --short` e registrado novame
 - Autenticação: callback seguro, recuperação de senha, troca de senha, logout local, política de senha forte e allowlist de redirecionamento.
 - Testes: novos unitários de senha/redirecionamento e E2E cobrindo recuperação de senha e callback sem código.
 - Status: documentos atualizados com gates verdes da aplicação e bloqueio persistente de Supabase/RLS real.
+
+## Fase 1 — validação Supabase real
+
+- Runner: `scripts/validate-phase1-supabase.mjs`.
+- Status: documentos atualizados com evidência de migration aplicada, RLS real, tenant A/B, membership bloqueada e auditoria append-only.
+- Segredos: nenhuma credencial persistida; senha usada apenas em variável de ambiente temporária durante a execução.

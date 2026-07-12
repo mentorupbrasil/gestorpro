@@ -15,5 +15,7 @@
 - Diagnóstico do travamento do Playwright `webServer` no Windows e validação do runner dedicado `scripts/run-e2e.mjs`.
 - CI atualizado para instalar Chromium do Playwright e executar `pnpm test:e2e` após `pnpm build`.
 - Logs da Vercel consultados; falha remota causada por output directory `public` em projeto Next.js. Adicionado `vercel.json` com preset Next.js e saída `.next`.
+- Diagnóstico de IPv6 da conexão direta Supabase e uso do Session Pooler IPv4.
+- `node scripts/validate-phase1-supabase.mjs` executado com credenciais temporárias em variáveis de ambiente; validação de migration/RLS passou.
 
 Saídas resumidas e resultados estão em `TEST_RESULTS.md`; valores de segredo nunca são registrados.

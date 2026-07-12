@@ -63,3 +63,13 @@
 - CI remoto passará a rodar E2E após o build; resultado remoto pendente até publicação do commit.
 - Vercel remoto do commit `6b10dab` falhou procurando output `public` após `next build`; correção versionada em `vercel.json` para preset Next.js e output `.next`.
 - Migration/RLS/pgTAP: ainda não executados por ausência de Supabase descartável.
+
+## 2026-07-12 — Validação Supabase real
+
+- Conexão direta IPv6 `db.dacittcezvtqljanhobb.supabase.co` falhou no ambiente local; o endpoint HTTP público respondeu, confirmando projeto ativo.
+- Conexão via Session Pooler IPv4 foi usada com credencial temporária em variável de ambiente; nenhum segredo foi salvo em arquivo ou commit.
+- `scripts/validate-phase1-supabase.mjs`: passou.
+- Migration `supabase/migrations/202607120001_phase1_platform.sql`: aplicada no Supabase de teste autorizado.
+- Validação RLS real: tenant A enxerga somente seu tenant; contexto do tenant B retorna `42501`; operação autorizada cria unidade; auto-bloqueio de membership retorna `42501`; audit log é append-only; membership bloqueada perde acesso.
+- Dados fictícios de validação foram executados dentro de transação com rollback; schema/migration permanece aplicado para continuidade dos testes.
+- pgTAP formal não foi executado porque a validação foi feita via script Node/Postgres sem Supabase CLI; cobertura equivalente dos cenários críticos foi registrada.

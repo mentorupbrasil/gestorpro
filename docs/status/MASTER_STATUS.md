@@ -5,7 +5,7 @@ Atualizado em: 2026-07-12
 | Fase                         | Estado                | Observação                                   |
 | ---------------------------- | --------------------- | -------------------------------------------- |
 | 0 — Fundação documental      | TECHNICALLY_COMPLETED | auditoria aprovada; ADRs permanecem PROPOSTA |
-| 1 — Plataforma e segurança   | IN_PROGRESS           | app/auth/CI verdes; RLS real pendente        |
+| 1 — Plataforma e segurança   | IN_PROGRESS           | app/CI/RLS verdes; MFA e E2E auth pendentes  |
 | 2 — Domínio ocupacional      | NOT_STARTED           | depende de isolamento comprovado             |
 | 3 — Encaminhamentos e agenda | NOT_STARTED           | —                                            |
 | 4 — Check-in, etapas e filas | NOT_STARTED           | —                                            |
@@ -17,4 +17,4 @@ Atualizado em: 2026-07-12
 | 10 — Integrações             | NOT_STARTED           | credenciais/documentação oficial futuras     |
 | 11 — Produção e piloto       | NOT_STARTED           | produção não autorizada                      |
 
-Branch: `codex/desenvolvimento-completo-unimetra`. Último commit publicado: `bb564a3`.
+Branch: `codex/desenvolvimento-completo-unimetra`. Último commit publicado: `c8608e9`.
