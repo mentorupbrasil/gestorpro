@@ -3,7 +3,7 @@
 **Versão:** 1.0  
 **Data-base:** 12/07/2026  
 **Repositório informado:** `https://github.com/mentorupbrasil/gestorpro`  
-**Documento funcional principal:** `docs/product/UNIMETRA_ESPECIFICACAO_MESTRE.md`  
+**Documento funcional principal:** `UNIMETRA_ESPECIFICACAO_MESTRE.md`  
 **Objetivo:** permitir que o projeto seja executado no Codex, fase por fase, sem depender de novas conversas no ChatGPT.
 
 ---
@@ -13,7 +13,7 @@
 Coloque este arquivo no repositório no caminho:
 
 ```text
-docs/product/UNIMETRA_GUIA_COMPLETO_DE_EXECUCAO_NO_CODEX.md
+UNIMETRA_GUIA_COMPLETO_DE_EXECUCAO_NO_CODEX.md
 ```
 
 Mantenha também a especificação principal em:
