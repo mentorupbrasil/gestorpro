@@ -1,7 +1,7 @@
 # Próximas ações
 
-1. Atualizar o lockfile para incluir `server-only` quando a execução aprovada estiver disponível.
-2. Executar formatação, lint, typecheck, unitários e build; corrigir todos os achados.
-3. Revisar migration/RLS em PostgreSQL/Supabase descartável e ampliar testes tenant A/B.
-4. Executar E2E mínimo de login, tenant válido, tenant negado e sessão ausente.
-5. Auditar a Fase 1; não commitá-la nem avançar antes dos gates verdes.
+1. Commitar e publicar a correção do CI/E2E; acompanhar a PR #1 até os checks verdes.
+2. Provisionar Supabase/PostgreSQL descartável quando o ambiente permitir.
+3. Aplicar migration do zero, executar pgTAP/RLS e testar tenant A/B, membership bloqueada, elevação de privilégio e auditoria append-only.
+4. Gerar tipos Supabase e repetir todos os gates.
+5. Auditar e aceitar a Fase 1 somente com isolamento comprovado; então iniciar a Fase 2 automaticamente.

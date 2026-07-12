@@ -37,3 +37,15 @@
 - Lint inicial: falhou por resolução de peer dependency no armazenamento externo; dependências internas foram restauradas.
 - Nova execução dos gates: pendente; aprovação fora do sandbox atingiu limite temporário da conta.
 - Migration/RLS: não executados; Docker/Supabase local continuam ausentes.
+
+## 2026-07-12 — Gates do checkpoint da Fase 1
+
+- `pnpm format:check`: passou; todos os arquivos seguem Prettier.
+- `pnpm lint`: passou com zero warnings.
+- `pnpm typecheck`: passou em TypeScript strict.
+- `pnpm test`: 7 arquivos e 18 testes unitários passaram.
+- `pnpm test:e2e`: 2/2 passaram no Chromium (landing/login e bloqueio sem sessão).
+- `pnpm build`: passou com Next.js 16.2.10; rotas públicas/dinâmicas geradas.
+- CI remoto do commit `aef748a`: falhou somente porque `next build` havia alterado `tsconfig.json` depois da formatação; causa confirmada nos logs do job `86671905101` e corrigida.
+- Dev server: pronto em 8,4 s; sem deploy. O CLI `agent-browser` não estava instalado e o fallback persistente falhou por sandbox, mas o Playwright validou os fluxos reais.
+- Migration/RLS/pgTAP: ainda não executados por ausência de Supabase descartável.

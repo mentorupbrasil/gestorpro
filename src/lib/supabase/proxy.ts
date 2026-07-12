@@ -1,8 +1,13 @@
 import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
 import { getPublicEnv } from "@/lib/env/public";
+import { hasSupabaseAuthCookie } from "@/lib/supabase/auth-cookie";
 
 export async function updateSupabaseSession(request: NextRequest) {
+  if (!hasSupabaseAuthCookie(request.cookies.getAll())) {
+    return NextResponse.next({ request });
+  }
+
   const env = getPublicEnv();
   let response = NextResponse.next({ request });
 

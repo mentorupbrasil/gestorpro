@@ -1,11 +1,11 @@
 # Fase atual
 
 - Fase atual: Fase 1 — Plataforma, segurança e isolamento
-- Subfase atual: plataforma, autenticação e isolamento
-- Tarefa atual: revisar contratos de autorização, schema e migration antes dos gates
-- Tarefas concluídas: Fase 0; bootstrap; CI; clientes lazy; erros/request ID; autenticação SSR; seleção tenant; RBAC; schema e migration/RLS iniciais
-- Tarefa seguinte: atualizar lockfile e executar formatação, lint, typecheck, unitários e build quando a aprovação voltar
-- Bloqueios: Docker/Supabase CLI ausentes; execução fora do sandbox temporariamente limitada pela conta
-- Testes pendentes: lint, typecheck, unitários, build, E2E, migration e RLS
-- Último commit: `5fdba2e` (`docs(phase-0): establish architecture and project governance`)
+- Subfase atual: validação de banco e isolamento
+- Tarefa atual: publicar o checkpoint verde da aplicação e acompanhar o CI
+- Tarefas concluídas: Fase 0; bootstrap; CI; Auth SSR; tenant/RBAC; schema/migration/RLS; UI administrativa; lint; typecheck; 18 unitários; 2 E2E; build
+- Tarefa seguinte: executar migration e pgTAP em Supabase descartável; corrigir qualquer achado de RLS
+- Bloqueios: Docker/Supabase CLI ausentes
+- Testes pendentes: migration, RLS real, tenant A/B autenticado e E2E autenticado/AAL2
+- Último commit publicado antes desta atualização: `aef748a` (`Commit`)
 - Atualizado em: 2026-07-12

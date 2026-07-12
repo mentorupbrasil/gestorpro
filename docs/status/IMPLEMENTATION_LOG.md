@@ -16,3 +16,6 @@
 - Revisão React adicionou navegação funcional, loading, error state, mensagens acessíveis e tabelas operacionais.
 - Revisão de segurança corrigiu escopo de unidade cruzado e removeu acesso autenticado à função genérica de auditoria.
 - Nenhuma migration foi aplicada e nenhum serviço externo foi conectado.
+- Commit `aef748a` foi publicado pelo usuário e abriu a PR #1; CI falhou em formatação do `tsconfig.json`.
+- Corrigidos o CI e o redirecionamento sem sessão, que antes aguardava Supabase indisponível.
+- Gates locais finais do checkpoint: formatação, lint, typecheck, 18 unitários, 2 E2E e build verdes.

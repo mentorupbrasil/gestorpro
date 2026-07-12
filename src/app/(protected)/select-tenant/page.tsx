@@ -1,9 +1,12 @@
+import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { tenantOptionListSchema } from "@/features/platform/schemas";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
+import { hasSupabaseAuthCookie } from "@/lib/supabase/auth-cookie";
 import { selectTenant } from "./actions";
 
 export default async function SelectTenantPage() {
+  if (!hasSupabaseAuthCookie((await cookies()).getAll())) redirect("/sign-in");
   const supabase = await createServerSupabaseClient();
   const { data: userData } = await supabase.auth.getUser();
   if (!userData.user) redirect("/sign-in");
