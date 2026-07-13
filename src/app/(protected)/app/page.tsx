@@ -31,7 +31,8 @@ export default async function WorkspacePage() {
         </form>
       </header>
       <p className="mt-8 text-slate-700">
-        Fundação de segurança ativa. Os módulos ocupacionais ainda não foram liberados.
+        Fundação de segurança ativa. O primeiro bloco do domínio ocupacional está liberado para
+        cadastros controlados.
       </p>
       <nav className="mt-8 border-y border-slate-200 py-4" aria-label="Administração da plataforma">
         <ul className="flex flex-wrap gap-6">
@@ -57,6 +58,14 @@ export default async function WorkspacePage() {
               href="/app/security"
             >
               Segurança da conta
+            </Link>
+          </li>
+          <li>
+            <Link
+              className="font-semibold text-emerald-800 underline-offset-4 hover:underline"
+              href="/app/occupational"
+            >
+              Domínio ocupacional
             </Link>
           </li>
         </ul>

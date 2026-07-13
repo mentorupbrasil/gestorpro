@@ -5,8 +5,8 @@ Atualizado em: 2026-07-12
 | Fase                         | Estado                | Observação                                   |
 | ---------------------------- | --------------------- | -------------------------------------------- |
 | 0 — Fundação documental      | TECHNICALLY_COMPLETED | auditoria aprovada; ADRs permanecem PROPOSTA |
-| 1 — Plataforma e segurança   | IN_PROGRESS           | app/CI/RLS verdes; MFA e E2E auth pendentes  |
-| 2 — Domínio ocupacional      | NOT_STARTED           | depende de isolamento comprovado             |
+| 1 — Plataforma e segurança   | TECHNICALLY_COMPLETED | typegen oficial pendente por ausência da CLI |
+| 2 — Domínio ocupacional      | IN_PROGRESS           | schema/motor/telas iniciais em implementação |
 | 3 — Encaminhamentos e agenda | NOT_STARTED           | —                                            |
 | 4 — Check-in, etapas e filas | NOT_STARTED           | —                                            |
 | 5 — Painel de chamadas       | NOT_STARTED           | —                                            |
@@ -17,4 +17,4 @@ Atualizado em: 2026-07-12
 | 10 — Integrações             | NOT_STARTED           | credenciais/documentação oficial futuras     |
 | 11 — Produção e piloto       | NOT_STARTED           | produção não autorizada                      |
 
-Branch: `codex/desenvolvimento-completo-unimetra`. Último commit publicado: `c8608e9`.
+Branch atual: `feat/fase-2-dominio-ocupacional`. Último commit publicado antes da Fase 2: `958b6b9`.

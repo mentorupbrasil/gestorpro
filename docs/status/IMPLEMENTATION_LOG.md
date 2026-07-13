@@ -29,3 +29,7 @@
 - Ações críticas de unidades e memberships passaram a exigir `aal2` além de permissão RBAC.
 - Criado seed autenticado reproduzível para Supabase real, preservando auditoria append-only e limpando fatores MFA do usuário fictício.
 - E2E autenticado real passou com login, seleção de tenant, bloqueio sem MFA, cadastro TOTP, sessão `aal2` e criação de unidade auditada.
+- Iniciada a Fase 2 na branch `feat/fase-2-dominio-ocupacional`, com avanço autorizado pelo usuário apesar do typegen oficial ainda pendente por falta de Supabase CLI.
+- Criada migration do domínio ocupacional com empresas, estabelecimentos, contatos, setores, funções, GHE, riscos, vínculos, PCMSO versionado, catálogo, protocolos, overrides e preços separados.
+- Criado motor de cálculo de exames como função pura de domínio, sem decisão de aptidão.
+- Criadas telas operacionais iniciais para empresa, trabalhador, catálogo de exames e PCMSO.

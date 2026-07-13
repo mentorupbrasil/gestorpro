@@ -17,7 +17,8 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "seed:e2e:auth": "node scripts/seed-authenticated-e2e.mjs",
-    "test:e2e": "node scripts/run-e2e.mjs"
+    "test:e2e": "node scripts/run-e2e.mjs",
+    "validate:supabase:phase2": "node scripts/validate-phase2-supabase.mjs"
   },
   "dependencies": {
     "@supabase/ssr": "0.12.0",
