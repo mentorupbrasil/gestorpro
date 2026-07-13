@@ -16,6 +16,19 @@ export const setMembershipStatusSchema = z.object({
   tenantId: z.uuid(),
 });
 
+export const provisionTenantSchema = z.object({
+  legalName: z.string().trim().min(2).max(200),
+  tradeName: z.string().trim().min(2).max(120).optional(),
+});
+
+export const signUpSchema = z.object({
+  displayName: z.string().trim().min(2).max(120),
+  email: z.email(),
+  legalName: z.string().trim().min(2).max(200),
+  password: z.string().min(8).max(128),
+  tradeName: z.string().trim().min(2).max(120).optional(),
+});
+
 export const tenantOptionListSchema = z.array(
   z.object({
     tenant_id: z.uuid(),
@@ -44,3 +57,5 @@ export const accessMembershipListSchema = z.array(
 
 export type CreateClinicUnitInput = z.infer<typeof createClinicUnitSchema>;
 export type SetMembershipStatusInput = z.infer<typeof setMembershipStatusSchema>;
+export type ProvisionTenantInput = z.infer<typeof provisionTenantSchema>;
+export type SignUpInput = z.infer<typeof signUpSchema>;

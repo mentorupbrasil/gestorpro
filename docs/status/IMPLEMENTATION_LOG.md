@@ -111,4 +111,4 @@
 - CI pinado por SHA e ampliado com CodeQL, dependency review, Dependabot, secret scan, audit e verificação de tipos Supabase.
 - Corrigidas duas vulnerabilidades moderadas transitivas com overrides de PostCSS/esbuild; auditoria passou sem achados.
 - Corrigidas leituras de relações embutidas do Supabase (`exam_catalog`, `companies`, `external_laboratories`) que quebravam espirometria, financeiro e laboratório em runtime.
-- Adicionado typegen offline a partir das migrations (`database.generated.ts` + fingerprint), com fallback automático quando não há credenciais Supabase.
+- Adicionado fluxo de uso real: cadastro em `/sign-up`, criação de organização em `/select-tenant` e provisionamento via `provision_tenant_for_user` com service role no servidor.

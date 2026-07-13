@@ -50,6 +50,12 @@ export function SignInForm() {
       >
         Esqueci minha senha
       </Link>
+      <Link
+        className="text-sm font-semibold text-emerald-800 underline-offset-4 hover:underline"
+        href="/sign-up"
+      >
+        Criar conta e organização
+      </Link>
     </form>
   );
 }
