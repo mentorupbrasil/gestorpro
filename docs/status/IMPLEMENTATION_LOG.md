@@ -74,3 +74,6 @@
 - Consultada documentação técnica oficial do eSocial em 2026-07-13: leiautes S-1.3 até NT 06/2026 rev. 09/04/2026, XSD produção 27/04/2026 e MOS S-1.3 consolidado até NO 11/2026.
 - Iniciada a Fase 10B na branch `feat/fase-10b-esocial`.
 - Criada migration de eSocial com versão de layout, eventos, validações, lotes, submissões, recibos e rejeições sem envio real para produção.
+- Iniciada a Fase 10C na branch `feat/fase-10c-mensagens`.
+- Criada migration de mensagens com templates versionados, consentimento/base, opt-out, fila durável e entregas.
+- Criadas validações para bloquear conteúdo clínico sensível em mensagens abertas e exigir provedor oficial para WhatsApp.
