@@ -1,6 +1,5 @@
 "use client";
 
-import Image from "next/image";
 import { useActionState } from "react";
 import {
   startTotpEnrollment,
@@ -46,12 +45,13 @@ export function TotpEnrollmentForm() {
       ) : null}
       {enrollmentState.enrollment ? (
         <div className="mt-5 grid gap-5 md:grid-cols-[12rem_1fr] md:items-start">
-          <Image
+          {/* data:image/svg+xml do Supabase TOTP não é suportado por next/image */}
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
             alt="QR Code para configurar MFA"
             className="h-48 w-48 border border-slate-200 bg-white p-2"
             height={192}
             src={enrollmentState.enrollment.qrCode}
-            unoptimized
             width={192}
           />
           <div>

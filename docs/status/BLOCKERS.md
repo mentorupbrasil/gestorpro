@@ -7,26 +7,22 @@
 
 ## P0.1 — triagem operacional
 
-- Migration `202607140002` aplicada no Supabase autorizado (2026-07-13).
-- Checklist UI manual ainda pendente (`pnpm dev`).
+- Checklist UI manual **fechado** em 2026-07-13 com MFA/AAL2 no Tenant E2E.
+- Correções aplicadas: alias `log_audit`, fix `queue_tickets.updated_at` inexistente.
 
 ## P0.2 — consulta operacional
 
-- Migration `202607140003` aplicada no Supabase autorizado (2026-07-13).
-- Checklist UI manual pendente.
+- Checklist UI manual **fechado** em 2026-07-13 (SOAP + conclusão da consulta + MFA).
 
 ## P0.3 — conclusão operacional
 
-- Código e testes unitários entregues (2026-07-13).
-- Migration `202607140004_grant_operational_rpcs.sql` aplicada.
-- Checklist UI manual pendente (`/app/clinical?conclusion=<encounter_id>` + MFA).
+- Checklist UI manual **fechado** em 2026-07-13 (`signature_status = prepared`).
 
 ## Fase A — typegen e PostgreSQL
-- Docker/PostgreSQL local continuam indisponíveis; a migration de hardening e os testes de bypass não puderam ser executados em banco real nesta sessão.
-- Em 2026-07-12, um projeto Supabase de teste autorizado foi validado via Session Pooler: migration aplicada, RLS real testado, isolamento tenant A/B confirmado, membership bloqueada perde acesso e auditoria append-only bloqueia mutação.
-- Em 2026-07-12, MFA/TOTP e E2E autenticado real foram validados no mesmo ambiente Supabase autorizado.
 
-Os bloqueios de banco/RLS real, MFA/AAL2 e E2E autenticado foram removidos apenas para o checkpoint antigo. A Fase A não pode ser aceita enquanto typegen, hardening/RLS real, integridade composta e E2E autenticado da nova base permanecerem pendentes.
+- Typegen oficial remoto continua pendente: `SUPABASE_ACCESS_TOKEN` ausente no `.env`; `types:supabase:generate` caiu para offline.
+- Testes negativos de bypass/RLS reexecutados no pooler autorizado (AAL1 bloqueado, outsider sem permissão, isolamento tenant B = 0, audit append-only).
+- `validate-phase1-supabase.mjs` passou após correção de `request.jwt.claims` (AAL2).
 
 ## Fase A — integridade multi-tenant
 

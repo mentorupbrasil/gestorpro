@@ -1,5 +1,22 @@
 # Resultados de testes e verificações
 
+## 2026-07-13 — Validação manual MFA P0.1–P0.3 + RLS negativos
+
+- MFA/TOTP enrollment no usuário demo (`/app/security`): sessão `aal2`.
+- Fluxo encounter `e8000000-0000-4000-8000-000000000001` (Tenant E2E):
+  - Triagem: rascunho + IMC 24.2 + conclusão; eventos `triage.started`/`triage.completed`.
+  - Consulta: SOAP + conclusão; evento `consultation.completed`.
+  - Conclusão: `medical_conclusions.signature_status = prepared`, código `fit`.
+- Correções necessárias para fechar o fluxo:
+  - `totp-enrollment-form.tsx`: QR `data:image/svg+xml` via `<img>` (next/image quebrava).
+  - Select de credenciais médicas: incluir `council_region` + `professional_role`.
+  - Migration `202607140005_log_audit_alias.sql` (RPCs chamavam `log_audit` inexistente).
+  - Migration `202607140006_fix_triage_queue_tickets_update.sql` (remove `queue_tickets.updated_at` inválido).
+- `node scripts/validate-rls-bypass-negatives.mjs`: AAL1 bloqueado; outsider sem permissão; tenant B invisível; audit append-only.
+- `node --env-file=.env scripts/validate-phase1-supabase.mjs`: passou.
+- `npm run types:supabase:generate`: **offline** (sem `SUPABASE_ACCESS_TOKEN`); typegen oficial remoto permanece aberto.
+- `npm run typecheck`: passou.
+
 ## 2026-07-13 — P0.3 Estação de conclusão operacional
 
 - `npm run typecheck`: passou.

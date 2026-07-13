@@ -511,7 +511,7 @@ export async function loadConsultationWorkspace(
     supabase
       .from("clinical_professional_credentials")
       .select(
-        "id, council_code, registration_number, user_id, user_profiles(display_name)",
+        "id, council_code, council_region, professional_role, registration_number, user_id, user_profiles(display_name)",
       )
       .eq("tenant_id", context.tenantId)
       .eq("professional_role", "physician")
@@ -757,7 +757,7 @@ export async function loadConclusionWorkspace(
     supabase
       .from("clinical_professional_credentials")
       .select(
-        "id, council_code, council_region, registration_number, user_id, user_profiles(display_name)",
+        "id, council_code, council_region, professional_role, registration_number, user_id, user_profiles(display_name)",
       )
       .eq("tenant_id", context.tenantId)
       .eq("professional_role", "physician")

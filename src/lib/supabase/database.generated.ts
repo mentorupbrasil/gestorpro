@@ -5046,6 +5046,12 @@ export type Database = {
         }
         Returns: string
       }
+      enrich_triage_payload: {
+        Args: {
+          payload_value: Json
+        }
+        Returns: Json
+      }
       get_my_authorization_context: {
         Args: {
           target_tenant_id: string
@@ -5112,6 +5118,17 @@ export type Database = {
           billing_item_ids: string[]
           due_on_value: string
           target_company_id: string
+          target_tenant_id: string
+        }
+        Returns: string
+      }
+      log_audit: {
+        Args: {
+          audit_action: string
+          audit_entity_id: string
+          audit_entity_type: string
+          audit_metadata_redacted: Json
+          audit_request_id: string
           target_tenant_id: string
         }
         Returns: string
@@ -5245,6 +5262,21 @@ export type Database = {
           result_payload_value: Json
           status_value: string
           target_order_item_id: string
+          target_tenant_id: string
+        }
+        Returns: string
+      }
+      save_medical_consultation: {
+        Args: {
+          assessment_value: string
+          audit_request_id: string
+          change_reason: string
+          close_record: boolean
+          objective_value: Json
+          physician_credential_id_value: string
+          plan_value: string
+          subjective_value: Json
+          target_encounter_id: string
           target_tenant_id: string
         }
         Returns: string

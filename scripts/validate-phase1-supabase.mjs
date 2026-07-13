@@ -115,7 +115,15 @@ async function validateRls() {
       await sql`set local role authenticated`;
       await sql`select set_config('request.jwt.claim.sub', '10000000-0000-4000-8000-000000000001', true)`;
       await sql`select set_config('request.jwt.claim.role', 'authenticated', true)`;
-      await sql`select set_config('request.jwt.claim.aal', 'aal1', true)`;
+      await sql`select set_config(
+        'request.jwt.claims',
+        ${JSON.stringify({
+          sub: "10000000-0000-4000-8000-000000000001",
+          role: "authenticated",
+          aal: "aal2",
+        })},
+        true
+      )`;
 
       const visibleTenants = await sql`select count(*)::int as count from public.tenants`;
       if (visibleTenants[0].count !== 1) {
