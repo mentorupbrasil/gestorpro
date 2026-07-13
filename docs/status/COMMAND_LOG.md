@@ -29,3 +29,4 @@ Saídas resumidas e resultados estão em `TEST_RESULTS.md`; valores de segredo n
 - Fase A: `git fetch`, inventário Git/PR refs, fast-forward local para a branch contínua e scanners de código/SQL executados.
 - Instalada Supabase CLI 2.109.1; executados format, lint, typecheck, unitários, secret scan, audit, build e E2E público.
 - Consultadas referências públicas oficiais de SOC, RSData e Meddbase para benchmark, sem inferir ausência de funcionalidades não divulgadas.
+- Iniciada consolidação Git solicitada pelo responsável: referências remotas sincronizadas e ancestralidade mapeada. A atualização de `main` e a remoção das três branches auxiliares ficam condicionadas a merge sem perda, gates locais e verificação remota de todos os commits.
