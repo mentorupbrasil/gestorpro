@@ -59,3 +59,6 @@
 - Iniciada a Fase 7D na branch `feat/fase-7d-ecg-eeg-radiologia`.
 - Criado modelo comum para ECG, EEG e radiologia com preparo, execução, arquivos privados, laudo, conclusão, validação externa e versões.
 - Adicionadas validações para impedir arquivo clínico público e conclusão reportada sem laudo humano.
+- Iniciada a Fase 7E na branch `feat/fase-7e-laboratorio`.
+- Criada migration de laboratório com pedidos, itens, amostras, eventos, resultados, revisão/liberação, críticos e laboratório externo.
+- Criadas validações de liberação crítica, referência configurável e payload opcional de código de barras sem conteúdo clínico.

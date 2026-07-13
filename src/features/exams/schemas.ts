@@ -171,3 +171,32 @@ export const saveDiagnosticExamResultSchema = z.object({
 });
 
 export type SaveDiagnosticExamResultInput = z.infer<typeof saveDiagnosticExamResultSchema>;
+
+export const recordLaboratorySampleEventSchema = z.object({
+  eventType: z.enum([
+    "collected",
+    "received",
+    "processing_started",
+    "disposed",
+    "cancelled",
+    "corrected",
+  ]),
+  payload: z.record(z.string(), z.unknown()).default({}),
+  sampleId: z.string().uuid(),
+  tenantId: z.string().uuid(),
+});
+
+export type RecordLaboratorySampleEventInput = z.infer<typeof recordLaboratorySampleEventSchema>;
+
+export const saveLaboratoryResultSchema = z.object({
+  correctionReason: z.string().min(3).max(500),
+  criticalConfirmed: z.boolean().default(false),
+  criticalFlag: z.boolean().default(false),
+  orderItemId: z.string().uuid(),
+  referenceRangeSnapshot: z.record(z.string(), z.unknown()),
+  resultPayload: z.record(z.string(), z.unknown()),
+  status: z.enum(["resulted", "reviewed", "released", "repeated", "cancelled"]),
+  tenantId: z.string().uuid(),
+});
+
+export type SaveLaboratoryResultInput = z.infer<typeof saveLaboratoryResultSchema>;

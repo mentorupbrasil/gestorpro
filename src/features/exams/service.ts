@@ -7,18 +7,22 @@ import { createServerSupabaseClient } from "@/lib/supabase/server";
 import {
   saveAudiometryResultSchema,
   saveDiagnosticExamResultSchema,
+  saveLaboratoryResultSchema,
   saveSpirometryManeuverSchema,
   saveVisualAcuityResultSchema,
   startAudiometryExamSchema,
   startSpirometryExamSchema,
   startVisualAcuityExamSchema,
+  recordLaboratorySampleEventSchema,
   type SaveAudiometryResultInput,
   type SaveDiagnosticExamResultInput,
+  type SaveLaboratoryResultInput,
   type SaveSpirometryManeuverInput,
   type SaveVisualAcuityResultInput,
   type StartAudiometryExamInput,
   type StartSpirometryExamInput,
   type StartVisualAcuityExamInput,
+  type RecordLaboratorySampleEventInput,
 } from "./schemas";
 import { assertAuditoryRest, validateAudiometryThresholds } from "./audiometry";
 import {
@@ -26,6 +30,7 @@ import {
   assertPrivateStorageRefs,
   assertReportWithoutInterpretationAutomation,
 } from "./diagnostic-exams";
+import { assertLaboratoryRelease, assertReferenceRangeConfig } from "./laboratory";
 import {
   assertAcceptedManeuver,
   computeSpirometryPercentages,
@@ -268,6 +273,68 @@ export async function saveDiagnosticExamResult(
 
   if (error || typeof data !== "string") {
     throw new AppError("INTERNAL_ERROR", "Não foi possível salvar exame diagnóstico.", {
+      cause: error,
+      status: 500,
+    });
+  }
+
+  return data;
+}
+
+export async function recordLaboratorySampleEvent(
+  input: RecordLaboratorySampleEventInput,
+  requestId: string,
+) {
+  const parsed = recordLaboratorySampleEventSchema.parse(input);
+  const context = await resolveAuthorizationContext(parsed.tenantId);
+  requirePermission(context, "exams.manage");
+  requireAal2(context);
+
+  const supabase = await createServerSupabaseClient();
+  const { data, error } = await supabase.rpc("record_laboratory_sample_event", {
+    audit_request_id: requestId,
+    event_type_value: parsed.eventType,
+    payload_value: parsed.payload,
+    target_sample_id: parsed.sampleId,
+    target_tenant_id: context.tenantId,
+  });
+
+  if (error || typeof data !== "string") {
+    throw new AppError("INTERNAL_ERROR", "Não foi possível registrar evento da amostra.", {
+      cause: error,
+      status: 500,
+    });
+  }
+
+  return data;
+}
+
+export async function saveLaboratoryResult(input: SaveLaboratoryResultInput, requestId: string) {
+  const parsed = saveLaboratoryResultSchema.parse(input);
+  const context = await resolveAuthorizationContext(parsed.tenantId);
+  requirePermission(context, "exams.manage");
+  requireAal2(context);
+  assertReferenceRangeConfig(parsed.referenceRangeSnapshot);
+  assertLaboratoryRelease({
+    criticalConfirmed: parsed.criticalConfirmed,
+    criticalFlag: parsed.criticalFlag,
+    status: parsed.status,
+  });
+
+  const supabase = await createServerSupabaseClient();
+  const { data, error } = await supabase.rpc("save_laboratory_result", {
+    audit_request_id: requestId,
+    correction_reason: parsed.correctionReason,
+    critical_flag_value: parsed.criticalFlag,
+    reference_range_snapshot_value: parsed.referenceRangeSnapshot,
+    result_payload_value: parsed.resultPayload,
+    status_value: parsed.status,
+    target_order_item_id: parsed.orderItemId,
+    target_tenant_id: context.tenantId,
+  });
+
+  if (error || typeof data !== "string") {
+    throw new AppError("INTERNAL_ERROR", "Não foi possível salvar resultado laboratorial.", {
       cause: error,
       status: 500,
     });
