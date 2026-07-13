@@ -8,7 +8,7 @@
 ## P0.1 — triagem operacional
 
 - `.env` local ausente; variáveis `MIGRATION_DATABASE_URL` / `PGHOST`+`PGPASSWORD` não definidas. Migration `202607140002_triage_operational_hardening.sql` e checklist manual bloqueados até credenciais do Supabase autorizado.
-- Comando preparado: `pnpm migrate:triage` (após configurar `.env`).
+- Comandos: `pnpm migrate:triage` (só migration) ou `pnpm validate:supabase:triage` (migration + checklist SQL fictício).
 
 ## Fase A — typegen e PostgreSQL
 

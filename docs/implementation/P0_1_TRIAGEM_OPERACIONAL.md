@@ -53,7 +53,7 @@ Não utilizar dados pessoais reais neste checklist.
 | 11 | Usuário sem permissão negado | Bloqueado | Código mapeia `42501` em `service.ts`; validação real pendente |
 | 12 | Outro tenant negado | Bloqueado | RLS/RPC no SQL; validação real pendente |
 
-**Alinhamento estático (sem execução):** migration define `is_aal2`, `has_encounter_permission('triage.manage')`, `enrich_triage_payload`, versionamento, eventos `triage.*` e `log_audit`; `service.ts` chama `save_triage_record` com `target_tenant_id` do contexto server-side e trata `42501`.
+**Comando:** `pnpm validate:supabase:triage` (requer `.env` com Supabase autorizado).
 
 ## Limitações remanescentes
 

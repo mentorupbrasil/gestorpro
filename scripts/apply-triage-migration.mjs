@@ -1,5 +1,29 @@
 import fs from "node:fs/promises";
+import { existsSync, readFileSync } from "node:fs";
 import postgres from "postgres";
+
+function loadEnvFile() {
+  for (const file of [".env.local", ".env"]) {
+    if (!existsSync(file)) continue;
+    for (const line of readFileSync(file, "utf8").split(/\r?\n/)) {
+      const trimmed = line.trim();
+      if (!trimmed || trimmed.startsWith("#")) continue;
+      const separator = trimmed.indexOf("=");
+      if (separator === -1) continue;
+      const key = trimmed.slice(0, separator).trim();
+      let value = trimmed.slice(separator + 1).trim();
+      if (
+        (value.startsWith('"') && value.endsWith('"')) ||
+        (value.startsWith("'") && value.endsWith("'"))
+      ) {
+        value = value.slice(1, -1);
+      }
+      if (!process.env[key]) process.env[key] = value;
+    }
+  }
+}
+
+loadEnvFile();
 
 const connectionString =
   process.env.MIGRATION_DATABASE_URL ?? process.env.DATABASE_URL ?? null;

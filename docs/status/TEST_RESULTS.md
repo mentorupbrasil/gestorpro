@@ -16,8 +16,8 @@
   - Arquivo `.env` ausente no workspace (somente `.env.example`).
   - Variáveis de ambiente não definidas: `PGHOST`, `PGPASSWORD`, `DATABASE_URL`, `MIGRATION_DATABASE_URL`, `NEXT_PUBLIC_SUPABASE_URL`.
 - Sem credenciais locais, a migration não foi executada e nenhuma validação SQL/RPC foi inventada.
-- Script `pnpm migrate:triage` adicionado para aplicar quando `.env` existir.
-- Revalidação 2026-07-13 11:14: typecheck, lint e 8 testes unitários passaram novamente.
+- Script `pnpm validate:supabase:triage` adicionado para aplicar migration + checklist SQL fictício.
+- Execução bloqueada: `.env` ausente; Docker/Supabase local indisponível.
 
 ### Checklist manual (`docs/implementation/P0_1_TRIAGEM_OPERACIONAL.md`)
 
