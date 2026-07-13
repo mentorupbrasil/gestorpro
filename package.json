@@ -23,7 +23,8 @@
     "types:supabase:generate": "node scripts/generate-supabase-types.mjs",
     "types:supabase:generate:offline": "node scripts/generate-supabase-types-offline.mjs",
     "validate:supabase:phase2": "node scripts/validate-phase2-supabase.mjs",
-    "migrate:triage": "node scripts/apply-triage-migration.mjs",
+    "seed:clinical:demo": "node scripts/seed-clinical-demo.mjs",
+    "migrate:all": "node scripts/apply-all-migrations.mjs",
     "validate:supabase:triage": "node scripts/validate-triage-supabase.mjs"
   },
   "dependencies": {

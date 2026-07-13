@@ -55,8 +55,9 @@ export default async function ClinicalPage({ searchParams }: ClinicalPageProps) 
 
   const physicians = physicianCredentialListSchema.parse(physiciansResult.data);
   const consultations = (consultationsResult.data ?? []).map((consultation) => ({
+    encounterId: consultation.encounter_id,
     id: consultation.id,
-    name: `${consultation.encounter_id} · ${consultation.status}`,
+    name: `${consultation.encounter_id.slice(0, 8)}… · ${consultation.status}`,
   }));
 
   return (
