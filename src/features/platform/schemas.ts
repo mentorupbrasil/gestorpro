@@ -16,6 +16,18 @@ export const setMembershipStatusSchema = z.object({
   tenantId: z.uuid(),
 });
 
+export const assignMembershipRoleSchema = z.object({
+  clinicUnitId: z.uuid().nullable().optional(),
+  membershipId: z.uuid(),
+  roleId: z.uuid(),
+  tenantId: z.uuid(),
+});
+
+export const revokeMembershipRoleSchema = z.object({
+  membershipRoleId: z.uuid(),
+  tenantId: z.uuid(),
+});
+
 export const provisionTenantSchema = z.object({
   legalName: z.string().trim().min(2).max(200),
   tradeName: z.string().trim().min(2).max(120).optional(),
@@ -48,14 +60,36 @@ export const clinicUnitListSchema = z.array(
 export const accessMembershipListSchema = z.array(
   z.object({
     id: z.uuid(),
-    membership_roles: z.array(z.object({ roles: z.object({ name: z.string() }).nullable() })),
+    membership_roles: z.array(
+      z.object({
+        id: z.uuid(),
+        roles: z
+          .object({
+            code: z.string(),
+            id: z.uuid(),
+            name: z.string(),
+          })
+          .nullable(),
+      }),
+    ),
     status: z.enum(["active", "blocked", "inactive"]),
     user_id: z.uuid(),
     user_profiles: z.object({ display_name: z.string() }).nullable(),
   }),
 );
 
+export const assignableRoleListSchema = z.array(
+  z.object({
+    code: z.string(),
+    id: z.uuid(),
+    name: z.string(),
+    tenant_id: z.uuid().nullable(),
+  }),
+);
+
 export type CreateClinicUnitInput = z.infer<typeof createClinicUnitSchema>;
 export type SetMembershipStatusInput = z.infer<typeof setMembershipStatusSchema>;
+export type AssignMembershipRoleInput = z.infer<typeof assignMembershipRoleSchema>;
+export type RevokeMembershipRoleInput = z.infer<typeof revokeMembershipRoleSchema>;
 export type ProvisionTenantInput = z.infer<typeof provisionTenantSchema>;
 export type SignUpInput = z.infer<typeof signUpSchema>;

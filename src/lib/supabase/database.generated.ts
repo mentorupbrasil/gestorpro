@@ -8324,6 +8324,45 @@ export type Database = {
         };
         Returns: undefined;
       };
+      assign_membership_role: {
+        Args: {
+          audit_request_id: string;
+          target_clinic_unit_id: string | null;
+          target_membership_id: string;
+          target_role_id: string;
+          target_tenant_id: string;
+        };
+        Returns: string;
+      };
+      revoke_membership_role: {
+        Args: {
+          audit_request_id: string;
+          target_membership_role_id: string;
+          target_tenant_id: string;
+        };
+        Returns: undefined;
+      };
+      log_sensitive_read: {
+        Args: {
+          access_result: string;
+          audit_action: string;
+          audit_entity_id: string | null;
+          audit_entity_type: string;
+          audit_request_id: string;
+          target_tenant_id: string;
+        };
+        Returns: string;
+      };
+      log_document_access: {
+        Args: {
+          access_type_value: string;
+          audit_request_id: string;
+          expires_at_value: string | null;
+          target_document_version_id: string;
+          target_tenant_id: string;
+        };
+        Returns: string;
+      };
       sign_document_version: {
         Args: {
           aal_value: string;

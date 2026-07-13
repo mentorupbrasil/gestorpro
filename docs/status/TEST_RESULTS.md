@@ -1,5 +1,13 @@
 # Resultados de testes e verificações
 
+## 2026-07-13 — P0.5 proteção de papéis
+
+- `vitest` `tests/unit/platform-schemas.test.ts`: schemas de assign/revoke OK.
+- Migration `202607140010` no repo; apply no Supabase autorizado ainda pendente.
+- Fingerprint `src/lib/supabase/database.generated.sha256` regenerado após a migration.
+- Tipos RPC `assign_membership_role` / `revoke_membership_role` adicionados em `database.generated.ts`.
+
+
 ## 2026-07-13 — Validação manual MFA P0.1–P0.3 + RLS negativos
 
 - MFA/TOTP enrollment no usuário demo (`/app/security`): sessão `aal2`.

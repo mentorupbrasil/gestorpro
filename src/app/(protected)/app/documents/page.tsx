@@ -1,7 +1,9 @@
-import { cookies } from "next/headers";
+import { cookies, headers } from "next/headers";
 import { redirect } from "next/navigation";
 import { requirePermission } from "@/core/auth/authorization";
 import { resolveAuthorizationContext } from "@/core/auth/session";
+import { recordSensitiveRead } from "@/features/audit/sensitive-read";
+import { getRequestId } from "@/lib/http/request-id";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 
 export default async function DocumentsPage() {
@@ -10,6 +12,7 @@ export default async function DocumentsPage() {
 
   const context = await resolveAuthorizationContext(selectedTenantId);
   requirePermission(context, "documents.read");
+  const requestId = getRequestId(await headers());
 
   const supabase = await createServerSupabaseClient();
   const [templatesResult, documentsResult, versionsResult, deliveriesResult] = await Promise.all([
@@ -46,6 +49,13 @@ export default async function DocumentsPage() {
   ) {
     throw new Error("Não foi possível carregar documentos.");
   }
+
+  await recordSensitiveRead({
+    action: "document.list_viewed",
+    entityType: "document_collection",
+    requestId,
+    tenantId: context.tenantId,
+  });
 
   const templates = templatesResult.data ?? [];
   const documents = documentsResult.data ?? [];

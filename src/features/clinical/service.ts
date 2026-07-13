@@ -3,6 +3,7 @@ import "server-only";
 import { requireAal2, requirePermission, requireUnitPermission } from "@/core/auth/authorization";
 import { resolveAuthorizationContext } from "@/core/auth/session";
 import { AppError } from "@/core/errors/app-error";
+import { recordSensitiveRead } from "@/features/audit/sensitive-read";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 import {
   approvedTriageFormVersionSchema,
@@ -497,6 +498,7 @@ function mapConsultationQueueRow(
 export async function loadConsultationWorkspace(
   tenantId: string,
   selectedEncounterId?: string,
+  requestId?: string,
 ): Promise<ConsultationWorkspace> {
   const context = await resolveAuthorizationContext(tenantId);
   requirePermission(context, "clinical.read");
@@ -685,6 +687,16 @@ export async function loadConsultationWorkspace(
         };
       }
     }
+  }
+
+  if (selectedEncounterId && requestId) {
+    await recordSensitiveRead({
+      action: "chart.viewed",
+      entityId: selectedEncounterId,
+      entityType: "encounter",
+      requestId,
+      tenantId: context.tenantId,
+    });
   }
 
   return {

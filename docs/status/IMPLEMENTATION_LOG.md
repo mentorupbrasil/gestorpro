@@ -112,3 +112,16 @@
 - Corrigidas duas vulnerabilidades moderadas transitivas com overrides de PostCSS/esbuild; auditoria passou sem achados.
 - Corrigidas leituras de relações embutidas do Supabase (`exam_catalog`, `companies`, `external_laboratories`) que quebravam espirometria, financeiro e laboratório em runtime.
 - Adicionado fluxo de uso real: cadastro em `/sign-up`, criação de organização em `/select-tenant` e provisionamento via `provision_tenant_for_user` com service role no servidor.
+
+## 2026-07-13 — P0.5 proteção administrativa de papéis
+
+- Migration `202607140010_p0_5_admin_role_protection.sql`: RPCs `assign_membership_role` e `revoke_membership_role` com AAL2, `roles.manage`, anti-autoelevação, proteção do último `tenant_admin`, auditoria transacional e grant explícito.
+- App: schemas/serviço/actions + UI em `/app/access` para conceder/remover papéis.
+- Bloqueio/inativação de vínculo passa a tentar `auth.admin.signOut(userId, "global")` via service role (best-effort).
+- Teste pgTAP negativo em `supabase/tests/p0_5_admin_role_protection.sql`; schemas unitários ampliados; fingerprint de migrations atualizado.
+
+## 2026-07-13 — P0.6 auditoria de leitura sensível (checkpoint)
+
+- Migration `202607140011_p0_6_sensitive_read_audit.sql`: RPCs `log_sensitive_read` e `log_document_access` (metadados only).
+- Helper `src/features/audit/sensitive-read.ts`; wired em consulta (`chart.viewed`) e lista de documentos (`document.list_viewed`).
+- Apply no Supabase autorizado ainda pendente.

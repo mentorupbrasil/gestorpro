@@ -1,4 +1,4 @@
-import { cookies } from "next/headers";
+import { cookies, headers } from "next/headers";
 import { redirect } from "next/navigation";
 import { z } from "zod";
 import { requirePermission } from "@/core/auth/authorization";
@@ -8,6 +8,7 @@ import {
   loadConsultationWorkspace,
   loadTriageWorkspace,
 } from "@/features/clinical/service";
+import { getRequestId } from "@/lib/http/request-id";
 import { ConclusionStation } from "./conclusion-station";
 import { ConsultationStation } from "./consultation-station";
 import { TriageStation } from "./triage-station";
@@ -36,7 +37,11 @@ export default async function ClinicalPage({ searchParams }: ClinicalPageProps) 
 
   const [triageWorkspace, consultationWorkspace, conclusionWorkspace] = await Promise.all([
     loadTriageWorkspace(selectedTenantId, selectedEncounterId),
-    loadConsultationWorkspace(selectedTenantId, selectedConsultationId),
+    loadConsultationWorkspace(
+      selectedTenantId,
+      selectedConsultationId,
+      getRequestId(await headers()),
+    ),
     loadConclusionWorkspace(selectedTenantId, selectedConclusionId),
   ]);
 
