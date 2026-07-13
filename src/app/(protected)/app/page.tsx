@@ -84,6 +84,14 @@ export default async function WorkspacePage() {
               Check-in e filas
             </Link>
           </li>
+          <li>
+            <Link
+              className="font-semibold text-emerald-800 underline-offset-4 hover:underline"
+              href="/app/display"
+            >
+              Painel de chamadas
+            </Link>
+          </li>
         </ul>
       </nav>
     </main>

@@ -23,6 +23,8 @@ export const permissions = [
   "encounters.manage",
   "queues.read",
   "queues.manage",
+  "display.read",
+  "display.manage",
 ] as const;
 
 export type Permission = (typeof permissions)[number];

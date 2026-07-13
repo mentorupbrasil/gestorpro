@@ -41,3 +41,6 @@
 - Iniciada a Fase 4 na branch `feat/fase-4-checkin-fluxo-filas`.
 - Criada migration de check-in transacional com encounters, snapshots imutáveis, steps, events, exam_orders, queues, idempotency_keys e outbox_events.
 - Criados motor de estado de atendimento/etapas/fila e tela operacional de check-in.
+- Iniciada a Fase 5 na branch `feat/fase-5-painel-chamadas`.
+- Criada migration de painéis, sessões, heartbeats, eventos de chamada e entregas com payload público mínimo.
+- Criados motor de payload seguro/heartbeat e tela operacional de painel de chamadas.
