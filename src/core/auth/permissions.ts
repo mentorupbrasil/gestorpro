@@ -42,6 +42,8 @@ export const permissions = [
   "company_portal.manage",
   "integrations.read",
   "integrations.manage",
+  "esocial.read",
+  "esocial.manage",
 ] as const;
 
 export type Permission = (typeof permissions)[number];

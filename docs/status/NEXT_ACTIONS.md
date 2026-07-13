@@ -1,6 +1,6 @@
 # Próximas ações
 
-1. Publicar checkpoint da Fase 10A com infraestrutura de integrações e webhooks.
-2. Antes da Fase 10B, consultar documentação oficial vigente do eSocial e registrar versão/data.
-3. Implementar domínio interno eSocial sem envio real para produção.
+1. Publicar checkpoint da Fase 10B com domínio eSocial versionado.
+2. Avançar para Fase 10C — mensagens e notificações sem conteúdo clínico sensível.
+3. Manter eSocial sem envio real até autorização e validação oficial separadas.
 4. Manter pendências de revisão final, typegen oficial e validação humana para retorno posterior.

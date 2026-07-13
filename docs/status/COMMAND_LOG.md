@@ -19,3 +19,9 @@
 - `node scripts/validate-phase1-supabase.mjs` executado com credenciais temporárias em variáveis de ambiente; validação de migration/RLS passou.
 
 Saídas resumidas e resultados estão em `TEST_RESULTS.md`; valores de segredo nunca são registrados.
+
+## 2026-07-13
+
+- Consulta oficial da documentação técnica do eSocial em `https://www.gov.br/esocial/pt-br/documentacao-tecnica`.
+- Versão registrada para Fase 10B: leiautes eSocial S-1.3 até NT 06/2026 rev. 09/04/2026; XSD S-1.3 produção em 27/04/2026; MOS S-1.3 consolidado até NO 11/2026.
+- Fase 10B implementada sem credenciais, sem envio real e sem produção autorizada.

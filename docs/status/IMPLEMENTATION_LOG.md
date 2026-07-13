@@ -71,3 +71,6 @@
 - Iniciada a Fase 10A na branch `feat/fase-10a-integracoes-webhooks`.
 - Criada migration de infraestrutura de integrações com conexões, webhooks, jobs, entregas, dead-letter e logs redigidos.
 - Criadas validações de payload redigido, assinatura HMAC de webhook, backoff exponencial e idempotência.
+- Consultada documentação técnica oficial do eSocial em 2026-07-13: leiautes S-1.3 até NT 06/2026 rev. 09/04/2026, XSD produção 27/04/2026 e MOS S-1.3 consolidado até NO 11/2026.
+- Iniciada a Fase 10B na branch `feat/fase-10b-esocial`.
+- Criada migration de eSocial com versão de layout, eventos, validações, lotes, submissões, recibos e rejeições sem envio real para produção.
