@@ -109,3 +109,12 @@
 - `pnpm build`: passou com Next.js 16.2.10; rota `/app/security` incluída.
 - `pnpm test:e2e -- public-and-auth.spec.ts`: 4/4 passaram no Chromium.
 - `pnpm seed:e2e:auth` + `pnpm test:e2e -- authenticated-workspace.spec.ts`: seed passou e 1/1 E2E autenticado passou no Chromium com TOTP/AAL2 real.
+
+## 2026-07-13 — Revisão visual/UX transversal (primeira unidade)
+
+- `pnpm format:check`: passou; todos os arquivos seguem Prettier.
+- `pnpm lint`: passou com zero warnings.
+- `pnpm typecheck`: passou em TypeScript strict após normalizar relações Supabase tipadas como coleção em laboratório e financeiro.
+- `pnpm test`: 27 arquivos e 91 testes passaram.
+- `pnpm build`: passou com Next.js 16.2.10; as novas rotas de espirometria, diagnósticos, laboratório, documentos, financeiro e integrações foram compiladas.
+- E2E integrado e acessibilidade visual autenticada permanecem na unidade seguinte, após seed estritamente fictício completo.

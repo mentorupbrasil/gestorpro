@@ -86,3 +86,8 @@
 - Iniciada auditoria geral pós-checkpoints das Fases 1–11.
 - Executados scanners estáticos de segredo e mock/TODO, gates locais (`format:check`, `lint`, `typecheck`, unitários, build) e E2E público/local.
 - Registrado relatório [GENERAL_AUDIT_20260713.md](GENERAL_AUDIT_20260713.md) com decisão PARCIAL/continuidade técnica e NO-GO para produção.
+- Iniciada revisão visual/UX transversal na branch `codex/revisao-visual-ux`.
+- Adicionados shell global responsivo, skip link, navegação por módulos e dashboard operacional revisado.
+- Adicionados consoles server-side iniciais para espirometria, ECG/EEG/radiologia, laboratório, documentos, financeiro/portal e integrações, todos com autorização por permissão e filtro tenant confiável.
+- Corrigida a leitura tipada de relações Supabase em laboratório e financeiro sem `any`.
+- Gates locais da primeira unidade visual: formatação, lint, typecheck, 91 testes e build verdes; nenhum deploy ou dado real utilizado.
