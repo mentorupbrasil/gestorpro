@@ -125,3 +125,8 @@
 - Migration `202607140011_p0_6_sensitive_read_audit.sql`: RPCs `log_sensitive_read` e `log_document_access` (metadados only).
 - Helper `src/features/audit/sensitive-read.ts`; wired em consulta (`chart.viewed`) e lista de documentos (`document.list_viewed`).
 - Apply no Supabase autorizado ainda pendente.
+
+## 2026-07-13 — P0.5/P0.6 apply + P0.4 onda 4
+
+- Dono aplicou 202607140010 e 202607140011 no Supabase autorizado (SQL Editor, sem erro).
+- Criada migration 202607140012_p0_4_composite_tenant_fks_pcmso_exams_docs.sql (PCMSO/protocolos/riscos, exames 7a–d, documentos, painel).

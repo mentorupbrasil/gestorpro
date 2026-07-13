@@ -1,9 +1,9 @@
 # Fase atual
 
-- Fase atual: Fase A - Reauditoria e correção da fundação
-- Subfase atual: P0.5+P0.6 no repo; apply DB pendente
-- Tarefa atual: aplicar 010+011 no Supabase autorizado
-- Tarefas concluídas nesta unidade: **P0.5 RPCs admin + P0.6 RPCs/helper de leitura sensível** (código no repo)
-- Já fechado antes (não reabrir): P0.1-P0.3 MFA/checklist; typegen oficial; FKs compostas ondas 1-3 (`007`-`009`); CI/PR draft #11
-- Branch em andamento: `feat/p0-2-consulta-operacional`
-- Atualizado em: 2026-07-13 - P0.5+P0.6 no repo; apply 010+011 pendente
+- Fase atual: Fase A — Reauditoria e correção da fundação
+- Subfase atual: P0.4 onda 4 (FKs compostas PCMSO/exames/docs/painel)
+- Tarefa atual: entregar migration `202607140012` e pedir apply no Supabase
+- Tarefas concluídas nesta unidade: **P0.5 + P0.6 aplicadas no Supabase autorizado** (`010`/`011`)
+- Já fechado antes: P0.1–P0.3; typegen; FKs ondas 1–3; CI/PR draft #11
+- Branch: `feat/p0-2-consulta-operacional`
+- Atualizado em: 2026-07-13 — apply 010+011 OK; seguindo onda 4
