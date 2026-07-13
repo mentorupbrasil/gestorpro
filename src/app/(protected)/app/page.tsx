@@ -92,6 +92,14 @@ export default async function WorkspacePage() {
               Painel de chamadas
             </Link>
           </li>
+          <li>
+            <Link
+              className="font-semibold text-emerald-800 underline-offset-4 hover:underline"
+              href="/app/clinical"
+            >
+              Área clínica
+            </Link>
+          </li>
         </ul>
       </nav>
     </main>

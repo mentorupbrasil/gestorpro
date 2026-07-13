@@ -44,3 +44,6 @@
 - Iniciada a Fase 5 na branch `feat/fase-5-painel-chamadas`.
 - Criada migration de painéis, sessões, heartbeats, eventos de chamada e entregas com payload público mínimo.
 - Criados motor de payload seguro/heartbeat e tela operacional de painel de chamadas.
+- Iniciada a Fase 6 na branch `feat/fase-6-triagem-consulta`.
+- Criada migration clínica com credenciais profissionais, triagem versionada, alertas, pausas, consulta médica, adendos, regras e conclusões humanas bloqueáveis.
+- Criados serviços e tela clínica para triagem, fechamento de consulta e preparação de conclusão sem gerar ASO definitivo.
