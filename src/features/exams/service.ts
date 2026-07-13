@@ -6,12 +6,14 @@ import { AppError } from "@/core/errors/app-error";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 import {
   saveAudiometryResultSchema,
+  saveDiagnosticExamResultSchema,
   saveSpirometryManeuverSchema,
   saveVisualAcuityResultSchema,
   startAudiometryExamSchema,
   startSpirometryExamSchema,
   startVisualAcuityExamSchema,
   type SaveAudiometryResultInput,
+  type SaveDiagnosticExamResultInput,
   type SaveSpirometryManeuverInput,
   type SaveVisualAcuityResultInput,
   type StartAudiometryExamInput,
@@ -19,6 +21,11 @@ import {
   type StartVisualAcuityExamInput,
 } from "./schemas";
 import { assertAuditoryRest, validateAudiometryThresholds } from "./audiometry";
+import {
+  assertDiagnosticModality,
+  assertPrivateStorageRefs,
+  assertReportWithoutInterpretationAutomation,
+} from "./diagnostic-exams";
 import {
   assertAcceptedManeuver,
   computeSpirometryPercentages,
@@ -217,6 +224,50 @@ export async function saveSpirometryManeuver(
 
   if (error || typeof data !== "string") {
     throw new AppError("INTERNAL_ERROR", "Não foi possível salvar espirometria.", {
+      cause: error,
+      status: 500,
+    });
+  }
+
+  return data;
+}
+
+export async function saveDiagnosticExamResult(
+  input: SaveDiagnosticExamResultInput,
+  requestId: string,
+) {
+  const parsed = saveDiagnosticExamResultSchema.parse(input);
+  const context = await resolveAuthorizationContext(parsed.tenantId);
+  requirePermission(context, "exams.manage");
+  requireAal2(context);
+  assertDiagnosticModality(parsed.modality);
+  assertPrivateStorageRefs([...parsed.rawFileRefs, ...parsed.imageOrPdfRefs]);
+  assertReportWithoutInterpretationAutomation({
+    professionalConclusion: parsed.professionalConclusion,
+    report: parsed.report,
+    status: parsed.status,
+  });
+
+  const supabase = await createServerSupabaseClient();
+  const { data, error } = await supabase.rpc("save_diagnostic_exam_result", {
+    audit_request_id: requestId,
+    correction_reason_value: parsed.correctionReason,
+    equipment_value: parsed.equipment,
+    execution_value: parsed.execution,
+    external_result_validation_value: parsed.externalResultValidation,
+    image_or_pdf_refs_value: parsed.imageOrPdfRefs,
+    modality_value: parsed.modality,
+    preparation_value: parsed.preparation,
+    professional_conclusion_value: parsed.professionalConclusion,
+    raw_file_refs_value: parsed.rawFileRefs,
+    report_value: parsed.report,
+    status_value: parsed.status,
+    target_exam_order_id: parsed.examOrderId,
+    target_tenant_id: context.tenantId,
+  });
+
+  if (error || typeof data !== "string") {
+    throw new AppError("INTERNAL_ERROR", "Não foi possível salvar exame diagnóstico.", {
       cause: error,
       status: 500,
     });

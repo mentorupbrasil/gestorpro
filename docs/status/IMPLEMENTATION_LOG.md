@@ -56,3 +56,6 @@
 - Iniciada a Fase 7C na branch `feat/fase-7c-espirometria`.
 - Criada migration de espirometria com valores previstos configuráveis, calibração, manobras/tentativas, seleção aceita e versões auditáveis.
 - Criado motor de cálculo técnico de percentuais sem interpretação clínica automática.
+- Iniciada a Fase 7D na branch `feat/fase-7d-ecg-eeg-radiologia`.
+- Criado modelo comum para ECG, EEG e radiologia com preparo, execução, arquivos privados, laudo, conclusão, validação externa e versões.
+- Adicionadas validações para impedir arquivo clínico público e conclusão reportada sem laudo humano.

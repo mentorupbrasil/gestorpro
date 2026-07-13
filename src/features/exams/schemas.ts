@@ -148,3 +148,26 @@ export const saveSpirometryManeuverSchema = z.object({
 });
 
 export type SaveSpirometryManeuverInput = z.infer<typeof saveSpirometryManeuverSchema>;
+
+const storageRefSchema = z.object({
+  bucket: z.string(),
+  path: z.string(),
+});
+
+export const saveDiagnosticExamResultSchema = z.object({
+  correctionReason: z.string().min(3).max(500),
+  equipment: z.record(z.string(), z.unknown()).default({}),
+  execution: z.record(z.string(), z.unknown()).default({}),
+  externalResultValidation: z.record(z.string(), z.unknown()).default({}),
+  imageOrPdfRefs: z.array(storageRefSchema).default([]),
+  modality: z.enum(["ecg", "eeg", "radiology"]),
+  preparation: z.record(z.string(), z.unknown()).default({}),
+  professionalConclusion: z.string().max(5000).optional().default(""),
+  rawFileRefs: z.array(storageRefSchema).default([]),
+  report: z.string().max(10000).optional().default(""),
+  examOrderId: z.string().uuid(),
+  status: z.enum(["requested", "prepared", "executed", "reported", "validated", "cancelled"]),
+  tenantId: z.string().uuid(),
+});
+
+export type SaveDiagnosticExamResultInput = z.infer<typeof saveDiagnosticExamResultSchema>;
