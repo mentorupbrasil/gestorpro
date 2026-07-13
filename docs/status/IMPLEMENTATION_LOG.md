@@ -83,3 +83,6 @@
 - Iniciada a Fase 11 na branch `chore/fase-11-producao-piloto`.
 - Criado relatório operacional de produção/piloto com decisão NO-GO, runbooks, feature flags, rollout, rollback e matriz de validações humanas.
 - Criado avaliador de prontidão para bloquear GO quando houver item crítico pendente ou tentativa de usar dados reais em piloto técnico.
+- Iniciada auditoria geral pós-checkpoints das Fases 1–11.
+- Executados scanners estáticos de segredo e mock/TODO, gates locais (`format:check`, `lint`, `typecheck`, unitários, build) e E2E público/local.
+- Registrado relatório [GENERAL_AUDIT_20260713.md](GENERAL_AUDIT_20260713.md) com decisão PARCIAL/continuidade técnica e NO-GO para produção.

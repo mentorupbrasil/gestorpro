@@ -1,5 +1,18 @@
 # Resultados de testes e verificações
 
+## 2026-07-13 — Auditoria geral pós-checkpoints
+
+- `git status --short --branch`: branch limpa em `chore/fase-11-producao-piloto`.
+- Scanner estático de padrões sensíveis: passou; nenhum arquivo com padrão de segredo encontrado fora de pastas ignoradas.
+- Scanner de TODO/mock/fake: passou com observação; achados restritos a placeholders de formulário, stubs documentados e fallback E2E.
+- `pnpm format:check`: passou.
+- `pnpm lint`: passou com zero warnings.
+- `pnpm typecheck`: passou.
+- `pnpm test`: 27 arquivos e 91 testes passaram.
+- `pnpm build`: passou com Next.js 16.2.10; 20 rotas geradas.
+- `pnpm test:e2e -- public-and-auth.spec.ts`: 4/4 passaram no Chromium.
+- Não executado nesta rodada: E2E autenticado real, validação SQL completa de todas as migrations, E2E ponta a ponta, carga, concorrência, backup/restore, pentest e acessibilidade dedicada.
+
 ## 2026-07-12 — Verificação inicial
 
 - Raiz Git: confirmada.
