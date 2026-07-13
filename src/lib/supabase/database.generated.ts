@@ -112,6 +112,13 @@ export type Database = {
             referencedColumns: ["id"];
           },
           {
+            foreignKeyName: "appointments_clinic_unit_tenant_fk";
+            columns: ["tenant_id", "clinic_unit_id"];
+            isOneToOne: false;
+            referencedRelation: "clinic_units";
+            referencedColumns: ["tenant_id", "id"];
+          },
+          {
             foreignKeyName: "appointments_referral_id_fkey";
             columns: ["referral_id"];
             isOneToOne: false;
@@ -119,11 +126,25 @@ export type Database = {
             referencedColumns: ["id"];
           },
           {
+            foreignKeyName: "appointments_referral_tenant_fk";
+            columns: ["tenant_id", "referral_id"];
+            isOneToOne: false;
+            referencedRelation: "referrals";
+            referencedColumns: ["tenant_id", "id"];
+          },
+          {
             foreignKeyName: "appointments_resource_id_fkey";
             columns: ["resource_id"];
             isOneToOne: false;
             referencedRelation: "schedule_resources";
             referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "appointments_resource_tenant_fk";
+            columns: ["tenant_id", "resource_id"];
+            isOneToOne: false;
+            referencedRelation: "schedule_resources";
+            referencedColumns: ["tenant_id", "id"];
           },
           {
             foreignKeyName: "appointments_tenant_id_fkey";
@@ -570,6 +591,13 @@ export type Database = {
             referencedColumns: ["id"];
           },
           {
+            foreignKeyName: "billing_items_company_tenant_fk";
+            columns: ["tenant_id", "company_id"];
+            isOneToOne: false;
+            referencedRelation: "companies";
+            referencedColumns: ["tenant_id", "id"];
+          },
+          {
             foreignKeyName: "billing_items_encounter_id_fkey";
             columns: ["encounter_id"];
             isOneToOne: false;
@@ -577,11 +605,25 @@ export type Database = {
             referencedColumns: ["id"];
           },
           {
+            foreignKeyName: "billing_items_encounter_tenant_fk";
+            columns: ["tenant_id", "encounter_id"];
+            isOneToOne: false;
+            referencedRelation: "encounters";
+            referencedColumns: ["tenant_id", "id"];
+          },
+          {
             foreignKeyName: "billing_items_quote_item_id_fkey";
             columns: ["quote_item_id"];
             isOneToOne: false;
             referencedRelation: "quote_items";
             referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "billing_items_quote_item_tenant_fk";
+            columns: ["tenant_id", "quote_item_id"];
+            isOneToOne: false;
+            referencedRelation: "quote_items";
+            referencedColumns: ["tenant_id", "id"];
           },
           {
             foreignKeyName: "billing_items_tenant_id_fkey";
@@ -1197,6 +1239,13 @@ export type Database = {
             referencedColumns: ["id"];
           },
           {
+            foreignKeyName: "company_contacts_company_tenant_fk";
+            columns: ["tenant_id", "company_id"];
+            isOneToOne: false;
+            referencedRelation: "companies";
+            referencedColumns: ["tenant_id", "id"];
+          },
+          {
             foreignKeyName: "company_contacts_tenant_id_fkey";
             columns: ["tenant_id"];
             isOneToOne: false;
@@ -1291,6 +1340,13 @@ export type Database = {
             isOneToOne: false;
             referencedRelation: "companies";
             referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "company_establishments_company_tenant_fk";
+            columns: ["tenant_id", "company_id"];
+            isOneToOne: false;
+            referencedRelation: "companies";
+            referencedColumns: ["tenant_id", "id"];
           },
           {
             foreignKeyName: "company_establishments_tenant_id_fkey";
@@ -2071,11 +2127,25 @@ export type Database = {
             referencedColumns: ["id"];
           },
           {
+            foreignKeyName: "employment_contracts_company_tenant_fk";
+            columns: ["tenant_id", "company_id"];
+            isOneToOne: false;
+            referencedRelation: "companies";
+            referencedColumns: ["tenant_id", "id"];
+          },
+          {
             foreignKeyName: "employment_contracts_exposure_group_id_fkey";
             columns: ["exposure_group_id"];
             isOneToOne: false;
             referencedRelation: "exposure_groups";
             referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "employment_contracts_exposure_group_tenant_fk";
+            columns: ["tenant_id", "exposure_group_id"];
+            isOneToOne: false;
+            referencedRelation: "exposure_groups";
+            referencedColumns: ["tenant_id", "id"];
           },
           {
             foreignKeyName: "employment_contracts_job_position_id_fkey";
@@ -2085,11 +2155,25 @@ export type Database = {
             referencedColumns: ["id"];
           },
           {
+            foreignKeyName: "employment_contracts_job_position_tenant_fk";
+            columns: ["tenant_id", "job_position_id"];
+            isOneToOne: false;
+            referencedRelation: "job_positions";
+            referencedColumns: ["tenant_id", "id"];
+          },
+          {
             foreignKeyName: "employment_contracts_sector_id_fkey";
             columns: ["sector_id"];
             isOneToOne: false;
             referencedRelation: "sectors";
             referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "employment_contracts_sector_tenant_fk";
+            columns: ["tenant_id", "sector_id"];
+            isOneToOne: false;
+            referencedRelation: "sectors";
+            referencedColumns: ["tenant_id", "id"];
           },
           {
             foreignKeyName: "employment_contracts_tenant_id_fkey";
@@ -2104,6 +2188,13 @@ export type Database = {
             isOneToOne: false;
             referencedRelation: "workers";
             referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "employment_contracts_worker_tenant_fk";
+            columns: ["tenant_id", "worker_id"];
+            isOneToOne: false;
+            referencedRelation: "workers";
+            referencedColumns: ["tenant_id", "id"];
           },
         ];
       };
@@ -2454,6 +2545,13 @@ export type Database = {
             referencedColumns: ["id"];
           },
           {
+            foreignKeyName: "encounters_appointment_tenant_fk";
+            columns: ["tenant_id", "appointment_id"];
+            isOneToOne: false;
+            referencedRelation: "appointments";
+            referencedColumns: ["tenant_id", "id"];
+          },
+          {
             foreignKeyName: "encounters_clinic_unit_id_fkey";
             columns: ["clinic_unit_id"];
             isOneToOne: false;
@@ -2473,6 +2571,13 @@ export type Database = {
             isOneToOne: false;
             referencedRelation: "referrals";
             referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "encounters_referral_tenant_fk";
+            columns: ["tenant_id", "referral_id"];
+            isOneToOne: false;
+            referencedRelation: "referrals";
+            referencedColumns: ["tenant_id", "id"];
           },
           {
             foreignKeyName: "encounters_tenant_id_fkey";
@@ -3201,11 +3306,25 @@ export type Database = {
             referencedColumns: ["id"];
           },
           {
+            foreignKeyName: "exam_orders_encounter_tenant_fk";
+            columns: ["tenant_id", "encounter_id"];
+            isOneToOne: false;
+            referencedRelation: "encounters";
+            referencedColumns: ["tenant_id", "id"];
+          },
+          {
             foreignKeyName: "exam_orders_exam_catalog_id_fkey";
             columns: ["exam_catalog_id"];
             isOneToOne: false;
             referencedRelation: "exam_catalog";
             referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "exam_orders_exam_catalog_tenant_fk";
+            columns: ["tenant_id", "exam_catalog_id"];
+            isOneToOne: false;
+            referencedRelation: "exam_catalog";
+            referencedColumns: ["tenant_id", "id"];
           },
           {
             foreignKeyName: "exam_orders_tenant_id_fkey";
@@ -4128,11 +4247,25 @@ export type Database = {
             referencedColumns: ["id"];
           },
           {
+            foreignKeyName: "invoice_items_billing_item_tenant_fk";
+            columns: ["tenant_id", "billing_item_id"];
+            isOneToOne: true;
+            referencedRelation: "billing_items";
+            referencedColumns: ["tenant_id", "id"];
+          },
+          {
             foreignKeyName: "invoice_items_invoice_id_fkey";
             columns: ["invoice_id"];
             isOneToOne: false;
             referencedRelation: "invoices";
             referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "invoice_items_invoice_tenant_fk";
+            columns: ["tenant_id", "invoice_id"];
+            isOneToOne: false;
+            referencedRelation: "invoices";
+            referencedColumns: ["tenant_id", "id"];
           },
           {
             foreignKeyName: "invoice_items_tenant_id_fkey";
@@ -4184,6 +4317,13 @@ export type Database = {
             isOneToOne: false;
             referencedRelation: "companies";
             referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "invoices_company_tenant_fk";
+            columns: ["tenant_id", "company_id"];
+            isOneToOne: false;
+            referencedRelation: "companies";
+            referencedColumns: ["tenant_id", "id"];
           },
           {
             foreignKeyName: "invoices_created_by_fkey";
@@ -5679,6 +5819,13 @@ export type Database = {
             referencedColumns: ["id"];
           },
           {
+            foreignKeyName: "payments_invoice_tenant_fk";
+            columns: ["tenant_id", "invoice_id"];
+            isOneToOne: false;
+            referencedRelation: "invoices";
+            referencedColumns: ["tenant_id", "id"];
+          },
+          {
             foreignKeyName: "payments_tenant_id_fkey";
             columns: ["tenant_id"];
             isOneToOne: false;
@@ -5963,6 +6110,13 @@ export type Database = {
             referencedColumns: ["id"];
           },
           {
+            foreignKeyName: "queue_definitions_clinic_unit_tenant_fk";
+            columns: ["tenant_id", "clinic_unit_id"];
+            isOneToOne: false;
+            referencedRelation: "clinic_units";
+            referencedColumns: ["tenant_id", "id"];
+          },
+          {
             foreignKeyName: "queue_definitions_tenant_id_fkey";
             columns: ["tenant_id"];
             isOneToOne: false;
@@ -6021,11 +6175,32 @@ export type Database = {
             referencedColumns: ["id"];
           },
           {
+            foreignKeyName: "queue_tickets_encounter_step_tenant_fk";
+            columns: ["tenant_id", "encounter_step_id"];
+            isOneToOne: false;
+            referencedRelation: "encounter_steps";
+            referencedColumns: ["tenant_id", "id"];
+          },
+          {
+            foreignKeyName: "queue_tickets_encounter_tenant_fk";
+            columns: ["tenant_id", "encounter_id"];
+            isOneToOne: false;
+            referencedRelation: "encounters";
+            referencedColumns: ["tenant_id", "id"];
+          },
+          {
             foreignKeyName: "queue_tickets_queue_definition_id_fkey";
             columns: ["queue_definition_id"];
             isOneToOne: false;
             referencedRelation: "queue_definitions";
             referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "queue_tickets_queue_definition_tenant_fk";
+            columns: ["tenant_id", "queue_definition_id"];
+            isOneToOne: false;
+            referencedRelation: "queue_definitions";
+            referencedColumns: ["tenant_id", "id"];
           },
           {
             foreignKeyName: "queue_tickets_tenant_id_fkey";
@@ -6077,6 +6252,13 @@ export type Database = {
             isOneToOne: false;
             referencedRelation: "quotes";
             referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "quote_items_quote_tenant_fk";
+            columns: ["tenant_id", "quote_id"];
+            isOneToOne: false;
+            referencedRelation: "quotes";
+            referencedColumns: ["tenant_id", "id"];
           },
           {
             foreignKeyName: "quote_items_tenant_id_fkey";
@@ -6143,11 +6325,25 @@ export type Database = {
             referencedColumns: ["id"];
           },
           {
+            foreignKeyName: "quotes_company_tenant_fk";
+            columns: ["tenant_id", "company_id"];
+            isOneToOne: false;
+            referencedRelation: "companies";
+            referencedColumns: ["tenant_id", "id"];
+          },
+          {
             foreignKeyName: "quotes_contract_id_fkey";
             columns: ["contract_id"];
             isOneToOne: false;
             referencedRelation: "commercial_contracts";
             referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "quotes_contract_tenant_fk";
+            columns: ["tenant_id", "contract_id"];
+            isOneToOne: false;
+            referencedRelation: "commercial_contracts";
+            referencedColumns: ["tenant_id", "id"];
           },
           {
             foreignKeyName: "quotes_created_by_fkey";
@@ -6317,11 +6513,25 @@ export type Database = {
             referencedColumns: ["id"];
           },
           {
+            foreignKeyName: "referral_items_exam_catalog_tenant_fk";
+            columns: ["tenant_id", "exam_catalog_id"];
+            isOneToOne: false;
+            referencedRelation: "exam_catalog";
+            referencedColumns: ["tenant_id", "id"];
+          },
+          {
             foreignKeyName: "referral_items_referral_id_fkey";
             columns: ["referral_id"];
             isOneToOne: false;
             referencedRelation: "referrals";
             referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "referral_items_referral_tenant_fk";
+            columns: ["tenant_id", "referral_id"];
+            isOneToOne: false;
+            referencedRelation: "referrals";
+            referencedColumns: ["tenant_id", "id"];
           },
           {
             foreignKeyName: "referral_items_tenant_id_fkey";
@@ -6387,6 +6597,20 @@ export type Database = {
             referencedColumns: ["id"];
           },
           {
+            foreignKeyName: "referrals_company_tenant_fk";
+            columns: ["tenant_id", "company_id"];
+            isOneToOne: false;
+            referencedRelation: "companies";
+            referencedColumns: ["tenant_id", "id"];
+          },
+          {
+            foreignKeyName: "referrals_contract_tenant_fk";
+            columns: ["tenant_id", "employment_contract_id"];
+            isOneToOne: false;
+            referencedRelation: "employment_contracts";
+            referencedColumns: ["tenant_id", "id"];
+          },
+          {
             foreignKeyName: "referrals_employment_contract_id_fkey";
             columns: ["employment_contract_id"];
             isOneToOne: false;
@@ -6406,6 +6630,13 @@ export type Database = {
             isOneToOne: false;
             referencedRelation: "workers";
             referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "referrals_worker_tenant_fk";
+            columns: ["tenant_id", "worker_id"];
+            isOneToOne: false;
+            referencedRelation: "workers";
+            referencedColumns: ["tenant_id", "id"];
           },
         ];
       };
@@ -6601,6 +6832,13 @@ export type Database = {
             referencedColumns: ["id"];
           },
           {
+            foreignKeyName: "schedule_resources_clinic_unit_tenant_fk";
+            columns: ["tenant_id", "clinic_unit_id"];
+            isOneToOne: false;
+            referencedRelation: "clinic_units";
+            referencedColumns: ["tenant_id", "id"];
+          },
+          {
             foreignKeyName: "schedule_resources_tenant_id_fkey";
             columns: ["tenant_id"];
             isOneToOne: false;
@@ -6652,11 +6890,25 @@ export type Database = {
             referencedColumns: ["id"];
           },
           {
+            foreignKeyName: "sectors_company_tenant_fk";
+            columns: ["tenant_id", "company_id"];
+            isOneToOne: false;
+            referencedRelation: "companies";
+            referencedColumns: ["tenant_id", "id"];
+          },
+          {
             foreignKeyName: "sectors_establishment_id_fkey";
             columns: ["establishment_id"];
             isOneToOne: false;
             referencedRelation: "company_establishments";
             referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "sectors_establishment_tenant_fk";
+            columns: ["tenant_id", "establishment_id"];
+            isOneToOne: false;
+            referencedRelation: "company_establishments";
+            referencedColumns: ["tenant_id", "id"];
           },
           {
             foreignKeyName: "sectors_tenant_id_fkey";
