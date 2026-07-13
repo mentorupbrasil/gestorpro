@@ -24,7 +24,11 @@
 - Script `generate-supabase-types.mjs` ajustado para `corepack pnpm` no Windows.
 - GitHub CLI instalado; repo tornado privado após login `mentorupbrasil`.
 
-## 2026-07-13 — P0.4 FKs compostas (lote clínico)
+## 2026-07-13 — CI verde + PR draft
+
+- CI `feat/p0-2-consulta-operacional`: success após normalização LF do fingerprint.
+- PR draft: https://github.com/mentorupbrasil/gestorpro/pull/11 (sem merge produção).
+
 
 - Preflight: 0 mismatches de tenant nos vínculos clínicos.
 - Dry-run + apply: `202607140007_p0_4_composite_tenant_fks_clinical.sql`.

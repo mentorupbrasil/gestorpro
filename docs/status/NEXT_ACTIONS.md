@@ -1,6 +1,6 @@
 # Próximas ações
 
-1. **Commit + push agora** (CI): `scripts/supabase-schema-fingerprint.mjs` + `database.generated.sha256` (fix CRLF→LF do fingerprint).
-2. Rotacionar o `SUPABASE_ACCESS_TOKEN` vazado (só `.env`).
-3. Login no Vercel e revisar env vars Production/Preview (painel pediu login).
-4. Sem Fase B / sem GO produção.
+1. Rotacionar o `SUPABASE_ACCESS_TOKEN` vazado no chat (só `.env`).
+2. Login no Vercel e revisar env vars Production/Preview (sem dados reais no deploy).
+3. Revisar o PR draft da feature; **não** mergear em `main` de produção enquanto NO-GO.
+4. Não iniciar Fase B até token + Vercel fechados.

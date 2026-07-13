@@ -1,9 +1,9 @@
 # Fase atual
 
 - Fase atual: Fase A — Reauditoria e correção da fundação atual
-- Subfase atual: CI fingerprint + governança residual
-- Tarefa atual: commit/push do fix de fingerprint; rotacionar token; revisar Vercel (login humano)
-- Tarefas concluídas: P0.4 ondas 1–3 no banco; types commitados; fingerprint normalizado localmente
-- Bloqueios: CI vermelho até push do fix CRLF; token vazado; Vercel sem sessão no browser do agent; GO produção
-- Branch: `feat/p0-2-consulta-operacional`
-- Atualizado em: 2026-07-13 — fix fingerprint CRLF
+- Subfase atual: governança residual (token + Vercel) + PR draft
+- Tarefa atual: dono rotaciona token e revisa Vercel; PR draft aguarda revisão
+- Tarefas concluídas nesta unidade: CI **verde**; P0.4 ondas 1–3; typegen; repo privado; fingerprint CRLF corrigido
+- Bloqueios: token vazado; revisão Vercel (login humano); GO produção
+- Branch: `feat/p0-2-consulta-operacional` (não trabalhar na `main`)
+- Atualizado em: 2026-07-13 — CI success
