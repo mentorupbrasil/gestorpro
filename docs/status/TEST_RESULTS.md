@@ -14,8 +14,22 @@
   - Migration `202607140006_fix_triage_queue_tickets_update.sql` (remove `queue_tickets.updated_at` inválido).
 - `node scripts/validate-rls-bypass-negatives.mjs`: AAL1 bloqueado; outsider sem permissão; tenant B invisível; audit append-only.
 - `node --env-file=.env scripts/validate-phase1-supabase.mjs`: passou.
-- `npm run types:supabase:generate`: **offline** (sem `SUPABASE_ACCESS_TOKEN`); typegen oficial remoto permanece aberto.
+- `npm run types:supabase:generate`: **oficial** (`SUPABASE_ACCESS_TOKEN` + Management API); `types:supabase:check` OK.
 - `npm run typecheck`: passou.
+
+## 2026-07-13 — Typegen oficial remoto
+
+- Token gravado só no `.env` (gitignored). CLI Supabase listou o projeto `dacittcezvtqljanhobb`.
+- `src/lib/supabase/database.generated.ts` regenerado (~239 KB); fingerprint alinhado às migrations.
+- Script `generate-supabase-types.mjs` ajustado para `corepack pnpm` no Windows.
+- GitHub CLI instalado; repo tornado privado após login `mentorupbrasil`.
+
+## 2026-07-13 — P0.4 FKs compostas (lote clínico)
+
+- Preflight: 0 mismatches de tenant nos vínculos clínicos.
+- Dry-run + apply: `202607140007_p0_4_composite_tenant_fks_clinical.sql`.
+- Negativo: update `encounters.worker_id` cruzado bloqueado (`encounters_worker_tenant_fk`).
+- Typegen/fingerprint refeitos após migration; `format:check` e `typecheck` OK localmente.
 
 ## 2026-07-13 — P0.3 Estação de conclusão operacional
 

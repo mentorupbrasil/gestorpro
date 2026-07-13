@@ -11,7 +11,10 @@ import {
   saveTriageRecord,
 } from "@/features/clinical/service";
 import { consultationStructuredInputSchema } from "@/features/clinical/consultation-payload";
-import { conclusionInputSchema, parseRestrictionsText } from "@/features/clinical/conclusion-payload";
+import {
+  conclusionInputSchema,
+  parseRestrictionsText,
+} from "@/features/clinical/conclusion-payload";
 import { triageStructuredInputSchema } from "@/features/clinical/triage-payload";
 import { getRequestId } from "@/lib/http/request-id";
 

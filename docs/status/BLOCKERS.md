@@ -2,28 +2,24 @@
 
 ## Fase A — governança remota
 
-- O repositório público permanece bloqueio de produção e exige ação humana para torná-lo privado e revisar acessos, apps, chaves, tokens, webhooks, Vercel, Supabase e histórico de segredos.
-- O cliente `gh` e um conector GitHub autenticado não estão disponíveis nesta sessão. PR e CI podem ser inventariados pelas evidências locais/públicas acessíveis, mas converter PR em draft ou atualizar sua descrição exige ferramenta autenticada.
+- Repositório `mentorupbrasil/gestorpro` tornado **private** em 2026-07-13 via `gh` (conta `mentorupbrasil`).
+- Colaboradores inventariados: apenas `mentorupbrasil` (admin). Webhooks de repositório: nenhum.
+- Pendente: rotação do `SUPABASE_ACCESS_TOKEN` vazado no chat; revisão Vercel (deploys Production/Preview existentes).
+- Pedido de GO formal de produção do dono (2026-07-13): registrado; **deploy/dados reais/merge de produção** continuam NO-GO até auditoria fechar acessos/chaves + gates restantes.
 
-## P0.1 — triagem operacional
+## P0.1–P0.3 — clínica operacional
 
-- Checklist UI manual **fechado** em 2026-07-13 com MFA/AAL2 no Tenant E2E.
-- Correções aplicadas: alias `log_audit`, fix `queue_tickets.updated_at` inexistente.
-
-## P0.2 — consulta operacional
-
-- Checklist UI manual **fechado** em 2026-07-13 (SOAP + conclusão da consulta + MFA).
-
-## P0.3 — conclusão operacional
-
-- Checklist UI manual **fechado** em 2026-07-13 (`signature_status = prepared`).
+- Checklists UI manuais **fechados** em 2026-07-13 com MFA/AAL2 no Tenant E2E.
 
 ## Fase A — typegen e PostgreSQL
 
-- Typegen oficial remoto continua pendente: `SUPABASE_ACCESS_TOKEN` ausente no `.env`; `types:supabase:generate` caiu para offline.
-- Testes negativos de bypass/RLS reexecutados no pooler autorizado (AAL1 bloqueado, outsider sem permissão, isolamento tenant B = 0, audit append-only).
-- `validate-phase1-supabase.mjs` passou após correção de `request.jwt.claims` (AAL2).
+- Typegen oficial remoto **fechado**; regenerado após P0.4; `types:supabase:check` OK.
+- **Rotacionar o access token** no dashboard Supabase (foi colado no chat).
 
 ## Fase A — integridade multi-tenant
 
-- As FKs atuais são predominantemente simples por `id`. Constraints compostas exigem aplicação/validação em banco descartável para não introduzir migration que falhe sobre dados existentes desconhecidos.
+- **Lote clínico P0.4 fechado** em 2026-07-13 no banco autorizado:
+  - preflight sem mismatches;
+  - dry-run + apply de `202607140007_p0_4_composite_tenant_fks_clinical.sql`;
+  - negativo: update cruzado `encounters.worker_id` bloqueado por `encounters_worker_tenant_fk`.
+- Pendente: ondas empresa/agenda/exames/financeiro (ainda FKs simples nessas áreas).

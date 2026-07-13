@@ -8,7 +8,8 @@ for (const file of [".env", ".env.local"]) {
     if (!t || t.startsWith("#")) continue;
     const i = t.indexOf("=");
     if (i < 0) continue;
-    if (!process.env[t.slice(0, i).trim()]) process.env[t.slice(0, i).trim()] = t.slice(i + 1).trim();
+    if (!process.env[t.slice(0, i).trim()])
+      process.env[t.slice(0, i).trim()] = t.slice(i + 1).trim();
   }
 }
 
@@ -55,10 +56,11 @@ async function expectDenied(tx, label, run) {
 }
 
 try {
-  await sql.begin(async (tx) => {
-    await setAuth(tx, userId, "aal1");
-    await expectDenied(tx, "save_triage without aal2", async () => {
-      await tx`
+  await sql
+    .begin(async (tx) => {
+      await setAuth(tx, userId, "aal1");
+      await expectDenied(tx, "save_triage without aal2", async () => {
+        await tx`
         select public.save_triage_record(
           ${tenantA}::uuid,
           ${encounterId}::uuid,
@@ -69,33 +71,34 @@ try {
           'neg-aal1'
         )
       `;
-    });
+      });
 
-    await setAuth(tx, outsiderId, "aal2");
-    const outsiderPerm = await tx`
+      await setAuth(tx, outsiderId, "aal2");
+      const outsiderPerm = await tx`
       select public.has_encounter_permission(${encounterId}::uuid, 'triage.manage') as ok
     `;
-    if (outsiderPerm[0]?.ok) {
-      throw new Error("outsider unexpectedly has triage.manage on tenant A encounter");
-    }
-    console.log("OK outsider has_encounter_permission=false");
+      if (outsiderPerm[0]?.ok) {
+        throw new Error("outsider unexpectedly has triage.manage on tenant A encounter");
+      }
+      console.log("OK outsider has_encounter_permission=false");
 
-    await setAuth(tx, userId, "aal2");
-    const tenantIsolation = await tx`
+      await setAuth(tx, userId, "aal2");
+      const tenantIsolation = await tx`
       select count(*)::int as count
       from public.encounters
       where tenant_id = ${tenantB}::uuid
     `;
-    console.log(`OK tenant B encounter visibility under demo user: ${tenantIsolation[0].count}`);
+      console.log(`OK tenant B encounter visibility under demo user: ${tenantIsolation[0].count}`);
 
-    await expectDenied(tx, "audit append-only update", async () => {
-      await tx`update public.audit_logs set action = 'tampered' where true`;
+      await expectDenied(tx, "audit append-only update", async () => {
+        await tx`update public.audit_logs set action = 'tampered' where true`;
+      });
+
+      throw new Error("rollback");
+    })
+    .catch((error) => {
+      if (error?.message !== "rollback") throw error;
     });
-
-    throw new Error("rollback");
-  }).catch((error) => {
-    if (error?.message !== "rollback") throw error;
-  });
 
   console.log("Negative RLS/bypass checks passed.");
 } finally {

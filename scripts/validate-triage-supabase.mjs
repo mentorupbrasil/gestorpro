@@ -2,8 +2,7 @@ import fs from "node:fs/promises";
 import { existsSync, readFileSync } from "node:fs";
 import postgres from "postgres";
 
-const migrationPath =
-  "supabase/migrations/202607140002_triage_operational_hardening.sql";
+const migrationPath = "supabase/migrations/202607140002_triage_operational_hardening.sql";
 
 const tenantA = "f1000000-0000-4000-8000-000000000001";
 const tenantB = "f2000000-0000-4000-8000-000000000001";
@@ -310,7 +309,9 @@ async function validateTriage(connection) {
         where triage_record_id = ${draftRecordId.recordId}::uuid
       `;
       if (persisted.count !== 2) {
-        throw new Error(`Expected 2 triage versions after reload simulation, got ${persisted.count}.`);
+        throw new Error(
+          `Expected 2 triage versions after reload simulation, got ${persisted.count}.`,
+        );
       }
 
       await sql`

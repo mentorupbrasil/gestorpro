@@ -24,10 +24,7 @@ import {
   type SaveMedicalConsultationInput,
   type SaveTriageRecordInput,
 } from "./schemas";
-import {
-  buildConclusionBlockers,
-  countPendingRequiredExams,
-} from "./conclusion-payload";
+import { buildConclusionBlockers, countPendingRequiredExams } from "./conclusion-payload";
 import {
   consultationInputFromStored,
   parseConsultationVersionPayload,
@@ -484,8 +481,9 @@ function mapConsultationQueueRow(
       occupationalExamTypeLabels[row.referrals?.occupational_exam_type ?? ""] ??
       row.referrals?.occupational_exam_type ??
       "Exame ocupacional",
-    pendingExams: row.exam_orders.filter((order) => !["resulted", "cancelled"].includes(order.status))
-      .length,
+    pendingExams: row.exam_orders.filter(
+      (order) => !["resulted", "cancelled"].includes(order.status),
+    ).length,
     priority: ticket?.priority ?? null,
     queueName: ticket?.queue_definitions?.name ?? null,
     status: row.status,

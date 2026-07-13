@@ -85,7 +85,8 @@ export function normalizeLegacyConsultationPayload(
   const structured = consultationStructuredInputSchema.parse({
     assessment: assessment ?? "",
     objective: {
-      generalAppearance: readLegacyText(objective.aparenciaGeral ?? objective.generalAppearance) ?? "",
+      generalAppearance:
+        readLegacyText(objective.aparenciaGeral ?? objective.generalAppearance) ?? "",
       physicalExam: readLegacyText(objective.exameFisico ?? objective.physicalExam) ?? "",
       vitalSignsReview: readLegacyText(objective.sinaisVitais ?? objective.vitalSignsReview) ?? "",
     },
@@ -96,7 +97,8 @@ export function normalizeLegacyConsultationPayload(
         readLegacyText(subjective.hda ?? subjective.historyOfPresentIllness) ?? "",
       occupationalHistory:
         readLegacyText(subjective.historicoOcupacional ?? subjective.occupationalHistory) ?? "",
-      reviewOfSystems: readLegacyText(subjective.revisaoSistemas ?? subjective.reviewOfSystems) ?? "",
+      reviewOfSystems:
+        readLegacyText(subjective.revisaoSistemas ?? subjective.reviewOfSystems) ?? "",
     },
   });
 

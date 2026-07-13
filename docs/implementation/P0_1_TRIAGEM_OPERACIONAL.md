@@ -38,20 +38,20 @@ Não utilizar dados pessoais reais neste checklist.
 
 **Ambiente:** Supabase `dacittcezvtqljanhobb`, Tenant E2E, usuário `demo.admin@example.invalid`, MFA/AAL2 ativo.
 
-| # | Item | Status | Observação |
-|---|------|--------|------------|
-| 1 | Login com `triage.manage` + MFA | OK | MFA enrolled e sessão `aal2` |
-| 2 | Fila em `/app/clinical` | OK | Encounter demo visível |
-| 3 | Selecionar atendimento com check-in | OK | `e8000000-0000-4000-8000-000000000001` |
-| 4 | Preencher sinais vitais e antropometria | OK | 120/80, 72, 16, 36.5, 98%, 70kg/170cm |
-| 5 | Prévia de IMC | OK | 24.2 após save server-side |
-| 6 | Salvar rascunho | OK | Badge de sucesso + versão 1 |
-| 7 | Persistência após reload | OK | Campos mantidos |
-| 8 | Concluir triagem com motivo | OK | Após fix `log_audit` + `queue_tickets` |
-| 9 | Etapa `triage` concluída / consulta liberada | OK | Step consultation `available` |
-| 10 | Evento/auditoria | OK | `triage.completed` + audit via `log_audit` alias |
-| 11 | Usuário sem permissão negado | OK | Script negativos / outsider |
-| 12 | Outro tenant negado | OK | Contagem tenant B = 0; outsider sem permissão |
+| #   | Item                                         | Status | Observação                                       |
+| --- | -------------------------------------------- | ------ | ------------------------------------------------ |
+| 1   | Login com `triage.manage` + MFA              | OK     | MFA enrolled e sessão `aal2`                     |
+| 2   | Fila em `/app/clinical`                      | OK     | Encounter demo visível                           |
+| 3   | Selecionar atendimento com check-in          | OK     | `e8000000-0000-4000-8000-000000000001`           |
+| 4   | Preencher sinais vitais e antropometria      | OK     | 120/80, 72, 16, 36.5, 98%, 70kg/170cm            |
+| 5   | Prévia de IMC                                | OK     | 24.2 após save server-side                       |
+| 6   | Salvar rascunho                              | OK     | Badge de sucesso + versão 1                      |
+| 7   | Persistência após reload                     | OK     | Campos mantidos                                  |
+| 8   | Concluir triagem com motivo                  | OK     | Após fix `log_audit` + `queue_tickets`           |
+| 9   | Etapa `triage` concluída / consulta liberada | OK     | Step consultation `available`                    |
+| 10  | Evento/auditoria                             | OK     | `triage.completed` + audit via `log_audit` alias |
+| 11  | Usuário sem permissão negado                 | OK     | Script negativos / outsider                      |
+| 12  | Outro tenant negado                          | OK     | Contagem tenant B = 0; outsider sem permissão    |
 
 **P0.1 fechado:** sim (manual + negativos SQL).
 

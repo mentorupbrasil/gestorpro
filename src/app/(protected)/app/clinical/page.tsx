@@ -3,7 +3,11 @@ import { redirect } from "next/navigation";
 import { z } from "zod";
 import { requirePermission } from "@/core/auth/authorization";
 import { resolveAuthorizationContext } from "@/core/auth/session";
-import { loadConclusionWorkspace, loadConsultationWorkspace, loadTriageWorkspace } from "@/features/clinical/service";
+import {
+  loadConclusionWorkspace,
+  loadConsultationWorkspace,
+  loadTriageWorkspace,
+} from "@/features/clinical/service";
 import { ConclusionStation } from "./conclusion-station";
 import { ConsultationStation } from "./consultation-station";
 import { TriageStation } from "./triage-station";

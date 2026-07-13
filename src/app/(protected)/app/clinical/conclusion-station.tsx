@@ -30,8 +30,7 @@ export function ConclusionStation({
   const router = useRouter();
   const [state, action, pending] = useActionState(createMedicalConclusionAction, initialState);
   const readOnly = Boolean(selectedRecord);
-  const defaultPhysicianId =
-    selectedRecord?.physicianCredentialId ?? physicians[0]?.id ?? "";
+  const defaultPhysicianId = selectedRecord?.physicianCredentialId ?? physicians[0]?.id ?? "";
 
   const blockers = selectedEncounter?.blockers ?? [];
 
@@ -200,13 +199,7 @@ export function ConclusionStation({
   );
 }
 
-function QueueButton({
-  item,
-  selected,
-}: {
-  item: ConclusionQueueItem;
-  selected: boolean;
-}) {
+function QueueButton({ item, selected }: { item: ConclusionQueueItem; selected: boolean }) {
   const router = useRouter();
 
   return (

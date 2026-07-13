@@ -17,10 +17,10 @@ if (!projectId || !accessToken) {
   process.exit(offline.status ?? 1);
 }
 
-const executable = process.platform === "win32" ? "pnpm.cmd" : "pnpm";
 const result = spawnSync(
-  executable,
+  "corepack",
   [
+    "pnpm",
     "exec",
     "supabase",
     "gen",
@@ -31,7 +31,12 @@ const result = spawnSync(
     "--schema",
     "public",
   ],
-  { encoding: "utf8", env: process.env, maxBuffer: 32 * 1024 * 1024 },
+  {
+    encoding: "utf8",
+    env: process.env,
+    maxBuffer: 32 * 1024 * 1024,
+    shell: process.platform === "win32",
+  },
 );
 
 if (result.status !== 0) {

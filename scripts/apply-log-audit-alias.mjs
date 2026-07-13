@@ -20,10 +20,7 @@ const sql = postgres({
 });
 
 try {
-  const migration = readFileSync(
-    "supabase/migrations/202607140005_log_audit_alias.sql",
-    "utf8",
-  );
+  const migration = readFileSync("supabase/migrations/202607140005_log_audit_alias.sql", "utf8");
   await sql.unsafe(migration);
   console.log("Applied 202607140005_log_audit_alias.sql");
 } finally {

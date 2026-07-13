@@ -107,12 +107,17 @@ function parseFunctions(migrationSql) {
 function renderTableType(columns) {
   const entries = [...columns.entries()].sort(([left], [right]) => left.localeCompare(right));
   const rowFields = entries
-    .map(([name, column]) => `          ${name}: ${column.nullable ? `${column.type} | null` : column.type}`)
+    .map(
+      ([name, column]) =>
+        `          ${name}: ${column.nullable ? `${column.type} | null` : column.type}`,
+    )
     .join("\n");
   const insertFields = entries
     .map(([name, column]) => `          ${name}${column.nullable ? "?" : ""}: ${column.type}`)
     .join("\n");
-  const updateFields = entries.map(([name, column]) => `          ${name}?: ${column.type}`).join("\n");
+  const updateFields = entries
+    .map(([name, column]) => `          ${name}?: ${column.type}`)
+    .join("\n");
 
   return `{
         Row: {

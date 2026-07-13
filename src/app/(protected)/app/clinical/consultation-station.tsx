@@ -98,8 +98,7 @@ export function ConsultationStation({
     () => consultationInputFromStored(selectedRecord?.payload ?? buildEmptyPayload()),
     [selectedRecord],
   );
-  const defaultPhysicianId =
-    selectedRecord?.physicianCredentialId ?? physicians[0]?.id ?? "";
+  const defaultPhysicianId = selectedRecord?.physicianCredentialId ?? physicians[0]?.id ?? "";
 
   useEffect(() => {
     if (state.success && state.encounterId) {
@@ -170,7 +169,8 @@ export function ConsultationStation({
 
             {physicians.length === 0 ? (
               <p className="text-sm text-amber-800">
-                Cadastre uma credencial médica ativa vinculada ao seu usuário para registrar consulta.
+                Cadastre uma credencial médica ativa vinculada ao seu usuário para registrar
+                consulta.
               </p>
             ) : (
               <form ref={formRef} action={action} className="grid gap-4">

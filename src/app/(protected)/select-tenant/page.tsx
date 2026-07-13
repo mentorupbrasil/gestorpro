@@ -2,10 +2,7 @@ import { cookies } from "next/headers";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { tenantOptionListSchema } from "@/features/platform/schemas";
-import {
-  formatTenantLabel,
-  isDemoTenant,
-} from "@/features/platform/tenant-presentation";
+import { formatTenantLabel, isDemoTenant } from "@/features/platform/tenant-presentation";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 import { hasSupabaseAuthCookie } from "@/lib/supabase/auth-cookie";
 import { selectTenant } from "./actions";
@@ -37,11 +34,15 @@ export default async function SelectTenantPage({
     <main className="mx-auto max-w-3xl px-6 py-16">
       <h1 className="text-2xl font-semibold">Sua organização</h1>
       <p className="mt-2 text-sm text-slate-600">
-        Para uso real, crie sua clínica abaixo ou escolha uma organização à qual você já tenha acesso.
+        Para uso real, crie sua clínica abaixo ou escolha uma organização à qual você já tenha
+        acesso.
       </p>
 
       {error ? (
-        <p className="mt-6 border-l-4 border-red-700 bg-red-50 p-4 text-sm text-red-900" role="alert">
+        <p
+          className="mt-6 border-l-4 border-red-700 bg-red-50 p-4 text-sm text-red-900"
+          role="alert"
+        >
           {error}
         </p>
       ) : null}
@@ -53,7 +54,10 @@ export default async function SelectTenantPage({
           <h2 className="text-lg font-semibold">Organizações disponíveis</h2>
           <ul className="mt-4 divide-y divide-slate-200 border-y border-slate-200">
             {realTenants.map((membership) => (
-              <li key={membership.tenant_id} className="flex items-center justify-between gap-4 py-4">
+              <li
+                key={membership.tenant_id}
+                className="flex items-center justify-between gap-4 py-4"
+              >
                 <span className="font-medium">{formatTenantLabel(membership.tenants)}</span>
                 <form action={selectTenant}>
                   <input type="hidden" name="tenantId" value={membership.tenant_id} />
@@ -81,7 +85,10 @@ export default async function SelectTenantPage({
           </p>
           <ul className="mt-4 divide-y divide-amber-100">
             {demoTenants.map((membership) => (
-              <li key={membership.tenant_id} className="flex items-center justify-between gap-4 py-3">
+              <li
+                key={membership.tenant_id}
+                className="flex items-center justify-between gap-4 py-3"
+              >
                 <span className="text-sm">{formatTenantLabel(membership.tenants)}</span>
                 <form action={selectTenant}>
                   <input type="hidden" name="tenantId" value={membership.tenant_id} />
@@ -100,11 +107,17 @@ export default async function SelectTenantPage({
 
       <p className="mt-8 text-sm text-slate-600">
         Primeiro acesso?{" "}
-        <Link className="font-semibold text-emerald-900 underline-offset-4 hover:underline" href="/sign-up">
+        <Link
+          className="font-semibold text-emerald-900 underline-offset-4 hover:underline"
+          href="/sign-up"
+        >
           Criar conta
         </Link>{" "}
         ·{" "}
-        <Link className="font-semibold text-emerald-900 underline-offset-4 hover:underline" href="/sign-in">
+        <Link
+          className="font-semibold text-emerald-900 underline-offset-4 hover:underline"
+          href="/sign-in"
+        >
           Trocar de usuário
         </Link>
       </p>
