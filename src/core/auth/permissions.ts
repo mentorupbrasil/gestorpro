@@ -40,6 +40,8 @@ export const permissions = [
   "finance.manage",
   "company_portal.read",
   "company_portal.manage",
+  "integrations.read",
+  "integrations.manage",
 ] as const;
 
 export type Permission = (typeof permissions)[number];

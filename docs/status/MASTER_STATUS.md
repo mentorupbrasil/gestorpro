@@ -13,8 +13,8 @@ Atualizado em: 2026-07-13
 | 6 — Triagem e consulta       | CHECKPOINT_PUBLISHED  | validação clínica futura                     |
 | 7 — Exames complementares    | CHECKPOINT_PUBLISHED  | validação profissional futura                |
 | 8 — Documentos               | CHECKPOINT_PUBLISHED  | modelos/assinatura dependem de humanos       |
-| 9 — Financeiro e portal      | IN_PROGRESS           | validação contábil/jurídica futura           |
-| 10 — Integrações             | NOT_STARTED           | credenciais/documentação oficial futuras     |
+| 9 — Financeiro e portal      | CHECKPOINT_PUBLISHED  | validação contábil/jurídica futura           |
+| 10 — Integrações             | IN_PROGRESS           | credenciais/documentação oficial futuras     |
 | 11 — Produção e piloto       | NOT_STARTED           | produção não autorizada                      |
 
-Branch atual: `feat/fase-9-financeiro-portal`. Último commit publicado antes da Fase 9: `e4b86ca`.
+Branch atual: `feat/fase-10a-integracoes-webhooks`. Último commit publicado antes da Fase 10A: `eb6ad4d`.

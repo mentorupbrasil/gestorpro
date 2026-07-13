@@ -68,3 +68,6 @@
 - Iniciada a Fase 9 na branch `feat/fase-9-financeiro-portal`.
 - Criada migration de contratos, tabelas de preço versionadas, snapshots de preço, orçamentos, faturamento, faturas, pagamentos, ajustes, glosas e portal empresarial.
 - Criadas validações para impedir preço comercial alterar protocolo clínico, ignorar repetição técnica não cobrável e ocultar status clínico sensível no portal.
+- Iniciada a Fase 10A na branch `feat/fase-10a-integracoes-webhooks`.
+- Criada migration de infraestrutura de integrações com conexões, webhooks, jobs, entregas, dead-letter e logs redigidos.
+- Criadas validações de payload redigido, assinatura HMAC de webhook, backoff exponencial e idempotência.
