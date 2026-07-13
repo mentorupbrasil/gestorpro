@@ -3,45 +3,51 @@
 **Repositório:** `mentorupbrasil/gestorpro`  
 **Objetivo:** transformar o GestorPro em uma plataforma completa de saúde ocupacional, segurança do trabalho e saúde corporativa, com capacidade de competir no Brasil e internacionalmente.
 
+**Modo de uso:** referência estratégica para implementação modular. Não usar como comando para reauditar todo o repositório.
+
 ---
 
 ## 1. REGRA PRINCIPAL DE EXECUÇÃO
 
-Este documento não autoriza implementar tudo de uma vez.
+Este documento é a referência estratégica e funcional do produto.
 
-A execução deve ocorrer em fases pequenas, auditáveis e reversíveis. Antes de alterar código:
+Ele não obriga o Cursor a reauditar o repositório inteiro antes de cada implementação e não autoriza implementar tudo de uma vez.
 
-1. Ler todo este documento.
-2. Ler as fontes de verdade existentes em `docs/product`, `docs/status`, `docs/architecture`, `docs/database`, `docs/security`, `docs/permissions`, `docs/workflows`, `docs/testing` e `docs/operations`.
-3. Auditar o código atual e diferenciar:
-   - funcionalidade somente documentada;
-   - modelagem de banco;
-   - serviço/domínio;
-   - rota/tela existente;
-   - fluxo realmente utilizável;
-   - fluxo testado ponta a ponta.
-4. Não apagar nem substituir funcionalidades existentes sem mapear impacto.
-5. Não alterar o site público sem solicitação explícita.
-6. Nunca usar dados reais.
-7. Não automatizar diagnóstico, aptidão ou decisão clínica final.
-8. Toda alteração sensível deve manter auditoria, isolamento por tenant, permissão e versionamento.
-9. Após cada unidade de trabalho executar:
-   - `pnpm format:check`
-   - `pnpm lint`
-   - `pnpm typecheck`
-   - `pnpm test`
-   - `pnpm build`
-   - testes E2E aplicáveis.
-10. Não declarar módulo concluído apenas porque existe rota, tabela ou card.
-11. Um módulo somente pode ser considerado operacional quando possuir:
-   - tela adequada ao perfil profissional;
-   - validações;
-   - loading, empty, error e success states;
-   - autorização;
-   - persistência segura;
-   - auditoria;
-   - testes;
-   - fluxo integrado com as etapas anteriores e posteriores.
+A execução deve ocorrer por módulos e unidades pequenas.
+
+Antes de alterar uma funcionalidade:
+
+1. Ler somente a seção deste documento relacionada à tarefa.
+2. Ler apenas os arquivos diretamente envolvidos no módulo.
+3. Abrir outros arquivos somente quando forem importados, utilizados ou indispensáveis.
+4. Confirmar o funcionamento atual da unidade antes de alterar.
+5. Não apagar, renomear ou substituir funcionalidades existentes sem mapear impacto direto.
+6. Não alterar o site público sem solicitação explícita.
+7. Não utilizar dados pessoais, clínicos ou empresariais reais no código, logs, testes, imagens ou documentação.
+8. A funcionalidade deve utilizar as estruturas definitivas de banco, autenticação, tenant, unidade, permissões e auditoria.
+9. Não criar protótipos dependentes de mocks fixos.
+10. Não automatizar diagnóstico, aptidão, inaptidão ou decisão clínica final.
+11. Toda alteração sensível deve preservar auditoria, isolamento por tenant, permissão, versionamento e integridade.
+12. Após cada unidade, executar somente:
+    - `pnpm format:check`
+    - `pnpm lint`
+    - `pnpm typecheck`
+    - testes unitários diretamente relacionados;
+    - `pnpm build`.
+13. Testes E2E não são obrigatórios nesta fase e somente devem ser realizados quando forem expressamente solicitados.
+14. Não refazer auditorias, matrizes, benchmarks ou roadmaps já existentes, salvo quando a tarefa exigir atualização específica.
+15. Uma rota, tabela, migration ou card não significa que o módulo está concluído.
+16. Um módulo somente pode ser considerado operacional quando possuir:
+    - tela adequada ao perfil profissional;
+    - integração com dados reais do sistema;
+    - validações;
+    - autorização;
+    - persistência segura;
+    - auditoria;
+    - estados de loading, vazio, erro e sucesso;
+    - testes unitários relacionados;
+    - validação manual no ambiente autorizado.
+
 
 ---
 
@@ -1283,7 +1289,7 @@ IA assistiva, nunca decisória:
 14. Concluir documentos e ASO.
 15. Concluir financeiro.
 16. Criar portal empresarial.
-17. E2E integral.
+17. Validação operacional manual completa no ambiente autorizado, utilizando os fluxos reais do sistema.
 18. Segurança, backup, carga, acessibilidade e pentest.
 
 ## P1 — Liderança brasileira
@@ -1341,96 +1347,87 @@ IA assistiva, nunca decisória:
 
 ---
 
-# 14. ENTREGÁVEIS QUE O CURSOR DEVE CRIAR ANTES DE PROGRAMAR
+# 14. DOCUMENTAÇÃO DE APOIO
 
-Criar ou atualizar:
+Este documento já concentra a auditoria, o benchmark e o roadmap estratégico.
 
-- `docs/product/GESTORPRO_AUDITORIA_FUNCIONAL_GLOBAL.md`
-- `docs/product/GESTORPRO_BENCHMARK_BRASIL_E_MUNDO.md`
-- `docs/product/GESTORPRO_TARGET_OPERATING_MODEL.md`
-- `docs/planning/GESTORPRO_ROADMAP_P0_P3.md`
-- `docs/planning/GESTORPRO_BACKLOG_MASTER.md`
-- `docs/planning/GESTORPRO_MODULE_MATRIX.md`
-- `docs/planning/GESTORPRO_SCREEN_INVENTORY.md`
-- `docs/planning/GESTORPRO_INTEGRATION_ROADMAP.md`
-- `docs/planning/GESTORPRO_SECURITY_GO_LIVE_GATES.md`
-- `docs/status/GESTORPRO_EXECUTION_STATUS.md`
+O Cursor não deve interromper a implementação para criar dezenas de documentos antes de programar.
 
-A matriz de módulos deve conter:
+Documentação adicional deve ser criada somente quando for necessária para uma unidade específica.
 
-- módulo;
-- submódulo;
-- perfil;
-- rota;
-- banco;
-- domínio;
-- tela;
-- ações;
-- permissões;
-- auditoria;
-- testes;
-- integração anterior;
-- integração posterior;
-- status real;
-- lacunas;
-- prioridade;
-- critério de aceite.
+Quando aplicável, utilizar apenas:
+
+- um documento curto em `docs/implementation/` descrevendo a unidade;
+- atualização de `docs/status/CURRENT_PHASE.md`;
+- atualização de `docs/status/NEXT_ACTIONS.md`;
+- atualização de `docs/status/TEST_RESULTS.md`.
+
+Matrizes, inventários, backlogs e relatórios adicionais são opcionais.
+
+Não recriar documentos já existentes apenas para reorganizar a mesma informação.
+
 
 ---
 
-# 15. PADRÃO DE EXECUÇÃO DE CADA FASE
+# 15. PADRÃO DE EXECUÇÃO DE CADA UNIDADE
 
-Para cada unidade:
+Para cada unidade solicitada:
 
-1. Criar plano em `docs/implementation/`.
-2. Mapear arquivos afetados.
-3. Mapear migrations.
-4. Mapear permissões.
-5. Definir critérios de aceite.
-6. Implementar.
-7. Criar testes unitários.
-8. Criar testes de integração.
-9. Criar E2E.
-10. Atualizar documentação.
-11. Atualizar status.
-12. Executar gates.
-13. Não avançar se houver erro.
-14. Não marcar concluído sem evidência.
+1. Ler somente a seção relacionada deste documento.
+2. Ler somente os arquivos diretamente envolvidos.
+3. Confirmar o comportamento atual.
+4. Definir claramente o escopo.
+5. Implementar a funcionalidade no mesmo ciclo.
+6. Preservar banco, dados existentes, permissões, auditoria e multi-tenancy.
+7. Criar migration apenas quando indispensável.
+8. Não criar dados fictícios fixos no código.
+9. Criar ou atualizar apenas testes unitários relacionados.
+10. Executar formatação, lint, typecheck e build.
+11. Realizar validação manual guiada no ambiente autorizado.
+12. Atualizar somente a documentação essencial.
+13. Registrar limitações e a próxima unidade recomendada.
+14. Não reformar módulos fora do escopo por causa de problemas antigos não relacionados.
+15. Não parar somente no planejamento quando a solicitação for de implementação.
+
 
 ---
 
-# 16. PRIMEIRA TAREFA DO CURSOR
+# 16. FORMA DE UTILIZAÇÃO PELO CURSOR
 
-Não implementar todos os módulos agora.
+A execução deve ocorrer por módulo.
 
-Executar somente:
+Ao receber um prompt de implementação, o Cursor deve:
 
-## Fase P0.0 — Auditoria real e consolidação
+1. Ler apenas a seção correspondente neste documento.
+2. Ler os arquivos diretamente relacionados ao módulo.
+3. Implementar a melhoria solicitada.
+4. Não fazer reauditoria geral do repositório.
+5. Não voltar a comparar concorrentes.
+6. Não recriar o roadmap.
+7. Não criar dezenas de documentos.
+8. Não executar E2E, salvo solicitação expressa.
+9. Não fazer deploy.
+10. Não usar dados reais durante o desenvolvimento.
+11. Preparar a funcionalidade para utilizar os dados reais do banco oficial no ambiente autorizado.
+12. Entregar o resultado da unidade, os arquivos alterados, os testes unitários executados, o resultado do build e o checklist de validação manual.
 
-1. Ler o repositório completo.
-2. Validar este documento contra o código atual.
-3. Identificar funcionalidades que já foram concluídas depois desta auditoria.
-4. Classificar cada item como:
-   - inexistente;
-   - documentado;
-   - modelado;
-   - backend parcial;
-   - tela somente leitura;
-   - console técnico;
-   - operacional parcial;
-   - operacional;
-   - testado E2E;
-   - pronto para piloto;
-   - pronto para produção.
-5. Criar todos os documentos da seção 14.
-6. Criar backlog P0–P3.
-7. Quebrar P0 em unidades pequenas.
-8. Definir dependências.
-9. Definir riscos.
-10. Definir critérios de aceite.
-11. Executar gates atuais sem alterar comportamento.
-12. Entregar relatório final da Fase P0.0.
-13. Não iniciar P0.1 sem registrar claramente a próxima unidade recomendada.
+A ordem inicial recomendada é:
+
+1. Triagem.
+2. Recepção e check-in.
+3. Consultório médico.
+4. Acuidade visual.
+5. Audiometria.
+6. Espirometria.
+7. Sistema de chamadas e TV.
+8. Laboratório.
+9. Radiologia, ECG e EEG.
+10. Documentos e ASO.
+11. Financeiro.
+12. Portal empresarial.
+
+Essa ordem pode ser ajustada quando houver dependência técnica comprovada.
+
 
 ---
 
@@ -1448,22 +1445,25 @@ Status possíveis:
 - `TECHNICAL_CONSOLE`
 - `OPERATIONAL_PARTIAL`
 - `OPERATIONAL`
-- `E2E_VALIDATED`
+- `MANUALLY_VALIDATED`
 - `PILOT_READY`
 - `PRODUCTION_READY`
 
 `PRODUCTION_READY` exige:
 
-- fluxo completo;
+- fluxo completo utilizando as estruturas definitivas do sistema;
+- validação manual em ambiente autorizado;
 - segurança;
 - auditoria;
-- testes;
+- testes unitários e validações técnicas aplicáveis;
 - acessibilidade;
 - desempenho;
 - backup;
 - restore;
 - observabilidade;
 - validação humana;
-- documentação;
+- documentação essencial;
 - suporte;
 - plano de incidente.
+
+Testes E2E podem ser adicionados futuramente, quando forem expressamente priorizados, mas não devem bloquear a construção das telas operacionais nesta fase.
