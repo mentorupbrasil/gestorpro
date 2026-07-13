@@ -1,5 +1,15 @@
 # Resultados de testes e verificações
 
+## 2026-07-13 — P0.1 Estação de triagem operacional
+
+- `pnpm typecheck`: passou.
+- `pnpm lint`: passou com zero warnings.
+- `pnpm test tests/unit/triage-payload.test.ts`: 8 testes passaram.
+- `pnpm build`: passou; 27 rotas geradas.
+- `pnpm format:check`: arquivos da triagem formatados; avisos remanescentes apenas em arquivos fora do escopo (`database.generated.ts`, `select-tenant/page.tsx`, script offline).
+- Migration `202607140002_triage_operational_hardening.sql` criada; aplicação no Supabase autorizado ainda pendente.
+- Checklist manual documentado em `docs/implementation/P0_1_TRIAGEM_OPERACIONAL.md`.
+
 ## 2026-07-13 — Consolidação segura de branches
 
 - Merge de `origin/main` com o histórico completo executado sem conflitos em branch temporária de integração.

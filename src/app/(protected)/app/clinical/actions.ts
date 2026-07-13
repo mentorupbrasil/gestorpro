@@ -9,16 +9,23 @@ import {
   createMedicalConclusion,
   saveTriageRecord,
 } from "@/features/clinical/service";
+import { triageStructuredInputSchema } from "@/features/clinical/triage-payload";
 import { getRequestId } from "@/lib/http/request-id";
 
-export type ClinicalFormState = { error?: string; success?: string };
+export type ClinicalFormState = {
+  error?: string;
+  encounterId?: string;
+  status?: "draft" | "completed" | "saved";
+  success?: string;
+};
 
-const triageFormSchema = z.object({
+const triageActionSchema = z.object({
+  changeReason: z.string().trim().optional(),
   closeRecord: z.coerce.boolean().default(false),
-  encounterId: z.string(),
-  formVersionId: z.string(),
-  payload: z.string(),
-  reason: z.string(),
+  encounterId: z.string().uuid(),
+  formVersionId: z.string().uuid(),
+  intent: z.enum(["draft", "complete"]),
+  reason: z.string().trim().optional(),
 });
 
 const consultationFormSchema = z.object({
@@ -49,9 +56,59 @@ function parseJsonObject(value: string) {
   return parsed as Record<string, unknown>;
 }
 
+function parseTriageFormData(formData: FormData) {
+  const read = (name: string) => {
+    const value = formData.get(name);
+    return value === null ? "" : String(value);
+  };
+
+  return triageStructuredInputSchema.parse({
+    anthropometry: {
+      abdominalCircumference: read("abdominalCircumference"),
+      heightCm: read("heightCm"),
+      weightKg: read("weightKg"),
+    },
+    clinical: {
+      alcoholConsumption: read("alcoholConsumption"),
+      allergies: read("allergies"),
+      currentComplaint: read("currentComplaint"),
+      medications: read("medications"),
+      observations: read("observations"),
+      painScale: read("painScale"),
+      pregnancyStatus: read("pregnancyStatus"),
+      relevantHistory: read("relevantHistory"),
+      smoking: read("smoking"),
+    },
+    operational: {
+      equipmentUsed: read("equipmentUsed"),
+    },
+    vitals: {
+      capillaryGlucose: read("capillaryGlucose"),
+      diastolicBp: read("diastolicBp"),
+      heartRate: read("heartRate"),
+      oxygenSaturation: read("oxygenSaturation"),
+      respiratoryRate: read("respiratoryRate"),
+      systolicBp: read("systolicBp"),
+      temperature: read("temperature"),
+    },
+  });
+}
+
 function publicError(error: unknown, fallback: string) {
-  if (error instanceof AppError && error.code === "MFA_REQUIRED") {
-    return "Confirme o MFA antes de registrar dado clínico.";
+  if (error instanceof AppError) {
+    if (error.code === "MFA_REQUIRED") {
+      return "Confirme o MFA antes de registrar dado clínico.";
+    }
+    if (error.code === "PERMISSION_DENIED") {
+      return "Você não possui permissão para esta ação.";
+    }
+    if (error.code === "VALIDATION_FAILED" && error.message) {
+      return error.message;
+    }
+  }
+
+  if (error instanceof z.ZodError) {
+    return error.issues[0]?.message ?? fallback;
   }
 
   return fallback;
@@ -64,33 +121,63 @@ export async function saveTriageRecordAction(
   const selectedTenantId = (await cookies()).get("gestorpro_tenant")?.value;
   if (!selectedTenantId) return { error: "Selecione uma organização antes de continuar." };
 
-  const form = triageFormSchema.safeParse({
-    closeRecord: formData.get("closeRecord") === "on",
+  const action = triageActionSchema.safeParse({
+    changeReason: formData.get("changeReason"),
+    closeRecord: formData.get("intent") === "complete",
     encounterId: formData.get("encounterId"),
     formVersionId: formData.get("formVersionId"),
-    payload: formData.get("payload"),
+    intent: formData.get("intent"),
     reason: formData.get("reason"),
   });
-  if (!form.success) return { error: "Revise atendimento, formulário, payload e motivo." };
+
+  if (!action.success) {
+    return { error: "Revise o atendimento e tente novamente." };
+  }
+
+  let input;
+  try {
+    input = parseTriageFormData(formData);
+  } catch (error) {
+    return { error: publicError(error, "Revise os campos da triagem.") };
+  }
+
+  const reason =
+    action.data.intent === "complete"
+      ? action.data.reason?.trim() || "Conclusão da triagem"
+      : action.data.changeReason?.trim() || action.data.reason?.trim() || "Rascunho de triagem";
+
+  if (action.data.intent === "complete" && reason.length < 3) {
+    return { error: "Informe o motivo da conclusão." };
+  }
 
   try {
     await saveTriageRecord(
       {
-        closeRecord: form.data.closeRecord,
-        encounterId: form.data.encounterId,
-        formVersionId: form.data.formVersionId,
-        payload: parseJsonObject(form.data.payload),
-        reason: form.data.reason,
+        closeRecord: action.data.closeRecord,
+        encounterId: action.data.encounterId,
+        formVersionId: action.data.formVersionId,
+        input,
+        reason,
         tenantId: selectedTenantId,
       },
       getRequestId(await headers()),
     );
   } catch (error) {
-    return { error: publicError(error, "Não foi possível salvar a triagem.") };
+    return {
+      encounterId: action.data.encounterId,
+      error: publicError(error, "Não foi possível salvar a triagem."),
+    };
   }
 
   revalidatePath("/app/clinical");
-  return { success: "Triagem salva com versionamento." };
+  return {
+    encounterId: action.data.encounterId,
+    status: action.data.intent === "complete" ? "completed" : "saved",
+    success:
+      action.data.intent === "complete"
+        ? "Triagem concluída e etapa liberada."
+        : "Rascunho salvo com versionamento.",
+  };
 }
 
 export async function closeMedicalConsultationAction(

@@ -4,7 +4,6 @@ import { useActionState } from "react";
 import {
   closeMedicalConsultationAction,
   createMedicalConclusionAction,
-  saveTriageRecordAction,
   type ClinicalFormState,
 } from "./actions";
 
@@ -48,18 +47,12 @@ function SelectField({
 export function ClinicalForms({
   consultations,
   encounters,
-  formVersions,
   physicians,
 }: {
   consultations: readonly Option[];
   encounters: readonly Option[];
-  formVersions: readonly Option[];
   physicians: readonly Option[];
 }) {
-  const [triageState, triageAction, triagePending] = useActionState(
-    saveTriageRecordAction,
-    initialState,
-  );
   const [consultationState, consultationAction, consultationPending] = useActionState(
     closeMedicalConsultationAction,
     initialState,
@@ -70,39 +63,7 @@ export function ClinicalForms({
   );
 
   return (
-    <section className="mt-8 grid gap-6 lg:grid-cols-3">
-      <form action={triageAction} className="rounded border border-slate-200 p-5">
-        <h2 className="text-lg font-semibold">Triagem versionada</h2>
-        <div className="mt-4 grid gap-3">
-          <SelectField label="Atendimento" name="encounterId" options={encounters} />
-          <SelectField label="Versão do formulário" name="formVersionId" options={formVersions} />
-          <label className="grid gap-1 text-sm">
-            Payload JSON
-            <textarea
-              className="min-h-28 rounded border border-slate-300 px-3 py-2 font-mono text-xs"
-              name="payload"
-              required
-              defaultValue={JSON.stringify({ pressão: "", peso: "", observações: "" }, null, 2)}
-            />
-          </label>
-          <label className="grid gap-1 text-sm">
-            Motivo
-            <input className="rounded border border-slate-300 px-3 py-2" name="reason" required />
-          </label>
-          <label className="flex items-center gap-2 text-sm">
-            <input name="closeRecord" type="checkbox" /> Fechar triagem explicitamente
-          </label>
-        </div>
-        <button
-          className="mt-4 rounded bg-emerald-800 px-4 py-2 text-sm font-semibold text-white disabled:opacity-60"
-          disabled={triagePending}
-          type="submit"
-        >
-          Salvar triagem
-        </button>
-        <Feedback state={triageState} />
-      </form>
-
+    <section className="mt-8 grid gap-6 lg:grid-cols-2">
       <form action={consultationAction} className="rounded border border-slate-200 p-5">
         <h2 className="text-lg font-semibold">Consulta médica</h2>
         <div className="mt-4 grid gap-3">
