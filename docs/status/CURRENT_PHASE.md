@@ -1,9 +1,9 @@
 # Fase atual
 
 - Fase atual: Fase A — Reauditoria e correção da fundação atual
-- Subfase atual: governança residual (token + Vercel) + CI verde após push
-- Tarefa atual: usuário commit/push das migrations 008/009 + types; rotacionar token; revisar Vercel
-- Tarefas concluídas nesta unidade: P0.4 ondas 1–3 aplicadas no banco autorizado (clínico, empresa/agenda, exames/financeiro)
-- Bloqueios: token vazado; revisão Vercel; GO produção
+- Subfase atual: CI fingerprint + governança residual
+- Tarefa atual: commit/push do fix de fingerprint; rotacionar token; revisar Vercel (login humano)
+- Tarefas concluídas: P0.4 ondas 1–3 no banco; types commitados; fingerprint normalizado localmente
+- Bloqueios: CI vermelho até push do fix CRLF; token vazado; Vercel sem sessão no browser do agent; GO produção
 - Branch: `feat/p0-2-consulta-operacional`
-- Atualizado em: 2026-07-13 — P0.4 ondas 2–3 OK localmente
+- Atualizado em: 2026-07-13 — fix fingerprint CRLF
