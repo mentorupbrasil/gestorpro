@@ -34,3 +34,7 @@
 - Criado motor de cálculo de exames como função pura de domínio, sem decisão de aptidão.
 - Criadas telas operacionais iniciais para empresa, trabalhador, catálogo de exames e PCMSO.
 - Adicionado fluxo operacional único para estabelecimento, setor, função, GHE, risco, atribuição versionada e vínculo de trabalhador com histórico.
+- Iniciada a Fase 3 na branch `feat/fase-3-encaminhamento-agenda`.
+- Criada migration de encaminhamentos, importação, recursos de agenda, agendamentos, eventos e lista de espera com RLS.
+- Criados motores de transição de encaminhamento, prévia de importação e conflito/reagendamento/cancelamento de agenda.
+- Criada tela operacional inicial de recepção e agenda sem criação de atendimento clínico.

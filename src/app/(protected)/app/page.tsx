@@ -68,6 +68,14 @@ export default async function WorkspacePage() {
               Domínio ocupacional
             </Link>
           </li>
+          <li>
+            <Link
+              className="font-semibold text-emerald-800 underline-offset-4 hover:underline"
+              href="/app/scheduling"
+            >
+              Encaminhamentos e agenda
+            </Link>
+          </li>
         </ul>
       </nav>
     </main>
