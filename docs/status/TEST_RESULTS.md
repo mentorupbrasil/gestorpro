@@ -1,5 +1,13 @@
 # Resultados de testes e verificações
 
+## 2026-07-13 — P0.3 Estação de conclusão operacional
+
+- `npm run typecheck`: passou.
+- `npm run test` (triage + consultation + conclusion payload): 16 testes passaram.
+- `npm run build`: passou; 27 rotas geradas.
+- Migration `202607140004_grant_operational_rpcs.sql` aplicada no Supabase autorizado.
+- `seed-clinical-demo.mjs`: executado com sucesso.
+
 ## 2026-07-13 — P0.2 Estação de consulta operacional
 
 - `pnpm typecheck`: passou.

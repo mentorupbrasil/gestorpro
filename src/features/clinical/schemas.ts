@@ -280,6 +280,60 @@ export const consultationWorkspaceRecordSchema = z.object({
   status: z.string(),
 });
 
+export const conclusionQueueRowSchema = consultationQueueRowSchema.extend({
+  encounter_flow_pauses: z
+    .array(
+      z.object({
+        id: z.string().uuid(),
+        status: z.string(),
+      }),
+    )
+    .default([]),
+  medical_conclusions: z
+    .array(
+      z.object({
+        conclusion_code: z.string(),
+        id: z.string().uuid(),
+        notes: z.string().nullable(),
+        physician_credential_id: z.string().uuid(),
+        restrictions: z.union([z.array(z.string()), z.record(z.string(), z.unknown())]).optional(),
+        signature_status: z.string(),
+      }),
+    )
+    .default([]),
+  medical_consultations: z
+    .array(
+      z.object({
+        current_version: z.number(),
+        id: z.string().uuid(),
+        medical_consultation_versions: z
+          .array(
+            z.object({
+              assessment: z.string().nullable(),
+              plan: z.string().nullable(),
+              version: z.number(),
+            }),
+          )
+          .default([]),
+        physician_credential_id: z.string().uuid(),
+        status: z.string(),
+      }),
+    )
+    .default([]),
+});
+
+export const conclusionQueueListSchema = z.array(conclusionQueueRowSchema);
+
+export const conclusionWorkspaceRecordSchema = z.object({
+  conclusion_code: z.string(),
+  encounter_id: z.string().uuid(),
+  id: z.string().uuid(),
+  notes: z.string().nullable(),
+  physician_credential_id: z.string().uuid(),
+  restrictions: z.union([z.array(z.string()), z.record(z.string(), z.unknown())]).optional(),
+  signature_status: z.string(),
+});
+
 export const triageSummarySchema = z.object({
   payload: z.record(z.string(), z.unknown()),
   status: z.string(),

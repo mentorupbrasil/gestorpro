@@ -11,6 +11,7 @@ import {
   saveTriageRecord,
 } from "@/features/clinical/service";
 import { consultationStructuredInputSchema } from "@/features/clinical/consultation-payload";
+import { conclusionInputSchema, parseRestrictionsText } from "@/features/clinical/conclusion-payload";
 import { triageStructuredInputSchema } from "@/features/clinical/triage-payload";
 import { getRequestId } from "@/lib/http/request-id";
 
@@ -60,10 +61,10 @@ function parseJsonObject(value: string) {
 
 const conclusionFormSchema = z.object({
   conclusionCode: z.enum(["fit", "fit_with_restrictions", "unfit", "inconclusive"]),
-  consultationId: z.string(),
-  encounterId: z.string(),
+  consultationId: z.string().uuid(),
+  encounterId: z.string().uuid(),
   notes: z.string().optional(),
-  physicianCredentialId: z.string(),
+  physicianCredentialId: z.string().uuid(),
   restrictions: z.string().optional(),
 });
 
@@ -338,26 +339,38 @@ export async function createMedicalConclusionAction(
   });
   if (!form.success) return { error: "Revise atendimento, consulta, médico e conclusão." };
 
+  const structured = conclusionInputSchema.safeParse({
+    conclusionCode: form.data.conclusionCode,
+    notes: form.data.notes ?? "",
+    restrictionsText: form.data.restrictions ?? "",
+  });
+  if (!structured.success) {
+    return { error: structured.error.issues[0]?.message ?? "Revise os campos da conclusão." };
+  }
+
   try {
     await createMedicalConclusion(
       {
-        conclusionCode: form.data.conclusionCode,
+        conclusionCode: structured.data.conclusionCode,
         consultationId: form.data.consultationId,
         encounterId: form.data.encounterId,
-        notes: form.data.notes ?? "",
+        notes: structured.data.notes,
         physicianCredentialId: form.data.physicianCredentialId,
-        restrictions: (form.data.restrictions ?? "")
-          .split("\n")
-          .map((restriction) => restriction.trim())
-          .filter(Boolean),
+        restrictions: parseRestrictionsText(structured.data.restrictionsText),
         tenantId: selectedTenantId,
       },
       getRequestId(await headers()),
     );
   } catch (error) {
-    return { error: publicError(error, "Conclusão bloqueada ou não pôde ser preparada.") };
+    return {
+      encounterId: form.data.encounterId,
+      error: publicError(error, "Conclusão bloqueada ou não pôde ser preparada."),
+    };
   }
 
   revalidatePath("/app/clinical");
-  return { success: "Conclusão médica preparada para assinatura autenticada." };
+  return {
+    encounterId: form.data.encounterId,
+    success: "Conclusão médica preparada para assinatura autenticada.",
+  };
 }

@@ -15,7 +15,13 @@
 - Migration `202607140003` aplicada no Supabase autorizado (2026-07-13).
 - Checklist UI manual pendente.
 
-## Fase A — typegen e PostgreSQL O typegen oficial ainda requer `SUPABASE_PROJECT_ID` e `SUPABASE_ACCESS_TOKEN` temporários para um projeto autorizado com todas as migrations aplicadas.
+## P0.3 — conclusão operacional
+
+- Código e testes unitários entregues (2026-07-13).
+- Migration `202607140004_grant_operational_rpcs.sql` aplicada.
+- Checklist UI manual pendente (`/app/clinical?conclusion=<encounter_id>` + MFA).
+
+## Fase A — typegen e PostgreSQL
 - Docker/PostgreSQL local continuam indisponíveis; a migration de hardening e os testes de bypass não puderam ser executados em banco real nesta sessão.
 - Em 2026-07-12, um projeto Supabase de teste autorizado foi validado via Session Pooler: migration aplicada, RLS real testado, isolamento tenant A/B confirmado, membership bloqueada perde acesso e auditoria append-only bloqueia mutação.
 - Em 2026-07-12, MFA/TOTP e E2E autenticado real foram validados no mesmo ambiente Supabase autorizado.

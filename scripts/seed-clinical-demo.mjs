@@ -6,7 +6,7 @@ for (const line of readFileSync(".env", "utf8").split(/\r?\n/)) {
   if (!t || t.startsWith("#")) continue;
   const i = t.indexOf("=");
   if (i < 0) continue;
-  if (!process.env[t.slice(0, i).trim()]) process.env[t.slice(i + 1).trim()] = t.slice(i + 1).trim();
+  if (!process.env[t.slice(0, i).trim()]) process.env[t.slice(0, i).trim()] = t.slice(i + 1).trim();
 }
 
 const sql = postgres({
@@ -88,15 +88,22 @@ try {
     `;
 
     await tx`
-      update public.encounter_steps
-      set status = 'available'
-      where tenant_id = ${tenantId}::uuid and encounter_id = ${encounterId}::uuid and step_type = 'triage'
+      insert into public.medical_conclusion_rules (
+        tenant_id, code, name,
+        block_when_no_closed_triage, block_when_no_closed_consultation,
+        block_when_pending_required_exams, block_when_flow_paused
+      ) values (
+        ${tenantId}::uuid, 'DEFAULT', 'Regra padrão demonstração',
+        true, true, true, true
+      )
+      on conflict (tenant_id, code) do nothing
     `;
   });
 
   console.log("Demo clínico pronto.");
   console.log(`Encounter triagem: /app/clinical?encounter=${encounterId}`);
   console.log(`Após triagem: /app/clinical?consultation=${encounterId}`);
+  console.log(`Após consulta: /app/clinical?conclusion=${encounterId}`);
 } finally {
   await sql.end({ timeout: 5 });
 }

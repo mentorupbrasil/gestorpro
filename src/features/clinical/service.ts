@@ -10,6 +10,9 @@ import {
   consultationQueueListSchema,
   consultationQueueRowSchema,
   consultationWorkspaceRecordSchema,
+  conclusionQueueListSchema,
+  conclusionQueueRowSchema,
+  conclusionWorkspaceRecordSchema,
   createMedicalConclusionSchema,
   physicianCredentialListSchema,
   saveTriageRecordSchema,
@@ -22,6 +25,10 @@ import {
   type SaveTriageRecordInput,
 } from "./schemas";
 import {
+  buildConclusionBlockers,
+  countPendingRequiredExams,
+} from "./conclusion-payload";
+import {
   consultationInputFromStored,
   parseConsultationVersionPayload,
   type ConsultationStoredPayload,
@@ -33,6 +40,7 @@ import {
   triageInputFromStored,
   type TriageStoredPayload,
 } from "./triage-payload";
+import { type ConclusionBlocker, type ConclusionCode } from "./workflow";
 
 export type TriageQueueItem = {
   checkedInAt: string;
@@ -102,6 +110,45 @@ export type ConsultationWorkspace = {
     status: string;
   } | null;
 };
+
+export type ConclusionQueueItem = {
+  blockers: readonly ConclusionBlocker[];
+  checkedInAt: string;
+  clinicUnitName: string;
+  companyName: string;
+  consultationId: string | null;
+  consultationSummary: { assessment: string | null; plan: string | null } | null;
+  encounterId: string;
+  examTypeLabel: string;
+  hasConclusion: boolean;
+  pendingExams: number;
+  priority: number | null;
+  queueName: string | null;
+  status: string;
+  waitLabel: string;
+  workerName: string;
+};
+
+export type ConclusionWorkspace = {
+  physicians: readonly PhysicianOption[];
+  professionalName: string;
+  queue: readonly ConclusionQueueItem[];
+  selectedEncounter: ConclusionQueueItem | null;
+  selectedRecord: {
+    conclusionCode: ConclusionCode;
+    conclusionId: string;
+    encounterId: string;
+    notes: string | null;
+    physicianCredentialId: string;
+    restrictions: readonly string[];
+    signatureStatus: string;
+  } | null;
+};
+
+function parseRestrictionsValue(value: unknown) {
+  if (!Array.isArray(value)) return [];
+  return value.filter((item): item is string => typeof item === "string");
+}
 
 function resolvePendingIndication(row: {
   encounter_steps: ReadonlyArray<{ status: string; step_type: string }>;
@@ -651,6 +698,275 @@ export async function loadConsultationWorkspace(
   };
 }
 
+function mapConclusionQueueRow(
+  row: (typeof conclusionQueueListSchema)["_output"][number],
+  physicianCredential: {
+    councilCode: string | null;
+    councilRegion: string | null;
+    registrationNumber: string | null;
+  } | null,
+  now = Date.now(),
+): ConclusionQueueItem {
+  const ticket = row.queue_tickets[0];
+  const consultation = row.medical_consultations[0];
+  const triageRecord = row.triage_records[0];
+  const conclusion = row.medical_conclusions[0];
+  const pendingExams = countPendingRequiredExams(row.exam_orders);
+  const flowPaused = row.encounter_flow_pauses.some((pause) => pause.status === "active");
+
+  return {
+    blockers: buildConclusionBlockers({
+      consultationStatus: consultation?.status ?? null,
+      flowPaused,
+      pendingRequiredExams: pendingExams,
+      physicianCredential,
+      triageStatus: triageRecord?.status ?? null,
+    }),
+    checkedInAt: row.checked_in_at,
+    clinicUnitName: row.clinic_units?.name ?? "Unidade",
+    companyName: row.referrals?.companies?.legal_name ?? "Empresa não informada",
+    consultationId: consultation?.id ?? null,
+    consultationSummary: null,
+    encounterId: row.id,
+    examTypeLabel:
+      occupationalExamTypeLabels[row.referrals?.occupational_exam_type ?? ""] ??
+      row.referrals?.occupational_exam_type ??
+      "Exame ocupacional",
+    hasConclusion: Boolean(conclusion),
+    pendingExams,
+    priority: ticket?.priority ?? null,
+    queueName: ticket?.queue_definitions?.name ?? null,
+    status: row.status,
+    waitLabel: formatWaitDuration(row.checked_in_at, now),
+    workerName: row.workers?.full_name ?? "Trabalhador",
+  };
+}
+
+export async function loadConclusionWorkspace(
+  tenantId: string,
+  selectedEncounterId?: string,
+): Promise<ConclusionWorkspace> {
+  const context = await resolveAuthorizationContext(tenantId);
+  requirePermission(context, "clinical.read");
+
+  const unitIds = Array.from(context.clinicUnitIds);
+  const supabase = await createServerSupabaseClient();
+
+  const [profileResult, physiciansResult, queueResult] = await Promise.all([
+    supabase.from("user_profiles").select("display_name").eq("id", context.userId).maybeSingle(),
+    supabase
+      .from("clinical_professional_credentials")
+      .select(
+        "id, council_code, council_region, registration_number, user_id, user_profiles(display_name)",
+      )
+      .eq("tenant_id", context.tenantId)
+      .eq("professional_role", "physician")
+      .eq("status", "active"),
+    unitIds.length === 0
+      ? Promise.resolve({ data: [], error: null })
+      : supabase
+          .from("encounters")
+          .select(
+            `
+            id,
+            status,
+            checked_in_at,
+            clinic_unit_id,
+            workers(full_name),
+            referrals(occupational_exam_type, companies(legal_name)),
+            clinic_units(name),
+            encounter_steps(step_type, status, id),
+            queue_tickets(priority, status, queue_definitions(name)),
+            triage_records(id, status, current_version),
+            medical_consultations(
+              id,
+              status,
+              current_version,
+              physician_credential_id,
+              medical_consultation_versions(version, assessment, plan)
+            ),
+            exam_orders(id, status, exam_catalog(name)),
+            encounter_flow_pauses(id, status),
+            medical_conclusions(
+              id,
+              conclusion_code,
+              physician_credential_id,
+              restrictions,
+              notes,
+              signature_status
+            )
+          `,
+          )
+          .eq("tenant_id", context.tenantId)
+          .in("clinic_unit_id", unitIds)
+          .in("status", ["checked_in", "waiting", "in_progress", "completed"])
+          .order("checked_in_at"),
+  ]);
+
+  if (profileResult.error || physiciansResult.error || queueResult.error) {
+    throw new AppError("INTERNAL_ERROR", "Não foi possível carregar a estação de conclusão.", {
+      cause: profileResult.error ?? physiciansResult.error ?? queueResult.error,
+      status: 500,
+    });
+  }
+
+  const physicianRows = physicianCredentialListSchema.parse(physiciansResult.data ?? []);
+  const userPhysician = physicianRows.find((row) => row.user_id === context.userId) ?? null;
+  const physicianCredential = userPhysician
+    ? {
+        councilCode: userPhysician.council_code,
+        councilRegion: userPhysician.council_region,
+        registrationNumber: userPhysician.registration_number,
+      }
+    : null;
+
+  const physicians: PhysicianOption[] = physicianRows
+    .filter((row) => row.user_id === context.userId)
+    .map((row) => ({
+      id: row.id,
+      label: `${row.user_profiles?.display_name ?? "Médico"} · ${row.council_code ?? "CRM"} ${row.registration_number ?? ""}`,
+    }));
+
+  const queueRows = conclusionQueueListSchema.parse(queueResult.data ?? []);
+  const queue = queueRows
+    .filter((row) => {
+      const consultation = row.medical_consultations[0];
+      const conclusion = row.medical_conclusions[0];
+      return consultation?.status === "closed" && !conclusion;
+    })
+    .map((row) => mapConclusionQueueRow(row, physicianCredential))
+    .sort((left, right) => {
+      const leftPriority = left.priority ?? 999;
+      const rightPriority = right.priority ?? 999;
+      if (leftPriority !== rightPriority) return leftPriority - rightPriority;
+      return new Date(left.checkedInAt).getTime() - new Date(right.checkedInAt).getTime();
+    });
+
+  let selectedRecord: ConclusionWorkspace["selectedRecord"] = null;
+  let selectedEncounter: ConclusionQueueItem | null = null;
+
+  if (selectedEncounterId) {
+    const encounterRow = queueRows.find((row) => row.id === selectedEncounterId);
+    let encounterUnitId: string | null = encounterRow?.clinic_unit_id ?? null;
+
+    if (encounterRow) {
+      selectedEncounter = mapConclusionQueueRow(encounterRow, physicianCredential);
+      const consultation = encounterRow.medical_consultations[0];
+      const latestVersion = consultation?.medical_consultation_versions?.find(
+        (version) => version.version === consultation.current_version,
+      );
+      if (latestVersion) {
+        selectedEncounter.consultationSummary = {
+          assessment: latestVersion.assessment,
+          plan: latestVersion.plan,
+        };
+      }
+    } else {
+      const encounterResult = await supabase
+        .from("encounters")
+        .select(
+          `
+          id,
+          status,
+          checked_in_at,
+          clinic_unit_id,
+          workers(full_name),
+          referrals(occupational_exam_type, companies(legal_name)),
+          clinic_units(name),
+          encounter_steps(step_type, status, id),
+          queue_tickets(priority, status, queue_definitions(name)),
+          triage_records(id, status, current_version),
+          medical_consultations(
+            id,
+            status,
+            current_version,
+            physician_credential_id,
+            medical_consultation_versions(version, assessment, plan)
+          ),
+          exam_orders(id, status, exam_catalog(name)),
+          encounter_flow_pauses(id, status),
+          medical_conclusions(
+            id,
+            conclusion_code,
+            physician_credential_id,
+            restrictions,
+            notes,
+            signature_status
+          )
+        `,
+        )
+        .eq("tenant_id", context.tenantId)
+        .eq("id", selectedEncounterId)
+        .maybeSingle();
+
+      if (encounterResult.error || !encounterResult.data) {
+        throw new AppError("VALIDATION_FAILED", "Atendimento não disponível para conclusão.", {
+          status: 404,
+        });
+      }
+
+      const parsedEncounter = conclusionQueueRowSchema.parse(encounterResult.data);
+      encounterUnitId = parsedEncounter.clinic_unit_id;
+      selectedEncounter = mapConclusionQueueRow(parsedEncounter, physicianCredential);
+      const consultation = parsedEncounter.medical_consultations[0];
+      const latestVersion = consultation?.medical_consultation_versions?.find(
+        (version) => version.version === consultation.current_version,
+      );
+      if (latestVersion) {
+        selectedEncounter.consultationSummary = {
+          assessment: latestVersion.assessment,
+          plan: latestVersion.plan,
+        };
+      }
+    }
+
+    if (!encounterUnitId) {
+      throw new AppError("VALIDATION_FAILED", "Atendimento sem unidade vinculada.", {
+        status: 404,
+      });
+    }
+
+    requireUnitPermission(context, encounterUnitId, "clinical.read");
+
+    const conclusionResult = await supabase
+      .from("medical_conclusions")
+      .select(
+        "id, encounter_id, physician_credential_id, conclusion_code, restrictions, notes, signature_status",
+      )
+      .eq("tenant_id", context.tenantId)
+      .eq("encounter_id", selectedEncounterId)
+      .maybeSingle();
+
+    if (conclusionResult.error) {
+      throw new AppError("INTERNAL_ERROR", "Não foi possível carregar a conclusão.", {
+        cause: conclusionResult.error,
+        status: 500,
+      });
+    }
+
+    if (conclusionResult.data) {
+      const record = conclusionWorkspaceRecordSchema.parse(conclusionResult.data);
+      selectedRecord = {
+        conclusionCode: record.conclusion_code as ConclusionCode,
+        conclusionId: record.id,
+        encounterId: record.encounter_id,
+        notes: record.notes,
+        physicianCredentialId: record.physician_credential_id,
+        restrictions: parseRestrictionsValue(record.restrictions),
+        signatureStatus: record.signature_status,
+      };
+    }
+  }
+
+  return {
+    physicians,
+    professionalName: profileResult.data?.display_name ?? "Profissional",
+    queue,
+    selectedEncounter,
+    selectedRecord,
+  };
+}
+
 export async function saveMedicalConsultation(
   input: SaveMedicalConsultationInput,
   requestId: string,
@@ -837,6 +1153,43 @@ export async function createMedicalConclusion(
   });
 
   if (error || typeof data !== "string") {
+    if (error?.code === "42501") {
+      throw new AppError("PERMISSION_DENIED", "Sem permissão para registrar conclusão.", {
+        status: 403,
+      });
+    }
+    if (error?.message.includes("physician credential missing")) {
+      throw new AppError("VALIDATION_FAILED", "Credencial médica inválida para este usuário.", {
+        status: 403,
+      });
+    }
+    if (error?.message.includes("professional registration missing")) {
+      throw new AppError(
+        "VALIDATION_FAILED",
+        "Registro profissional incompleto para emitir conclusão.",
+        { status: 409 },
+      );
+    }
+    if (error?.message.includes("closed triage required")) {
+      throw new AppError("VALIDATION_FAILED", "Conclua a triagem antes da conclusão.", {
+        status: 409,
+      });
+    }
+    if (error?.message.includes("closed consultation required")) {
+      throw new AppError("VALIDATION_FAILED", "Conclua a consulta antes da conclusão.", {
+        status: 409,
+      });
+    }
+    if (error?.message.includes("required exams pending")) {
+      throw new AppError("VALIDATION_FAILED", "Existem exames obrigatórios pendentes.", {
+        status: 409,
+      });
+    }
+    if (error?.message.includes("encounter flow paused")) {
+      throw new AppError("VALIDATION_FAILED", "Fluxo clínico pausado por intercorrência.", {
+        status: 409,
+      });
+    }
     throw new AppError("INTERNAL_ERROR", "Não foi possível preparar a conclusão médica.", {
       cause: error,
       status: 500,
