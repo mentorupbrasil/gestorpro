@@ -8,11 +8,13 @@ import {
   createCompanySchema,
   createExamCatalogItemSchema,
   createManualExamOverrideSchema,
+  createOccupationalStructureSchema,
   createPcmsoVersionSchema,
   createWorkerSchema,
   type CreateCompanyInput,
   type CreateExamCatalogItemInput,
   type CreateManualExamOverrideInput,
+  type CreateOccupationalStructureInput,
   type CreatePcmsoVersionInput,
   type CreateWorkerInput,
 } from "./schemas";
@@ -147,6 +149,174 @@ export async function createPcmsoVersion(input: CreatePcmsoVersionInput) {
   }
 
   return data.id as string;
+}
+
+export async function createOccupationalStructure(input: CreateOccupationalStructureInput) {
+  const parsed = createOccupationalStructureSchema.parse(input);
+  const context = await resolveAuthorizationContext(parsed.tenantId);
+  requirePermission(context, "occupational.manage");
+  requireAal2(context);
+
+  const supabase = await createServerSupabaseClient();
+
+  const { data: establishment, error: establishmentError } = await supabase
+    .from("company_establishments")
+    .upsert(
+      {
+        code: parsed.establishmentCode,
+        company_id: parsed.companyId,
+        name: parsed.establishmentName,
+        status: "active",
+        tenant_id: context.tenantId,
+      },
+      { onConflict: "tenant_id,company_id,code" },
+    )
+    .select("id")
+    .single();
+
+  if (establishmentError || !establishment?.id) {
+    throw new AppError("INTERNAL_ERROR", "Não foi possível salvar o estabelecimento.", {
+      cause: establishmentError,
+      status: 500,
+    });
+  }
+
+  const { data: sector, error: sectorError } = await supabase
+    .from("sectors")
+    .upsert(
+      {
+        code: parsed.sectorCode,
+        company_id: parsed.companyId,
+        establishment_id: establishment.id,
+        name: parsed.sectorName,
+        status: "active",
+        tenant_id: context.tenantId,
+      },
+      { onConflict: "tenant_id,company_id,code" },
+    )
+    .select("id")
+    .single();
+
+  if (sectorError || !sector?.id) {
+    throw new AppError("INTERNAL_ERROR", "Não foi possível salvar o setor.", {
+      cause: sectorError,
+      status: 500,
+    });
+  }
+
+  const { data: job, error: jobError } = await supabase
+    .from("job_positions")
+    .upsert(
+      {
+        code: parsed.jobCode,
+        company_id: parsed.companyId,
+        name: parsed.jobName,
+        sector_id: sector.id,
+        status: "active",
+        tenant_id: context.tenantId,
+      },
+      { onConflict: "tenant_id,company_id,code" },
+    )
+    .select("id")
+    .single();
+
+  if (jobError || !job?.id) {
+    throw new AppError("INTERNAL_ERROR", "Não foi possível salvar a função.", {
+      cause: jobError,
+      status: 500,
+    });
+  }
+
+  const { data: exposureGroup, error: exposureGroupError } = await supabase
+    .from("exposure_groups")
+    .upsert(
+      {
+        code: parsed.exposureGroupCode,
+        company_id: parsed.companyId,
+        name: parsed.exposureGroupName,
+        status: "active",
+        tenant_id: context.tenantId,
+      },
+      { onConflict: "tenant_id,company_id,code" },
+    )
+    .select("id")
+    .single();
+
+  if (exposureGroupError || !exposureGroup?.id) {
+    throw new AppError("INTERNAL_ERROR", "Não foi possível salvar o GHE.", {
+      cause: exposureGroupError,
+      status: 500,
+    });
+  }
+
+  const { data: risk, error: riskError } = await supabase
+    .from("occupational_risks")
+    .upsert(
+      {
+        code: parsed.riskCode,
+        name: parsed.riskName,
+        risk_type: parsed.riskType,
+        status: "active",
+        tenant_id: context.tenantId,
+      },
+      { onConflict: "tenant_id,code" },
+    )
+    .select("id")
+    .single();
+
+  if (riskError || !risk?.id) {
+    throw new AppError("INTERNAL_ERROR", "Não foi possível salvar o risco.", {
+      cause: riskError,
+      status: 500,
+    });
+  }
+
+  await supabase.from("risk_assignments").insert({
+    company_id: parsed.companyId,
+    exposure_group_id: exposureGroup.id,
+    job_position_id: job.id,
+    occupational_risk_id: risk.id,
+    source: "manual",
+    starts_on: parsed.startsOn,
+    tenant_id: context.tenantId,
+    version: 1,
+  });
+
+  const { data: employment, error: employmentError } = await supabase
+    .from("employment_contracts")
+    .insert({
+      company_id: parsed.companyId,
+      exposure_group_id: exposureGroup.id,
+      job_position_id: job.id,
+      sector_id: sector.id,
+      starts_on: parsed.startsOn,
+      status: "active",
+      tenant_id: context.tenantId,
+      version: 1,
+      worker_id: parsed.workerId,
+    })
+    .select("id")
+    .single();
+
+  if (employmentError || !employment?.id) {
+    throw new AppError("INTERNAL_ERROR", "Não foi possível criar o vínculo.", {
+      cause: employmentError,
+      status: 500,
+    });
+  }
+
+  await supabase.from("employment_contract_history").insert({
+    employment_contract_id: employment.id,
+    event_type: "created",
+    payload: {
+      exposureGroupId: exposureGroup.id,
+      jobPositionId: job.id,
+      sectorId: sector.id,
+    },
+    tenant_id: context.tenantId,
+  });
+
+  return employment.id as string;
 }
 
 export async function createManualExamOverride(

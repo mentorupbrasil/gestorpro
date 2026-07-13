@@ -12,6 +12,7 @@ import { createServerSupabaseClient } from "@/lib/supabase/server";
 import { CompanyForm } from "./company-form";
 import { ExamCatalogForm } from "./exam-catalog-form";
 import { PcmsoVersionForm } from "./pcmso-version-form";
+import { StructureForm } from "./structure-form";
 import { WorkerForm } from "./worker-form";
 
 function maskTaxId(taxId: string) {
@@ -80,6 +81,18 @@ export default async function OccupationalPage() {
             companies={companies.map((company) => ({
               id: company.id,
               legalName: company.legal_name,
+            }))}
+          />
+        ) : null}
+        {context.permissions.has("occupational.manage") ? (
+          <StructureForm
+            companies={companies.map((company) => ({
+              id: company.id,
+              legalName: company.legal_name,
+            }))}
+            workers={workers.map((worker) => ({
+              fullName: worker.full_name,
+              id: worker.id,
             }))}
           />
         ) : null}

@@ -7,6 +7,7 @@ import { AppError } from "@/core/errors/app-error";
 import {
   createCompany,
   createExamCatalogItem,
+  createOccupationalStructure,
   createPcmsoVersion,
   createWorker,
 } from "@/features/occupational/service";
@@ -39,6 +40,23 @@ const pcmsoVersionFormSchema = z.object({
   validFrom: z.string(),
   validUntil: z.string().optional(),
   versionNumber: z.coerce.number().int().positive(),
+});
+
+const occupationalStructureFormSchema = z.object({
+  companyId: z.string(),
+  establishmentCode: z.string(),
+  establishmentName: z.string(),
+  exposureGroupCode: z.string(),
+  exposureGroupName: z.string(),
+  jobCode: z.string(),
+  jobName: z.string(),
+  riskCode: z.string(),
+  riskName: z.string(),
+  riskType: z.enum(["physical", "chemical", "biological", "ergonomic", "accident"]),
+  sectorCode: z.string(),
+  sectorName: z.string(),
+  startsOn: z.string(),
+  workerId: z.string(),
 });
 
 const logger = createOperationalLogger();
@@ -163,4 +181,39 @@ export async function createPcmsoVersionAction(
 
   revalidatePath("/app/occupational");
   return { success: "Versão PCMSO aprovada e protegida contra alteração retroativa." };
+}
+
+export async function createOccupationalStructureAction(
+  _state: OccupationalFormState,
+  formData: FormData,
+): Promise<OccupationalFormState> {
+  const selectedTenantId = (await cookies()).get("gestorpro_tenant")?.value;
+  if (!selectedTenantId) return { error: "Selecione uma organização antes de continuar." };
+
+  const form = occupationalStructureFormSchema.safeParse({
+    companyId: formData.get("companyId"),
+    establishmentCode: formData.get("establishmentCode"),
+    establishmentName: formData.get("establishmentName"),
+    exposureGroupCode: formData.get("exposureGroupCode"),
+    exposureGroupName: formData.get("exposureGroupName"),
+    jobCode: formData.get("jobCode"),
+    jobName: formData.get("jobName"),
+    riskCode: formData.get("riskCode"),
+    riskName: formData.get("riskName"),
+    riskType: formData.get("riskType"),
+    sectorCode: formData.get("sectorCode"),
+    sectorName: formData.get("sectorName"),
+    startsOn: formData.get("startsOn"),
+    workerId: formData.get("workerId"),
+  });
+  if (!form.success) return { error: "Revise empresa, trabalhador, estrutura, risco e vigência." };
+
+  try {
+    await createOccupationalStructure({ ...form.data, tenantId: selectedTenantId });
+  } catch (error) {
+    return { error: mfaMessage(error) ?? "Não foi possível criar estrutura e vínculo." };
+  }
+
+  revalidatePath("/app/occupational");
+  return { success: "Estrutura ocupacional e vínculo criados com histórico." };
 }

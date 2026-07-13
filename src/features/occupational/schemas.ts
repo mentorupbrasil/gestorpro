@@ -64,6 +64,44 @@ export const createPcmsoVersionSchema = z.object({
   versionNumber: z.coerce.number().int().positive(),
 });
 
+export const createOccupationalStructureSchema = z.object({
+  companyId: z.uuid(),
+  establishmentCode: z
+    .string()
+    .trim()
+    .toUpperCase()
+    .regex(/^[A-Z0-9][A-Z0-9_-]{1,31}$/),
+  establishmentName: z.string().trim().min(2).max(160),
+  exposureGroupCode: z
+    .string()
+    .trim()
+    .toUpperCase()
+    .regex(/^[A-Z0-9][A-Z0-9_-]{1,31}$/),
+  exposureGroupName: z.string().trim().min(2).max(160),
+  jobCode: z
+    .string()
+    .trim()
+    .toUpperCase()
+    .regex(/^[A-Z0-9][A-Z0-9_-]{1,31}$/),
+  jobName: z.string().trim().min(2).max(160),
+  riskCode: z
+    .string()
+    .trim()
+    .toUpperCase()
+    .regex(/^[A-Z0-9][A-Z0-9_-]{1,31}$/),
+  riskName: z.string().trim().min(2).max(160),
+  riskType: riskTypeSchema,
+  sectorCode: z
+    .string()
+    .trim()
+    .toUpperCase()
+    .regex(/^[A-Z0-9][A-Z0-9_-]{1,31}$/),
+  sectorName: z.string().trim().min(2).max(160),
+  startsOn: z.string().regex(/^[0-9]{4}-[0-9]{2}-[0-9]{2}$/),
+  tenantId: z.uuid(),
+  workerId: z.uuid(),
+});
+
 export const createManualExamOverrideSchema = z.object({
   action: z.enum(["add", "remove"]),
   employmentContractId: z.uuid().nullable(),
@@ -116,6 +154,7 @@ export const pcmsoVersionListSchema = z.array(
 export type CreateCompanyInput = z.infer<typeof createCompanySchema>;
 export type CreateExamCatalogItemInput = z.infer<typeof createExamCatalogItemSchema>;
 export type CreateManualExamOverrideInput = z.infer<typeof createManualExamOverrideSchema>;
+export type CreateOccupationalStructureInput = z.infer<typeof createOccupationalStructureSchema>;
 export type CreatePcmsoVersionInput = z.infer<typeof createPcmsoVersionSchema>;
 export type CreateWorkerInput = z.infer<typeof createWorkerSchema>;
 export type OccupationalExamType = z.infer<typeof occupationalExamTypeSchema>;

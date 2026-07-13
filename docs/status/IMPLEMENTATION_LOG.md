@@ -33,3 +33,4 @@
 - Criada migration do domínio ocupacional com empresas, estabelecimentos, contatos, setores, funções, GHE, riscos, vínculos, PCMSO versionado, catálogo, protocolos, overrides e preços separados.
 - Criado motor de cálculo de exames como função pura de domínio, sem decisão de aptidão.
 - Criadas telas operacionais iniciais para empresa, trabalhador, catálogo de exames e PCMSO.
+- Adicionado fluxo operacional único para estabelecimento, setor, função, GHE, risco, atribuição versionada e vínculo de trabalhador com histórico.
