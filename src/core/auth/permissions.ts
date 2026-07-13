@@ -19,6 +19,10 @@ export const permissions = [
   "schedule.read",
   "schedule.manage",
   "imports.manage",
+  "encounters.read",
+  "encounters.manage",
+  "queues.read",
+  "queues.manage",
 ] as const;
 
 export type Permission = (typeof permissions)[number];

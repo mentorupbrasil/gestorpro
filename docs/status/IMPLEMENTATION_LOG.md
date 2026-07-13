@@ -38,3 +38,6 @@
 - Criada migration de encaminhamentos, importação, recursos de agenda, agendamentos, eventos e lista de espera com RLS.
 - Criados motores de transição de encaminhamento, prévia de importação e conflito/reagendamento/cancelamento de agenda.
 - Criada tela operacional inicial de recepção e agenda sem criação de atendimento clínico.
+- Iniciada a Fase 4 na branch `feat/fase-4-checkin-fluxo-filas`.
+- Criada migration de check-in transacional com encounters, snapshots imutáveis, steps, events, exam_orders, queues, idempotency_keys e outbox_events.
+- Criados motor de estado de atendimento/etapas/fila e tela operacional de check-in.
