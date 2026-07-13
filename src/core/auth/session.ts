@@ -7,12 +7,12 @@ import { AppError } from "@/core/errors/app-error";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 
 const authorizationPayloadSchema = z.object({
-  aal: z.enum(["aal1", "aal2"]),
-  authorizationVersion: z.literal(2),
-  clinicUnitIds: z.array(z.uuid()),
-  permissions: z.array(z.string()),
+  aal: z.enum(["aal1", "aal2"]).default("aal1"),
+  authorizationVersion: z.union([z.literal(1), z.literal(2)]).optional(),
+  clinicUnitIds: z.array(z.uuid()).default([]),
+  permissions: z.array(z.string()).default([]),
   tenantId: z.uuid(),
-  unitPermissions: z.record(z.uuid(), z.array(z.string())),
+  unitPermissions: z.record(z.string(), z.array(z.string())).optional().default({}),
   userId: z.uuid(),
 });
 
@@ -41,7 +41,16 @@ export async function resolveAuthorizationContext(
     });
   }
 
-  const parsed = authorizationPayloadSchema.parse(data);
+  const parsedResult = authorizationPayloadSchema.safeParse(data);
+  if (!parsedResult.success) {
+    throw new AppError(
+      "INTERNAL_ERROR",
+      "Não foi possível interpretar suas permissões. Aplique as migrations mais recentes no Supabase e tente novamente.",
+      { cause: parsedResult.error, status: 500 },
+    );
+  }
+
+  const parsed = parsedResult.data;
   const validPermissions = parsed.permissions.filter(isPermission) as Permission[];
   const unitPermissions = new Map<string, ReadonlySet<Permission>>(
     Object.entries(parsed.unitPermissions).map(([unitId, permissionCodes]) => [
