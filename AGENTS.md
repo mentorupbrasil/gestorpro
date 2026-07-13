@@ -1,6 +1,6 @@
 # Instruções permanentes do projeto
 
-Antes de agir, leia a especificação-mestre, o guia, `docs/status/MASTER_STATUS.md`, `CURRENT_PHASE.md`, `BLOCKERS.md`, `NEXT_ACTIONS.md` e ADRs relevantes.
+Antes de agir, leia integralmente a especificação-mestre, o guia, o Plano Mestre V2, `docs/status/MASTER_STATUS.md`, `CURRENT_PHASE.md`, `BLOCKERS.md`, `NEXT_ACTIONS.md` e ADRs relevantes.
 
 - Nunca trabalhar diretamente na `main`, apagar histórico, usar dados reais, versionar `.env` ou segredos, desativar RLS, confiar em `tenant_id` do cliente, automatizar aptidão ou expor documento clínico.
 - Preservar mudanças locais desconhecidas e evitar comandos destrutivos.

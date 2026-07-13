@@ -8,9 +8,11 @@ import { createServerSupabaseClient } from "@/lib/supabase/server";
 
 const authorizationPayloadSchema = z.object({
   aal: z.enum(["aal1", "aal2"]),
+  authorizationVersion: z.literal(2),
   clinicUnitIds: z.array(z.uuid()),
   permissions: z.array(z.string()),
   tenantId: z.uuid(),
+  unitPermissions: z.record(z.uuid(), z.array(z.string())),
   userId: z.uuid(),
 });
 
@@ -41,12 +43,19 @@ export async function resolveAuthorizationContext(
 
   const parsed = authorizationPayloadSchema.parse(data);
   const validPermissions = parsed.permissions.filter(isPermission) as Permission[];
+  const unitPermissions = new Map<string, ReadonlySet<Permission>>(
+    Object.entries(parsed.unitPermissions).map(([unitId, permissionCodes]) => [
+      unitId,
+      new Set(permissionCodes.filter(isPermission) as Permission[]),
+    ]),
+  );
 
   return {
     aal: parsed.aal,
     clinicUnitIds: new Set(parsed.clinicUnitIds),
     permissions: new Set(validPermissions),
     tenantId: parsed.tenantId,
+    unitPermissions,
     userId: parsed.userId,
   };
 }

@@ -6,6 +6,7 @@ export type AuthorizationContext = Readonly<{
   clinicUnitIds: ReadonlySet<string>;
   permissions: ReadonlySet<Permission>;
   tenantId: string;
+  unitPermissions: ReadonlyMap<string, ReadonlySet<Permission>>;
   userId: string;
 }>;
 
@@ -32,6 +33,25 @@ export function requireClinicUnit(context: AuthorizationContext, clinicUnitId: s
       status: 403,
     });
   }
+}
+
+export function requireUnitPermission(
+  context: AuthorizationContext,
+  clinicUnitId: string,
+  permission: Permission,
+) {
+  requireClinicUnit(context, clinicUnitId);
+
+  if (
+    !context.permissions.has(permission) &&
+    !context.unitPermissions.get(clinicUnitId)?.has(permission)
+  ) {
+    throw new AppError("PERMISSION_DENIED", "Você não possui permissão nesta unidade.", {
+      status: 403,
+    });
+  }
+
+  return context;
 }
 
 export function requireAal2(context: AuthorizationContext) {

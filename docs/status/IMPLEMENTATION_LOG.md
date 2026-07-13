@@ -98,3 +98,16 @@
 - Completado o console operacional de espirometria com início de exame e registro versionado de manobra, preservando conclusão exclusivamente humana.
 - Adicionada validação server-side do tipo do catálogo antes de iniciar espirometria, impedindo uso de ordem de outra modalidade por envio manual de ID.
 - Organizadas as branches remotas após comparação de commits: 16 branches históricas `feat/fase-*`, todas integralmente contidas em `codex/revisao-visual-ux` e sem PR aberta, foram removidas sem excluir commits úteis.
+
+## 2026-07-13 — Fase A do Plano Mestre V2
+
+- Consolidada com fast-forward local a branch `codex/desenvolvimento-completo-unimetra` até `1ce8c4e`, preservando a branch visual e todo o histórico.
+- Reconciliados README, AGENTS, status, roadmap V2 e auditorias com o estado real.
+- Confirmado bypass estrutural: permissão limitada à unidade era agregada como tenant-wide; policies permitiam DML direto sem AAL2/auditoria.
+- Adicionada migration fail-closed: DML direto revogado, policies de escrita removidas e RPCs mutacionais não reauditedas congeladas.
+- Reescritas RPCs de unidade/membership com AAL2 no banco, auditoria antes/depois e proteção do último administrador.
+- Criadas funções de autorização por unidade, empresa, profissional, atendimento e documento; contexto da aplicação separa permissões tenant/unidade e exige versão 2.
+- Supabase CLI 2.109.1 fixada; geração atômica e verificação de drift por fingerprint adicionadas. Typegen real segue bloqueado por falta de projeto autorizado com schema completo.
+- CI pinado por SHA e ampliado com CodeQL, dependency review, Dependabot, secret scan, audit e verificação de tipos Supabase.
+- Corrigidas duas vulnerabilidades moderadas transitivas com overrides de PostCSS/esbuild; auditoria passou sem achados.
+- Criados todos os documentos obrigatórios de auditoria, produto, planejamento, segurança e testes da Fase A, além da descrição proposta do PR #1.

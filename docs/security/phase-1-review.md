@@ -1,4 +1,6 @@
-# Revisão de segurança — Fase 1 (em andamento)
+# Revisão de segurança — Fase 1 (superada pela Fase A)
+
+O estado canônico está em `docs/audit/AUTHORIZATION_AUDIT.md`, `RLS_AUDIT.md` e `DATA_INTEGRITY_AUDIT.md`. Os achados antigos abaixo são preservados como histórico e não representam aceite atual.
 
 ## Achados corrigidos
 

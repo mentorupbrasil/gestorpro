@@ -1,12 +1,13 @@
 # Fase atual
 
-- Fase atual: Revisão geral pós-checkpoints das Fases 1–11
-- Subfase atual: revisão visual/UX transversal
-- Tarefa atual: completar ações e formulários operacionais de diagnósticos e laboratório
+- Fase atual: Fase A — Reauditoria e correção da fundação atual
+- Subfase atual: validação dos gates remanescentes da Fase A
+- Tarefa atual: executar typegen e migration/RLS em banco autorizado, projetar constraints compostas e confirmar PR/CI remoto
 - Tarefas concluídas: Fase 0; bootstrap; CI; Auth SSR; recuperação/troca de senha; logout; tenant/RBAC; schema/migration/RLS real; validação tenant A/B; auditoria append-only; UI administrativa; MFA TOTP; gate AAL2; auditoria geral; shell global; dashboard revisado; console operacional de espirometria; consoles iniciais transversais; seed operacional estritamente fictício preparado; roteiro E2E integrado preparado; format; lint; typecheck; 92 unitários; 4 E2E públicos; build
-- Tarefa seguinte: executar seed e E2E integrado no Supabase de teste autorizado quando as variáveis temporárias estiverem disponíveis
-- Bloqueios: Supabase CLI ausente para typegen oficial da Fase 1; avanço autorizado pelo usuário para continuar implementação e revisar pendências depois
-- Testes pendentes: executar o novo E2E integrado autenticado real, validação SQL completa das migrations, carga, concorrência, backup/restore e acessibilidade
-- Branch em andamento: `codex/revisao-visual-ux`
+- Tarefa seguinte: gerar tipos oficiais contra schema completo e executar testes negativos de bypass no PostgreSQL
+- Bloqueios: credenciais temporárias de projeto Supabase com todas as migrations; cliente GitHub `gh`/conector autenticado indisponível; integridade composta exige validação SQL antes da migration
+- Testes concluídos nesta unidade: format, lint, typecheck, 100 unitários, scanner de segredo, auditoria sem vulnerabilidades, build e 4 E2E públicos
+- Testes pendentes: typegen check, migration/RLS/bypass PostgreSQL, E2E autenticado, CI remoto, carga, concorrência, backup/restore e acessibilidade
+- Branch em andamento: `codex/desenvolvimento-completo-unimetra`
 - Último checkpoint publicado: `934134c` (`chore/fase-11-producao-piloto`)
-- Atualizado em: 2026-07-13
+- Atualizado em: 2026-07-13 — início formal da Fase A

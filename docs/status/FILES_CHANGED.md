@@ -30,3 +30,10 @@ O inventário exato deve ser obtido com `git status --short` e registrado novame
 - Runner: `scripts/validate-phase1-supabase.mjs`.
 - Status: documentos atualizados com evidência de migration aplicada, RLS real, tenant A/B, membership bloqueada e auditoria append-only.
 - Segredos: nenhuma credencial persistida; senha usada apenas em variável de ambiente temporária durante a execução.
+
+## Fase A — reauditoria V2
+
+- Segurança: nova migration de hardening, contexto tenant/unidade e testes negativos.
+- Typegen/supply chain: Supabase CLI, scripts de geração/check, workflows CodeQL/dependency review, Dependabot, scanner e overrides.
+- Documentação: auditorias, matrizes de produto/testes, roadmap/gates/dependências/release, break-glass, leitura sensível, sessão/dispositivo, README, AGENTS, ADR-0008 e status.
+- Nenhum segredo, dado real, deploy, merge ou produção.

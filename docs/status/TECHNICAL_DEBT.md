@@ -4,10 +4,10 @@ Pendências deliberadas: validar sintaxe DBML/Mermaid com ferramentas dedicadas;
 
 ## Fase 1
 
-- Ambiente atual não possui Docker/Supabase CLI; SQL e RLS ainda carecem de execução real.
-- Tipos gerados do Supabase ainda não existem; devem ser gerados após migration validada.
+- Ambiente atual não possui Docker/PostgreSQL local; SQL e RLS da nova migration ainda carecem de execução real.
+- Supabase CLI 2.109.1 foi instalada; tipos oficiais ainda não existem porque falta projeto autorizado com schema completo.
 - A topologia OneDrive exige execução fora do sandbox para ferramentas em `node_modules`; registrar uma configuração local reproduzível sem caminho absoluto antes do fechamento.
-- O pnpm reportou duas subdependências depreciadas transitivas (`@esbuild-kit/core-utils` e `@esbuild-kit/esm-loader`); identificar a cadeia e atualizar/mitigar antes do aceite.
+- Duas subdependências de tooling permanecem depreciadas (`@esbuild-kit/core-utils` e `@esbuild-kit/esm-loader`), mas o esbuild vulnerável foi substituído por override corrigido; remover a cadeia quando o Drizzle eliminar a dependência.
 
 ## Revisão geral pós-checkpoints — 2026-07-13
 

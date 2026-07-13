@@ -1,5 +1,18 @@
 # Resultados de testes e verificações
 
+## 2026-07-13 — Fase A (primeira unidade)
+
+- `pnpm format`: passou.
+- `pnpm lint`: passou com zero warnings.
+- `pnpm typecheck`: passou em TypeScript estrito.
+- `pnpm test`: 28 arquivos e 100 testes passaram.
+- `pnpm security:secrets`: passou nos arquivos rastreados.
+- `pnpm audit --json`: zero vulnerabilidades após overrides.
+- `pnpm build`: passou; 26 rotas geradas.
+- `pnpm test:e2e`: 4 públicos passaram; 1 autenticado foi ignorado por ausência de variáveis temporárias.
+- `pnpm types:supabase:check`: falhou como esperado/seguro porque o arquivo oficial ainda não foi gerado.
+- Não executado: migration Fase A em PostgreSQL, testes RLS/bypass/último admin reais, E2E autenticado e CI remoto.
+
 ## 2026-07-13 — Auditoria geral pós-checkpoints
 
 - `git status --short --branch`: branch limpa em `chore/fase-11-producao-piloto`.
