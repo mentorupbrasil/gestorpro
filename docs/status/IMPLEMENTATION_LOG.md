@@ -53,3 +53,6 @@
 - Iniciada a Fase 7B na branch `feat/fase-7b-audiometria`.
 - Criada migration de audiometria com calibrações, início de exame, limiares versionados, payload original futuro e bloqueio por calibração inválida.
 - Criados motor de validação de repouso/limiares, serviços e tela operacional para audiometria.
+- Iniciada a Fase 7C na branch `feat/fase-7c-espirometria`.
+- Criada migration de espirometria com valores previstos configuráveis, calibração, manobras/tentativas, seleção aceita e versões auditáveis.
+- Criado motor de cálculo técnico de percentuais sem interpretação clínica automática.

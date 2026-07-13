@@ -112,3 +112,39 @@ export const audiometryResultListSchema = z.array(
     status: z.string(),
   }),
 );
+
+export const spirometryMeasuredValuesSchema = z.object({
+  fev1: z.coerce.number().positive(),
+  fvc: z.coerce.number().positive(),
+  pef: z.coerce.number().positive().optional(),
+});
+
+export const startSpirometryExamSchema = z.object({
+  examOrderId: z.string().uuid(),
+  tenantId: z.string().uuid(),
+});
+
+export type StartSpirometryExamInput = z.infer<typeof startSpirometryExamSchema>;
+
+export const saveSpirometryManeuverSchema = z.object({
+  acceptManeuver: z.boolean().default(false),
+  attemptNumber: z.coerce.number().int().positive(),
+  bronchodilator: z.record(z.string(), z.unknown()).default({}),
+  calibrationId: z.string().uuid(),
+  completeResult: z.boolean().default(false),
+  correctionReason: z.string().min(3).max(500),
+  curveAttachmentRefs: z.array(z.record(z.string(), z.unknown())).default([]),
+  inconclusiveReason: z.string().max(1000).optional().default(""),
+  inconclusiveResult: z.boolean().default(false),
+  measuredValues: spirometryMeasuredValuesSchema,
+  predictedValueSetId: z.string().uuid(),
+  predictedValues: spirometryMeasuredValuesSchema,
+  professionalConclusion: z.string().max(5000).optional().default(""),
+  qualityGrade: z.enum(["A", "B", "C", "D", "E", "F", "unacceptable"]),
+  requiredInputs: z.record(z.string(), z.unknown()),
+  resultId: z.string().uuid(),
+  technicalNotes: z.string().max(5000).optional().default(""),
+  tenantId: z.string().uuid(),
+});
+
+export type SaveSpirometryManeuverInput = z.infer<typeof saveSpirometryManeuverSchema>;

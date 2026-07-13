@@ -5,16 +5,25 @@ import { resolveAuthorizationContext } from "@/core/auth/session";
 import { AppError } from "@/core/errors/app-error";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 import {
-  saveVisualAcuityResultSchema,
   saveAudiometryResultSchema,
+  saveSpirometryManeuverSchema,
+  saveVisualAcuityResultSchema,
   startAudiometryExamSchema,
+  startSpirometryExamSchema,
   startVisualAcuityExamSchema,
   type SaveAudiometryResultInput,
+  type SaveSpirometryManeuverInput,
   type SaveVisualAcuityResultInput,
   type StartAudiometryExamInput,
+  type StartSpirometryExamInput,
   type StartVisualAcuityExamInput,
 } from "./schemas";
 import { assertAuditoryRest, validateAudiometryThresholds } from "./audiometry";
+import {
+  assertAcceptedManeuver,
+  computeSpirometryPercentages,
+  validateSpirometryQuality,
+} from "./spirometry";
 import { assertProfessionalConclusion, validateVisualAcuityPayload } from "./visual-acuity";
 
 export async function startVisualAcuityExam(input: StartVisualAcuityExamInput, requestId: string) {
@@ -136,6 +145,78 @@ export async function saveAudiometryResult(input: SaveAudiometryResultInput, req
 
   if (error || typeof data !== "string") {
     throw new AppError("INTERNAL_ERROR", "Não foi possível salvar audiometria.", {
+      cause: error,
+      status: 500,
+    });
+  }
+
+  return data;
+}
+
+export async function startSpirometryExam(input: StartSpirometryExamInput, requestId: string) {
+  const parsed = startSpirometryExamSchema.parse(input);
+  const context = await resolveAuthorizationContext(parsed.tenantId);
+  requirePermission(context, "exams.manage");
+  requireAal2(context);
+
+  const supabase = await createServerSupabaseClient();
+  const { data, error } = await supabase.rpc("start_spirometry_exam", {
+    audit_request_id: requestId,
+    target_exam_order_id: parsed.examOrderId,
+    target_tenant_id: context.tenantId,
+  });
+
+  if (error || typeof data !== "string") {
+    throw new AppError("INTERNAL_ERROR", "Não foi possível iniciar espirometria.", {
+      cause: error,
+      status: 500,
+    });
+  }
+
+  return data;
+}
+
+export async function saveSpirometryManeuver(
+  input: SaveSpirometryManeuverInput,
+  requestId: string,
+) {
+  const parsed = saveSpirometryManeuverSchema.parse(input);
+  const context = await resolveAuthorizationContext(parsed.tenantId);
+  requirePermission(context, "exams.manage");
+  requireAal2(context);
+  validateSpirometryQuality(parsed.qualityGrade);
+  assertAcceptedManeuver({
+    acceptManeuver: parsed.acceptManeuver,
+    completeResult: parsed.completeResult,
+  });
+  const percentages = computeSpirometryPercentages(parsed.measuredValues, parsed.predictedValues);
+
+  const supabase = await createServerSupabaseClient();
+  const { data, error } = await supabase.rpc("save_spirometry_maneuver", {
+    accept_maneuver: parsed.acceptManeuver,
+    attempt_number_value: parsed.attemptNumber,
+    audit_request_id: requestId,
+    bronchodilator_value: parsed.bronchodilator,
+    calibration_id_value: parsed.calibrationId,
+    complete_result: parsed.completeResult,
+    correction_reason_value: parsed.correctionReason,
+    curve_attachment_refs_value: parsed.curveAttachmentRefs,
+    inconclusive_reason_value: parsed.inconclusiveReason,
+    inconclusive_result: parsed.inconclusiveResult,
+    measured_values_value: parsed.measuredValues,
+    percentages_value: percentages,
+    predicted_value_set_id_value: parsed.predictedValueSetId,
+    predicted_values_value: parsed.predictedValues,
+    professional_conclusion_value: parsed.professionalConclusion,
+    quality_grade_value: parsed.qualityGrade,
+    required_inputs_value: parsed.requiredInputs,
+    target_result_id: parsed.resultId,
+    target_tenant_id: context.tenantId,
+    technical_notes_value: parsed.technicalNotes,
+  });
+
+  if (error || typeof data !== "string") {
+    throw new AppError("INTERNAL_ERROR", "Não foi possível salvar espirometria.", {
       cause: error,
       status: 500,
     });
