@@ -6,7 +6,7 @@
 - `pnpm lint`: passou com zero warnings.
 - `pnpm test tests/unit/consultation-payload.test.ts tests/unit/triage-payload.test.ts`: 12 testes passaram.
 - `pnpm build`: passou; 27 rotas geradas.
-- Migration `202607140003_consultation_operational_hardening.sql` criada; aplicação no Supabase autorizado pendente (sem `.env`).
+- Migration `202607140003_consultation_operational_hardening.sql` aplicada no Supabase autorizado (2026-07-13).
 
 ## 2026-07-13 — P0.1 Estação de triagem operacional (fechamento operacional)
 
@@ -20,22 +20,17 @@
 
 ### Migration `202607140002_triage_operational_hardening.sql`
 
-- **Não aplicada.** Bloqueio confirmado em 2026-07-13:
-  - Arquivo `.env` ausente no workspace (somente `.env.example`).
-  - Variáveis de ambiente não definidas: `PGHOST`, `PGPASSWORD`, `DATABASE_URL`, `MIGRATION_DATABASE_URL`, `NEXT_PUBLIC_SUPABASE_URL`.
-- Sem credenciais locais, a migration não foi executada e nenhuma validação SQL/RPC foi inventada.
-- Script `pnpm validate:supabase:triage` adicionado para aplicar migration + checklist SQL fictício.
-- Execução bloqueada: `.env` ausente; Docker/Supabase local indisponível.
+- **Aplicada** no Supabase `dacittcezvtqljanhobb` em 2026-07-13 (schema completo via `apply-all-migrations.mjs`).
+- `validate-triage-supabase.mjs`: falhou no mock AAL2 via pooler; funções RPC presentes.
 
 ### Checklist manual (`docs/implementation/P0_1_TRIAGEM_OPERACIONAL.md`)
 
-- Itens 1–12: **bloqueados** (dependem de Supabase autorizado + app em runtime; sem dados pessoais reais).
-- Alinhamento estático código ↔ migration registrado no doc de implementação; validação ponta a ponta pendente.
+- Itens 1–12: pendentes na UI (`pnpm dev` + MFA).
 
 ### Veredito P0.1
 
-- **Código e testes unitários:** prontos.
-- **Operacional (migration + checklist manual):** pendente.
+- **Migration:** aplicada.
+- **Checklist manual UI:** pendente.
 - **P0.1 fechado:** não.
 
 ## 2026-07-13 — Consolidação segura de branches

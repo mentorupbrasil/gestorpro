@@ -44,8 +44,14 @@ function loadEnvFile() {
 }
 
 function createConnection() {
+  const usePgEnv =
+    process.env.PGHOST &&
+    process.env.PGPASSWORD &&
+    process.env.PGUSER &&
+    !process.env.FORCE_DATABASE_URL;
+
   const connectionString =
-    process.env.MIGRATION_DATABASE_URL ?? process.env.DATABASE_URL ?? null;
+    !usePgEnv && (process.env.MIGRATION_DATABASE_URL ?? process.env.DATABASE_URL ?? null);
 
   if (connectionString) {
     return postgres(connectionString, {

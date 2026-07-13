@@ -34,17 +34,9 @@ const usePgEnv =
 const connectionString =
   !usePgEnv && (process.env.MIGRATION_DATABASE_URL ?? process.env.DATABASE_URL ?? null);
 
-const pgEnv = ["PGHOST", "PGPASSWORD"];
-
-if (!connectionString) {
-  for (const name of pgEnv) {
-    if (!process.env[name]) {
-      console.error(
-        "MIGRATION_DATABASE_URL, DATABASE_URL or PGHOST+PGPASSWORD are required.",
-      );
-      process.exit(1);
-    }
-  }
+if (!connectionString && (!process.env.PGHOST || !process.env.PGPASSWORD)) {
+  console.error("Configure MIGRATION_DATABASE_URL ou PGHOST+PGPASSWORD no .env.");
+  process.exit(1);
 }
 
 const connection = connectionString
@@ -62,7 +54,7 @@ const connection = connectionString
     });
 
 const migrationPath =
-  "supabase/migrations/202607140002_triage_operational_hardening.sql";
+  "supabase/migrations/202607140003_consultation_operational_hardening.sql";
 
 try {
   const migration = await fs.readFile(migrationPath, "utf8");

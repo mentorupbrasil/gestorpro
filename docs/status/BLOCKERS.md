@@ -7,13 +7,13 @@
 
 ## P0.1 — triagem operacional
 
-- `.env` local ausente. Migration `202607140002` e checklist manual bloqueados.
-- Comandos: `pnpm migrate:triage` ou `pnpm validate:supabase:triage`.
+- Migration `202607140002` aplicada no Supabase autorizado (2026-07-13).
+- Checklist UI manual ainda pendente (`pnpm dev`).
 
 ## P0.2 — consulta operacional
 
-- Migration `202607140003` e validação SQL/UI bloqueadas pelo mesmo `.env` ausente.
-- Código e testes unitários aprovados localmente.
+- Migration `202607140003` aplicada no Supabase autorizado (2026-07-13).
+- Checklist UI manual pendente.
 
 ## Fase A — typegen e PostgreSQL O typegen oficial ainda requer `SUPABASE_PROJECT_ID` e `SUPABASE_ACCESS_TOKEN` temporários para um projeto autorizado com todas as migrations aplicadas.
 - Docker/PostgreSQL local continuam indisponíveis; a migration de hardening e os testes de bypass não puderam ser executados em banco real nesta sessão.
