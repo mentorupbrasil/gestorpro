@@ -47,3 +47,6 @@
 - Iniciada a Fase 6 na branch `feat/fase-6-triagem-consulta`.
 - Criada migration clínica com credenciais profissionais, triagem versionada, alertas, pausas, consulta médica, adendos, regras e conclusões humanas bloqueáveis.
 - Criados serviços e tela clínica para triagem, fechamento de consulta e preparação de conclusão sem gerar ASO definitivo.
+- Iniciada a Fase 7A na branch `feat/fase-7a-acuidade`.
+- Criada migration de acuidade visual com início de exame, resultado versionado, repetição sem apagamento e liberação da consulta quando concluído.
+- Criados motor de validação de medidas, serviços e tela operacional para acuidade visual.

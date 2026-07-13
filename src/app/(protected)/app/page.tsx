@@ -100,6 +100,14 @@ export default async function WorkspacePage() {
               Área clínica
             </Link>
           </li>
+          <li>
+            <Link
+              className="font-semibold text-emerald-800 underline-offset-4 hover:underline"
+              href="/app/exams/visual-acuity"
+            >
+              Acuidade visual
+            </Link>
+          </li>
         </ul>
       </nav>
     </main>
