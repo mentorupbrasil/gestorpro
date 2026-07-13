@@ -1,6 +1,6 @@
 import "server-only";
 
-import { requireAal2, requirePermission, requireUnitPermission } from "@/core/auth/authorization";
+import { requireAal2, requireTenantOrUnitPermission, requireUnitPermission } from "@/core/auth/authorization";
 import { resolveAuthorizationContext } from "@/core/auth/session";
 import { AppError } from "@/core/errors/app-error";
 import { recordSensitiveRead } from "@/features/audit/sensitive-read";
@@ -195,7 +195,7 @@ export async function loadTriageWorkspace(
   selectedEncounterId?: string,
 ): Promise<TriageWorkspace> {
   const context = await resolveAuthorizationContext(tenantId);
-  requirePermission(context, "clinical.read");
+  requireTenantOrUnitPermission(context, "clinical.read");
 
   const unitIds = Array.from(context.clinicUnitIds);
   const supabase = await createServerSupabaseClient();
@@ -369,7 +369,7 @@ export async function loadTriageWorkspace(
 export async function saveTriageRecord(input: SaveTriageRecordInput, requestId: string) {
   const parsed = saveTriageRecordSchema.parse(input);
   const context = await resolveAuthorizationContext(parsed.tenantId);
-  requirePermission(context, "triage.manage");
+  requireTenantOrUnitPermission(context, "triage.manage");
   requireAal2(context);
 
   const supabase = await createServerSupabaseClient();
@@ -409,7 +409,7 @@ export async function saveTriageRecord(input: SaveTriageRecordInput, requestId: 
   }
 
   if (existingRecord.data?.status === "closed" && !parsed.closeRecord) {
-    requirePermission(context, "clinical.reopen");
+    requireUnitPermission(context, encounterResult.data.clinic_unit_id, "clinical.reopen");
   }
 
   const profileResult = await supabase
@@ -501,7 +501,7 @@ export async function loadConsultationWorkspace(
   requestId?: string,
 ): Promise<ConsultationWorkspace> {
   const context = await resolveAuthorizationContext(tenantId);
-  requirePermission(context, "clinical.read");
+  requireTenantOrUnitPermission(context, "clinical.read");
 
   const unitIds = Array.from(context.clinicUnitIds);
   const supabase = await createServerSupabaseClient();
@@ -757,7 +757,7 @@ export async function loadConclusionWorkspace(
   selectedEncounterId?: string,
 ): Promise<ConclusionWorkspace> {
   const context = await resolveAuthorizationContext(tenantId);
-  requirePermission(context, "clinical.read");
+  requireTenantOrUnitPermission(context, "clinical.read");
 
   const unitIds = Array.from(context.clinicUnitIds);
   const supabase = await createServerSupabaseClient();
@@ -983,7 +983,7 @@ export async function saveMedicalConsultation(
 ) {
   const parsed = closeMedicalConsultationSchema.parse(input);
   const context = await resolveAuthorizationContext(parsed.tenantId);
-  requirePermission(context, "consultations.manage");
+  requireTenantOrUnitPermission(context, "consultations.manage");
   requireAal2(context);
 
   const supabase = await createServerSupabaseClient();
@@ -1036,7 +1036,7 @@ export async function saveMedicalConsultation(
   }
 
   if (existingConsultation.data?.status === "closed" && !parsed.closeRecord) {
-    requirePermission(context, "clinical.reopen");
+    requireUnitPermission(context, encounterResult.data.clinic_unit_id, "clinical.reopen");
   }
 
   const credentialResult = await supabase
@@ -1147,10 +1147,23 @@ export async function createMedicalConclusion(
 ) {
   const parsed = createMedicalConclusionSchema.parse(input);
   const context = await resolveAuthorizationContext(parsed.tenantId);
-  requirePermission(context, "conclusions.manage");
+  requireTenantOrUnitPermission(context, "conclusions.manage");
   requireAal2(context);
 
   const supabase = await createServerSupabaseClient();
+  const encounterResult = await supabase
+    .from("encounters")
+    .select("id, clinic_unit_id, status")
+    .eq("tenant_id", context.tenantId)
+    .eq("id", parsed.encounterId)
+    .maybeSingle();
+
+  if (encounterResult.error || !encounterResult.data) {
+    throw new AppError("VALIDATION_FAILED", "Atendimento não encontrado.", { status: 404 });
+  }
+
+  requireUnitPermission(context, encounterResult.data.clinic_unit_id, "conclusions.manage");
+
   const { data, error } = await supabase.rpc("create_medical_conclusion", {
     audit_request_id: requestId,
     conclusion_code_value: parsed.conclusionCode,

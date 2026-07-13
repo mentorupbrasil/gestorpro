@@ -7,7 +7,8 @@ Atualizado em: 2026-07-13
 - Fase A — Reauditoria e correção da fundação: `PARTIAL / IN_PROGRESS`.
 - Produção e merge na `main`: não autorizados.
 - Fechado tecnicamente nesta linha: contenção DML/RPC, escopo por recurso, AAL2 no banco, typegen oficial, P0.1–P0.3 operacionais, FKs compostas ondas 1–3, **P0.5 papéis + P0.6 leitura sensível (código)**.
-- Gate A ainda aberto: aplicar/validar P0.5–P0.6 no banco autorizado; P0.4 onda 4+; typegen oficial pós-apply; break-glass completo (humano/LGPD).
+- Gate A ainda aberto: checks remotos da PR #11 a confirmar; typegen pós-`012`; auth unit-scoped em exames/agenda residual; ações humanas (`HUMAN_ACTIONS.md`).
+- Correção urgente desta unidade: gate clínico unit-scoped (`requireTenantOrUnitPermission`) + remoção de `supabase/.temp` do Git.
 
 | Fase                         | Estado                | Observação                                        |
 | ---------------------------- | --------------------- | ------------------------------------------------- |

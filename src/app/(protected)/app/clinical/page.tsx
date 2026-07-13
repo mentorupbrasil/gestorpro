@@ -1,7 +1,7 @@
 import { cookies, headers } from "next/headers";
 import { redirect } from "next/navigation";
 import { z } from "zod";
-import { requirePermission } from "@/core/auth/authorization";
+import { requireTenantOrUnitPermission } from "@/core/auth/authorization";
 import { resolveAuthorizationContext } from "@/core/auth/session";
 import {
   loadConclusionWorkspace,
@@ -22,7 +22,7 @@ export default async function ClinicalPage({ searchParams }: ClinicalPageProps) 
   if (!selectedTenantId) redirect("/select-tenant");
 
   const context = await resolveAuthorizationContext(selectedTenantId);
-  requirePermission(context, "clinical.read");
+  requireTenantOrUnitPermission(context, "clinical.read");
 
   const resolvedSearchParams = searchParams ? await searchParams : undefined;
   const selectedEncounterId = resolvedSearchParams?.encounter

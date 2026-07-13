@@ -2,21 +2,26 @@
 
 ## Produção / merge
 
-- Produção e merge na `main`: **NO-GO**.
+- **NO-GO** permanente até GO humano.
+- Ver `docs/status/HUMAN_ACTIONS.md` (privado, token, Vercel, proteção da `main`).
 
-## P0.5 / P0.6
+## CI remoto
 
-- Migrations `202607140010` e `202607140011` **aplicadas** no Supabase autorizado (dono, 2026-07-13, SQL Editor, sem erro).
-- Break-glass clínico completo permanece documental (LGPD humana).
+- Não afirmar “CI verde” sem evidência na PR #11. Checks remotos não foram revalidados nesta sessão (`gh` indisponível no PATH do agente).
+- CI workflow ignora push direto na `main` (`branches-ignore: [main]`) — esperado até branch protection humana.
 
-## P0.4 — integridade composta
+## Auth unit-scoped
 
-- Ondas 1–3 (`007`–`009`) aplicadas.
-- Onda 4 em implementação no repo.
+- Bug clínico (gate `requirePermission` antes do escopo de unidade) corrigido no código desta unidade.
+- Exames/agenda/display ainda usam em grande parte `requirePermission` tenant-wide — risco residual, fora deste corte.
+
+## P0.4 / P0.5 / P0.6
+
+- `010`/`011` aplicadas (dono).
+- `012` (onda 4) no repo; apply a confirmar pelo dono.
 
 ## Já resolvido (não reabrir)
 
-- P0.1–P0.3 MFA/checklists
-- Typegen oficial + fingerprint LF-safe + CI feature
-- Repo privado + PR draft #11
-- Apply P0.5/P0.6
+- P0.1–P0.3 operacionais MFA
+- Typegen oficial + fingerprint LF-safe (regenerar após novas migrations se necessário)
+- FKs ondas 1–3
