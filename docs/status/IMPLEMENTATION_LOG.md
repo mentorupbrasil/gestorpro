@@ -62,3 +62,6 @@
 - Iniciada a Fase 7E na branch `feat/fase-7e-laboratorio`.
 - Criada migration de laboratório com pedidos, itens, amostras, eventos, resultados, revisão/liberação, críticos e laboratório externo.
 - Criadas validações de liberação crítica, referência configurável e payload opcional de código de barras sem conteúdo clínico.
+- Iniciada a Fase 8 na branch `feat/fase-8-documentos`.
+- Criada migration de documentos com templates versionados, documentos gerados, versões imutáveis, hash, storage privado, assinatura, entregas e logs de acesso.
+- Criadas validações para ASO incompleto, caminho privado, nome físico sem conteúdo clínico e impressão A4 configurável.

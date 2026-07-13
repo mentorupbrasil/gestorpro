@@ -32,6 +32,10 @@ export const permissions = [
   "clinical.reopen",
   "exams.read",
   "exams.manage",
+  "documents.read",
+  "documents.manage",
+  "documents.sign",
+  "documents.deliver",
 ] as const;
 
 export type Permission = (typeof permissions)[number];
