@@ -21,6 +21,7 @@
     "test:e2e": "node scripts/run-e2e.mjs",
     "types:supabase:check": "node scripts/check-supabase-types.mjs",
     "types:supabase:generate": "node scripts/generate-supabase-types.mjs",
+    "types:supabase:generate:offline": "node scripts/generate-supabase-types-offline.mjs",
     "validate:supabase:phase2": "node scripts/validate-phase2-supabase.mjs"
   },
   "dependencies": {

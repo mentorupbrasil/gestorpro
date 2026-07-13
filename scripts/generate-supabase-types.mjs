@@ -7,10 +7,14 @@ const projectId = process.env.SUPABASE_PROJECT_ID;
 const accessToken = process.env.SUPABASE_ACCESS_TOKEN;
 
 if (!projectId || !accessToken) {
-  console.error(
-    "SUPABASE_PROJECT_ID and SUPABASE_ACCESS_TOKEN are required temporarily for official typegen.",
+  console.warn(
+    "SUPABASE_PROJECT_ID and SUPABASE_ACCESS_TOKEN not set; generating offline types from migrations.",
   );
-  process.exit(1);
+  const offline = spawnSync(process.execPath, ["scripts/generate-supabase-types-offline.mjs"], {
+    encoding: "utf8",
+    stdio: "inherit",
+  });
+  process.exit(offline.status ?? 1);
 }
 
 const executable = process.platform === "win32" ? "pnpm.cmd" : "pnpm";

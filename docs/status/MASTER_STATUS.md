@@ -8,7 +8,7 @@ Atualizado em: 2026-07-13
 - Os checkpoints históricos das Fases 1–11 permanecem preservados, mas não equivalem a aceite técnico pelos gates do Plano Mestre V2.
 - Produção e merge na `main`: não autorizados.
 - Primeira unidade: contenção de DML/RPC, escopo por unidade, AAL2 no banco, último admin, supply chain e documentos obrigatórios concluídos localmente.
-- Gate ainda aberto: typegen oficial, PostgreSQL/RLS real, integridade composta, E2E autenticado, CI/PR remoto.
+- Gate ainda aberto: typegen oficial remoto (offline ativo), PostgreSQL/RLS real da base consolidada, integridade composta, E2E autenticado, CI/PR remoto.
 
 | Fase                         | Estado                | Observação                                        |
 | ---------------------------- | --------------------- | ------------------------------------------------- |

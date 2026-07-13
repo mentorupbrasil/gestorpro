@@ -3,6 +3,7 @@ import { redirect } from "next/navigation";
 import { requirePermission } from "@/core/auth/authorization";
 import { resolveAuthorizationContext } from "@/core/auth/session";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
+import { readEmbeddedRelation } from "@/lib/supabase/relations";
 import { SpirometryForms } from "./spirometry-forms";
 
 export default async function SpirometryPage() {
@@ -52,7 +53,7 @@ export default async function SpirometryPage() {
   const calibrations = calibrationsResult.data ?? [];
   const predictedSets = predictedSetsResult.data ?? [];
   const spirometryOrders = orders.filter(
-    (order) => order.exam_catalog?.[0]?.result_type === "spirometry",
+    (order) => readEmbeddedRelation(order.exam_catalog)?.result_type === "spirometry",
   );
 
   return (
@@ -84,7 +85,7 @@ export default async function SpirometryPage() {
           }))}
         orders={spirometryOrders.map((order) => ({
           id: order.id,
-          name: order.exam_catalog?.[0]?.name ?? order.id,
+          name: readEmbeddedRelation(order.exam_catalog)?.name ?? order.id,
         }))}
         predictedSets={predictedSets
           .filter((set) => set.status === "active")

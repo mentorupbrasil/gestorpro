@@ -4,6 +4,7 @@ import { requireAal2, requirePermission } from "@/core/auth/authorization";
 import { resolveAuthorizationContext } from "@/core/auth/session";
 import { AppError } from "@/core/errors/app-error";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
+import { readEmbeddedRelation } from "@/lib/supabase/relations";
 import {
   saveAudiometryResultSchema,
   saveDiagnosticExamResultSchema,
@@ -186,7 +187,7 @@ export async function startSpirometryExam(input: StartSpirometryExamInput, reque
       status: 400,
     });
   }
-  assertSpirometryCatalogType(order.exam_catalog?.[0]?.result_type);
+  assertSpirometryCatalogType(readEmbeddedRelation(order.exam_catalog)?.result_type);
 
   const { data, error } = await supabase.rpc("start_spirometry_exam", {
     audit_request_id: requestId,

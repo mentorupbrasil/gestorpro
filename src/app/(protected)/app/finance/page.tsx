@@ -3,6 +3,7 @@ import { redirect } from "next/navigation";
 import { requirePermission } from "@/core/auth/authorization";
 import { resolveAuthorizationContext } from "@/core/auth/session";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
+import { readEmbeddedRelation } from "@/lib/supabase/relations";
 
 function money(cents: number) {
   return new Intl.NumberFormat("pt-BR", { currency: "BRL", style: "currency" }).format(cents / 100);
@@ -103,7 +104,9 @@ export default async function FinancePage() {
               <tbody>
                 {billing.map((item) => (
                   <tr className="border-b border-slate-100 last:border-0" key={item.id}>
-                    <td className="px-3 py-3">{item.companies?.[0]?.legal_name ?? "Empresa"}</td>
+                    <td className="px-3 py-3">
+                      {readEmbeddedRelation(item.companies)?.legal_name ?? "Empresa"}
+                    </td>
                     <td className="px-3 py-3">{item.description}</td>
                     <td className="px-3 py-3 font-semibold">{money(item.amount_cents)}</td>
                     <td className="px-3 py-3">{item.status}</td>

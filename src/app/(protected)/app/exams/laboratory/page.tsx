@@ -3,6 +3,7 @@ import { redirect } from "next/navigation";
 import { requirePermission } from "@/core/auth/authorization";
 import { resolveAuthorizationContext } from "@/core/auth/session";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
+import { readEmbeddedRelation } from "@/lib/supabase/relations";
 
 export default async function LaboratoryPage() {
   const selectedTenantId = (await cookies()).get("gestorpro_tenant")?.value;
@@ -80,7 +81,7 @@ export default async function LaboratoryPage() {
           {orders.map((order) => (
             <li className="py-3" key={order.id}>
               <span className="font-semibold">
-                {order.external_laboratories?.[0]?.name ?? "Laboratório interno"}
+                {readEmbeddedRelation(order.external_laboratories)?.name ?? "Laboratório interno"}
               </span>
               <span className="ml-2 text-sm text-slate-600">
                 {order.status}
