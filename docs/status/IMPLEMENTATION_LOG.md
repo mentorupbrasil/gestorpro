@@ -80,3 +80,6 @@
 - Iniciada a Fase 10D na branch `feat/fase-10d-equipamentos-conector`.
 - Criada migration de equipamentos, calibrações, manutenções, conectores locais, tokens, eventos idempotentes e políticas de atualização.
 - Criadas validações de calibração/manutenção, escopo mínimo, payload redigido e bloqueio a promessa de integração universal.
+- Iniciada a Fase 11 na branch `chore/fase-11-producao-piloto`.
+- Criado relatório operacional de produção/piloto com decisão NO-GO, runbooks, feature flags, rollout, rollback e matriz de validações humanas.
+- Criado avaliador de prontidão para bloquear GO quando houver item crítico pendente ou tentativa de usar dados reais em piloto técnico.

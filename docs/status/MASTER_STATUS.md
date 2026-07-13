@@ -14,7 +14,7 @@ Atualizado em: 2026-07-13
 | 7 — Exames complementares    | CHECKPOINT_PUBLISHED  | validação profissional futura                |
 | 8 — Documentos               | CHECKPOINT_PUBLISHED  | modelos/assinatura dependem de humanos       |
 | 9 — Financeiro e portal      | CHECKPOINT_PUBLISHED  | validação contábil/jurídica futura           |
-| 10 — Integrações             | IN_PROGRESS           | eSocial oficial consultado; sem envio real   |
-| 11 — Produção e piloto       | NOT_STARTED           | produção não autorizada                      |
+| 10 — Integrações             | CHECKPOINT_PUBLISHED  | eSocial oficial consultado; sem envio real   |
+| 11 — Produção e piloto       | IN_PROGRESS           | produção não autorizada; decisão NO-GO       |
 
-Branch atual: `feat/fase-10d-equipamentos-conector`. Último commit publicado antes da Fase 10D: `c485a34`.
+Branch atual: `chore/fase-11-producao-piloto`. Último commit publicado antes da Fase 11: `ffe5f4a`.
