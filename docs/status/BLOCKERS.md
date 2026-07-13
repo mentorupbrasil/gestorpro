@@ -7,12 +7,15 @@
 
 ## P0.1 — triagem operacional
 
-- `.env` local ausente; variáveis `MIGRATION_DATABASE_URL` / `PGHOST`+`PGPASSWORD` não definidas. Migration `202607140002_triage_operational_hardening.sql` e checklist manual bloqueados até credenciais do Supabase autorizado.
-- Comandos: `pnpm migrate:triage` (só migration) ou `pnpm validate:supabase:triage` (migration + checklist SQL fictício).
+- `.env` local ausente. Migration `202607140002` e checklist manual bloqueados.
+- Comandos: `pnpm migrate:triage` ou `pnpm validate:supabase:triage`.
 
-## Fase A — typegen e PostgreSQL
+## P0.2 — consulta operacional
 
-- Supabase CLI `2.109.1` está instalada e fixada no projeto. O typegen oficial ainda requer `SUPABASE_PROJECT_ID` e `SUPABASE_ACCESS_TOKEN` temporários para um projeto autorizado com todas as migrations aplicadas.
+- Migration `202607140003` e validação SQL/UI bloqueadas pelo mesmo `.env` ausente.
+- Código e testes unitários aprovados localmente.
+
+## Fase A — typegen e PostgreSQL O typegen oficial ainda requer `SUPABASE_PROJECT_ID` e `SUPABASE_ACCESS_TOKEN` temporários para um projeto autorizado com todas as migrations aplicadas.
 - Docker/PostgreSQL local continuam indisponíveis; a migration de hardening e os testes de bypass não puderam ser executados em banco real nesta sessão.
 - Em 2026-07-12, um projeto Supabase de teste autorizado foi validado via Session Pooler: migration aplicada, RLS real testado, isolamento tenant A/B confirmado, membership bloqueada perde acesso e auditoria append-only bloqueia mutação.
 - Em 2026-07-12, MFA/TOTP e E2E autenticado real foram validados no mesmo ambiente Supabase autorizado.

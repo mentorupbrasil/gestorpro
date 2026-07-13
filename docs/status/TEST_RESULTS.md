@@ -1,5 +1,13 @@
 # Resultados de testes e verificações
 
+## 2026-07-13 — P0.2 Estação de consulta operacional
+
+- `pnpm typecheck`: passou.
+- `pnpm lint`: passou com zero warnings.
+- `pnpm test tests/unit/consultation-payload.test.ts tests/unit/triage-payload.test.ts`: 12 testes passaram.
+- `pnpm build`: passou; 27 rotas geradas.
+- Migration `202607140003_consultation_operational_hardening.sql` criada; aplicação no Supabase autorizado pendente (sem `.env`).
+
 ## 2026-07-13 — P0.1 Estação de triagem operacional (fechamento operacional)
 
 ### Gates locais (já aprovados nesta unidade)

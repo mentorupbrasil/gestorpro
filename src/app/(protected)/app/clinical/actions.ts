@@ -7,8 +7,10 @@ import { AppError } from "@/core/errors/app-error";
 import {
   closeMedicalConsultation,
   createMedicalConclusion,
+  saveMedicalConsultation,
   saveTriageRecord,
 } from "@/features/clinical/service";
+import { consultationStructuredInputSchema } from "@/features/clinical/consultation-payload";
 import { triageStructuredInputSchema } from "@/features/clinical/triage-payload";
 import { getRequestId } from "@/lib/http/request-id";
 
@@ -28,15 +30,33 @@ const triageActionSchema = z.object({
   reason: z.string().trim().optional(),
 });
 
-const consultationFormSchema = z.object({
+const consultationActionSchema = z.object({
+  changeReason: z.string().trim().optional(),
+  closeRecord: z.coerce.boolean().default(false),
+  encounterId: z.string().uuid(),
+  intent: z.enum(["draft", "complete"]),
+  physicianCredentialId: z.string().uuid(),
+  reason: z.string().trim().optional(),
+});
+
+const consultationLegacyFormSchema = z.object({
   assessment: z.string().optional(),
-  encounterId: z.string(),
+  encounterId: z.string().uuid(),
   objective: z.string(),
-  physicianCredentialId: z.string(),
+  physicianCredentialId: z.string().uuid(),
   plan: z.string().optional(),
-  reason: z.string(),
+  reason: z.string().min(3),
   subjective: z.string(),
 });
+
+function parseJsonObject(value: string) {
+  const parsed = JSON.parse(value) as unknown;
+  if (!parsed || Array.isArray(parsed) || typeof parsed !== "object") {
+    throw new Error("Payload precisa ser objeto JSON.");
+  }
+
+  return parsed as Record<string, unknown>;
+}
 
 const conclusionFormSchema = z.object({
   conclusionCode: z.enum(["fit", "fit_with_restrictions", "unfit", "inconclusive"]),
@@ -47,13 +67,27 @@ const conclusionFormSchema = z.object({
   restrictions: z.string().optional(),
 });
 
-function parseJsonObject(value: string) {
-  const parsed = JSON.parse(value) as unknown;
-  if (!parsed || Array.isArray(parsed) || typeof parsed !== "object") {
-    throw new Error("Payload precisa ser objeto JSON.");
-  }
+function parseConsultationFormData(formData: FormData) {
+  const read = (name: string) => {
+    const value = formData.get(name);
+    return value === null ? "" : String(value);
+  };
 
-  return parsed as Record<string, unknown>;
+  return consultationStructuredInputSchema.parse({
+    assessment: read("assessment"),
+    objective: {
+      generalAppearance: read("generalAppearance"),
+      physicalExam: read("physicalExam"),
+      vitalSignsReview: read("vitalSignsReview"),
+    },
+    plan: read("plan"),
+    subjective: {
+      chiefComplaint: read("chiefComplaint"),
+      historyOfPresentIllness: read("historyOfPresentIllness"),
+      occupationalHistory: read("occupationalHistory"),
+      reviewOfSystems: read("reviewOfSystems"),
+    },
+  });
 }
 
 function parseTriageFormData(formData: FormData) {
@@ -180,6 +214,73 @@ export async function saveTriageRecordAction(
   };
 }
 
+export async function saveMedicalConsultationAction(
+  _state: ClinicalFormState,
+  formData: FormData,
+): Promise<ClinicalFormState> {
+  const selectedTenantId = (await cookies()).get("gestorpro_tenant")?.value;
+  if (!selectedTenantId) return { error: "Selecione uma organização antes de continuar." };
+
+  const action = consultationActionSchema.safeParse({
+    changeReason: formData.get("changeReason"),
+    closeRecord: formData.get("intent") === "complete",
+    encounterId: formData.get("encounterId"),
+    intent: formData.get("intent"),
+    physicianCredentialId: formData.get("physicianCredentialId"),
+    reason: formData.get("reason"),
+  });
+
+  if (!action.success) {
+    return { error: "Revise o atendimento e tente novamente." };
+  }
+
+  let input;
+  try {
+    input = parseConsultationFormData(formData);
+  } catch (error) {
+    return { error: publicError(error, "Revise os campos da consulta.") };
+  }
+
+  const reason =
+    action.data.intent === "complete"
+      ? action.data.reason?.trim() || "Conclusão da consulta"
+      : action.data.changeReason?.trim() || action.data.reason?.trim() || "Rascunho de consulta";
+
+  if (action.data.intent === "complete" && reason.length < 3) {
+    return { error: "Informe o motivo da conclusão." };
+  }
+
+  try {
+    await saveMedicalConsultation(
+      {
+        closeRecord: action.data.closeRecord,
+        encounterId: action.data.encounterId,
+        input,
+        physicianCredentialId: action.data.physicianCredentialId,
+        reason,
+        tenantId: selectedTenantId,
+      },
+      getRequestId(await headers()),
+    );
+  } catch (error) {
+    return {
+      encounterId: action.data.encounterId,
+      error: publicError(error, "Não foi possível salvar a consulta."),
+    };
+  }
+
+  revalidatePath("/app/clinical");
+  return {
+    encounterId: action.data.encounterId,
+    status: action.data.intent === "complete" ? "completed" : "saved",
+    success:
+      action.data.intent === "complete"
+        ? "Consulta concluída e próxima etapa liberada."
+        : "Rascunho salvo com versionamento.",
+  };
+}
+
+/** @deprecated legacy JSON form */
 export async function closeMedicalConsultationAction(
   _state: ClinicalFormState,
   formData: FormData,
@@ -187,7 +288,7 @@ export async function closeMedicalConsultationAction(
   const selectedTenantId = (await cookies()).get("gestorpro_tenant")?.value;
   if (!selectedTenantId) return { error: "Selecione uma organização antes de continuar." };
 
-  const form = consultationFormSchema.safeParse({
+  const form = consultationLegacyFormSchema.safeParse({
     assessment: formData.get("assessment"),
     encounterId: formData.get("encounterId"),
     objective: formData.get("objective"),

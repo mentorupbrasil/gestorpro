@@ -7,15 +7,25 @@ import { createServerSupabaseClient } from "@/lib/supabase/server";
 import {
   approvedTriageFormVersionSchema,
   closeMedicalConsultationSchema,
+  consultationQueueListSchema,
+  consultationQueueRowSchema,
+  consultationWorkspaceRecordSchema,
   createMedicalConclusionSchema,
+  physicianCredentialListSchema,
   saveTriageRecordSchema,
   triageQueueListSchema,
   triageQueueRowSchema,
   triageWorkspaceRecordSchema,
   type CloseMedicalConsultationInput,
   type CreateMedicalConclusionInput,
+  type SaveMedicalConsultationInput,
   type SaveTriageRecordInput,
 } from "./schemas";
+import {
+  consultationInputFromStored,
+  parseConsultationVersionPayload,
+  type ConsultationStoredPayload,
+} from "./consultation-payload";
 import {
   formatWaitDuration,
   occupationalExamTypeLabels,
@@ -51,6 +61,44 @@ export type TriageWorkspace = {
     encounterId: string;
     payload: TriageStoredPayload;
     recordId: string;
+    status: string;
+  } | null;
+};
+
+export type ConsultationQueueItem = {
+  checkedInAt: string;
+  clinicUnitName: string;
+  companyName: string;
+  consultationId: string | null;
+  consultationStatus: string | null;
+  encounterId: string;
+  examTypeLabel: string;
+  pendingExams: number;
+  priority: number | null;
+  queueName: string | null;
+  status: string;
+  stepStatus: string;
+  triageSummary: TriageStoredPayload | null;
+  waitLabel: string;
+  workerName: string;
+};
+
+export type PhysicianOption = {
+  id: string;
+  label: string;
+};
+
+export type ConsultationWorkspace = {
+  physicians: readonly PhysicianOption[];
+  professionalName: string;
+  queue: readonly ConsultationQueueItem[];
+  selectedEncounter: ConsultationQueueItem | null;
+  selectedRecord: {
+    consultationId: string;
+    currentVersion: number;
+    encounterId: string;
+    payload: ConsultationStoredPayload;
+    physicianCredentialId: string;
     status: string;
   } | null;
 };
@@ -370,10 +418,241 @@ export async function saveTriageRecord(input: SaveTriageRecordInput, requestId: 
   return data;
 }
 
-export { triageInputFromStored };
+function mapConsultationQueueRow(
+  row: (typeof consultationQueueListSchema)["_output"][number],
+  now = Date.now(),
+): ConsultationQueueItem {
+  const consultStep = row.encounter_steps.find((step) => step.step_type === "consultation");
+  const ticket = row.queue_tickets[0];
+  const consultation = row.medical_consultations[0];
 
-export async function closeMedicalConsultation(
-  input: CloseMedicalConsultationInput,
+  return {
+    checkedInAt: row.checked_in_at,
+    clinicUnitName: row.clinic_units?.name ?? "Unidade",
+    companyName: row.referrals?.companies?.legal_name ?? "Empresa não informada",
+    consultationId: consultation?.id ?? null,
+    consultationStatus: consultation?.status ?? null,
+    encounterId: row.id,
+    examTypeLabel:
+      occupationalExamTypeLabels[row.referrals?.occupational_exam_type ?? ""] ??
+      row.referrals?.occupational_exam_type ??
+      "Exame ocupacional",
+    pendingExams: row.exam_orders.filter((order) => !["resulted", "cancelled"].includes(order.status))
+      .length,
+    priority: ticket?.priority ?? null,
+    queueName: ticket?.queue_definitions?.name ?? null,
+    status: row.status,
+    stepStatus: consultStep?.status ?? "pending",
+    triageSummary: null,
+    waitLabel: formatWaitDuration(row.checked_in_at, now),
+    workerName: row.workers?.full_name ?? "Trabalhador",
+  };
+}
+
+export async function loadConsultationWorkspace(
+  tenantId: string,
+  selectedEncounterId?: string,
+): Promise<ConsultationWorkspace> {
+  const context = await resolveAuthorizationContext(tenantId);
+  requirePermission(context, "clinical.read");
+
+  const unitIds = Array.from(context.clinicUnitIds);
+  const supabase = await createServerSupabaseClient();
+
+  const [profileResult, physiciansResult, queueResult] = await Promise.all([
+    supabase.from("user_profiles").select("display_name").eq("id", context.userId).maybeSingle(),
+    supabase
+      .from("clinical_professional_credentials")
+      .select(
+        "id, council_code, registration_number, user_id, user_profiles(display_name)",
+      )
+      .eq("tenant_id", context.tenantId)
+      .eq("professional_role", "physician")
+      .eq("status", "active"),
+    unitIds.length === 0
+      ? Promise.resolve({ data: [], error: null })
+      : supabase
+          .from("encounters")
+          .select(
+            `
+            id,
+            status,
+            checked_in_at,
+            clinic_unit_id,
+            workers(full_name),
+            referrals(occupational_exam_type, companies(legal_name)),
+            clinic_units(name),
+            encounter_steps(step_type, status, id),
+            queue_tickets(priority, status, queue_definitions(name)),
+            triage_records(id, status, current_version, triage_record_versions(version, payload)),
+            medical_consultations(id, status, current_version, physician_credential_id),
+            exam_orders(id, status, exam_catalog(name))
+          `,
+          )
+          .eq("tenant_id", context.tenantId)
+          .in("clinic_unit_id", unitIds)
+          .in("status", ["checked_in", "waiting", "in_progress"])
+          .order("checked_in_at"),
+  ]);
+
+  if (profileResult.error || physiciansResult.error || queueResult.error) {
+    throw new AppError("INTERNAL_ERROR", "Não foi possível carregar a estação de consulta.", {
+      cause: profileResult.error ?? physiciansResult.error ?? queueResult.error,
+      status: 500,
+    });
+  }
+
+  const physicianRows = physicianCredentialListSchema.parse(physiciansResult.data ?? []);
+  const physicians: PhysicianOption[] = physicianRows
+    .filter((row) => row.user_id === context.userId)
+    .map((row) => ({
+      id: row.id,
+      label: `${row.user_profiles?.display_name ?? "Médico"} · ${row.council_code ?? "CRM"} ${row.registration_number ?? ""}`,
+    }));
+
+  const queueRows = consultationQueueListSchema.parse(queueResult.data ?? []);
+  const queue = queueRows
+    .filter((row) => {
+      const consultStep = row.encounter_steps.find((step) => step.step_type === "consultation");
+      const triageRecord = row.triage_records[0];
+      const consultation = row.medical_consultations[0];
+      if (!consultStep || triageRecord?.status !== "closed") return false;
+      if (consultation?.status === "closed") return false;
+      return ["available", "in_progress", "pending"].includes(consultStep.status);
+    })
+    .map((row) => {
+      const item = mapConsultationQueueRow(row);
+      const triageRecord = row.triage_records[0];
+      const latestTriageVersion = triageRecord?.triage_record_versions?.find(
+        (version) => version.version === triageRecord.current_version,
+      );
+      if (latestTriageVersion) {
+        item.triageSummary = parseTriageStoredPayload(latestTriageVersion.payload);
+      }
+      return item;
+    })
+    .sort((left, right) => {
+      const leftPriority = left.priority ?? 999;
+      const rightPriority = right.priority ?? 999;
+      if (leftPriority !== rightPriority) return leftPriority - rightPriority;
+      return new Date(left.checkedInAt).getTime() - new Date(right.checkedInAt).getTime();
+    });
+
+  let selectedRecord: ConsultationWorkspace["selectedRecord"] = null;
+  let selectedEncounter: ConsultationQueueItem | null = null;
+
+  if (selectedEncounterId) {
+    const encounterRow = queueRows.find((row) => row.id === selectedEncounterId);
+    let encounterUnitId: string | null = encounterRow?.clinic_unit_id ?? null;
+
+    if (encounterRow) {
+      selectedEncounter = mapConsultationQueueRow(encounterRow);
+      const latestTriageVersion = encounterRow.triage_records[0]?.triage_record_versions?.find(
+        (version) => version.version === encounterRow.triage_records[0]?.current_version,
+      );
+      if (latestTriageVersion) {
+        selectedEncounter.triageSummary = parseTriageStoredPayload(latestTriageVersion.payload);
+      }
+    } else {
+      const encounterResult = await supabase
+        .from("encounters")
+        .select(
+          `
+          id,
+          status,
+          checked_in_at,
+          clinic_unit_id,
+          workers(full_name),
+          referrals(occupational_exam_type, companies(legal_name)),
+          clinic_units(name),
+          encounter_steps(step_type, status, id),
+          queue_tickets(priority, status, queue_definitions(name)),
+          triage_records(id, status, current_version, triage_record_versions(version, payload)),
+          medical_consultations(id, status, current_version, physician_credential_id),
+          exam_orders(id, status, exam_catalog(name))
+        `,
+        )
+        .eq("tenant_id", context.tenantId)
+        .eq("id", selectedEncounterId)
+        .maybeSingle();
+
+      if (encounterResult.error || !encounterResult.data) {
+        throw new AppError("VALIDATION_FAILED", "Atendimento não disponível para consulta.", {
+          status: 404,
+        });
+      }
+
+      const parsedEncounter = consultationQueueRowSchema.parse(encounterResult.data);
+      encounterUnitId = parsedEncounter.clinic_unit_id;
+      selectedEncounter = mapConsultationQueueRow(parsedEncounter);
+      const latestTriageVersion = parsedEncounter.triage_records[0]?.triage_record_versions?.find(
+        (version) => version.version === parsedEncounter.triage_records[0]?.current_version,
+      );
+      if (latestTriageVersion) {
+        selectedEncounter.triageSummary = parseTriageStoredPayload(latestTriageVersion.payload);
+      }
+    }
+
+    if (!encounterUnitId) {
+      throw new AppError("VALIDATION_FAILED", "Atendimento sem unidade vinculada.", {
+        status: 404,
+      });
+    }
+
+    requireUnitPermission(context, encounterUnitId, "clinical.read");
+
+    const recordResult = await supabase
+      .from("medical_consultations")
+      .select(
+        "id, encounter_id, physician_credential_id, status, current_version, medical_consultation_versions(version, subjective, objective, assessment, plan)",
+      )
+      .eq("tenant_id", context.tenantId)
+      .eq("encounter_id", selectedEncounterId)
+      .maybeSingle();
+
+    if (recordResult.error) {
+      throw new AppError("INTERNAL_ERROR", "Não foi possível carregar a consulta.", {
+        cause: recordResult.error,
+        status: 500,
+      });
+    }
+
+    if (recordResult.data) {
+      const record = consultationWorkspaceRecordSchema.parse(recordResult.data);
+      const latestVersion =
+        record.medical_consultation_versions.find(
+          (version) => version.version === record.current_version,
+        ) ?? record.medical_consultation_versions.at(-1);
+
+      if (latestVersion) {
+        selectedRecord = {
+          consultationId: record.id,
+          currentVersion: record.current_version,
+          encounterId: record.encounter_id,
+          payload: parseConsultationVersionPayload(
+            latestVersion.subjective,
+            latestVersion.objective,
+            latestVersion.assessment,
+            latestVersion.plan,
+          ),
+          physicianCredentialId: record.physician_credential_id,
+          status: record.status,
+        };
+      }
+    }
+  }
+
+  return {
+    physicians,
+    professionalName: profileResult.data?.display_name ?? "Profissional",
+    queue,
+    selectedEncounter,
+    selectedRecord,
+  };
+}
+
+export async function saveMedicalConsultation(
+  input: SaveMedicalConsultationInput,
   requestId: string,
 ) {
   const parsed = closeMedicalConsultationSchema.parse(input);
@@ -382,10 +661,79 @@ export async function closeMedicalConsultation(
   requireAal2(context);
 
   const supabase = await createServerSupabaseClient();
-  const { data, error } = await supabase.rpc("close_medical_consultation", {
+  const encounterResult = await supabase
+    .from("encounters")
+    .select("id, clinic_unit_id, status")
+    .eq("tenant_id", context.tenantId)
+    .eq("id", parsed.encounterId)
+    .maybeSingle();
+
+  if (encounterResult.error || !encounterResult.data) {
+    throw new AppError("VALIDATION_FAILED", "Atendimento não encontrado.", { status: 404 });
+  }
+
+  requireUnitPermission(context, encounterResult.data.clinic_unit_id, "consultations.manage");
+
+  if (["completed", "cancelled"].includes(encounterResult.data.status)) {
+    throw new AppError("VALIDATION_FAILED", "Atendimento já encerrado.", { status: 409 });
+  }
+
+  const triageResult = await supabase
+    .from("triage_records")
+    .select("status")
+    .eq("tenant_id", context.tenantId)
+    .eq("encounter_id", parsed.encounterId)
+    .maybeSingle();
+
+  if (triageResult.error || triageResult.data?.status !== "closed") {
+    throw new AppError("VALIDATION_FAILED", "Conclua a triagem antes da consulta.", {
+      status: 409,
+    });
+  }
+
+  const existingConsultation = await supabase
+    .from("medical_consultations")
+    .select("status")
+    .eq("tenant_id", context.tenantId)
+    .eq("encounter_id", parsed.encounterId)
+    .maybeSingle();
+
+  if (existingConsultation.error) {
+    throw new AppError("INTERNAL_ERROR", "Não foi possível validar a consulta.", {
+      cause: existingConsultation.error,
+      status: 500,
+    });
+  }
+
+  if (parsed.closeRecord && existingConsultation.data?.status === "closed") {
+    throw new AppError("VALIDATION_FAILED", "Consulta já concluída.", { status: 409 });
+  }
+
+  if (existingConsultation.data?.status === "closed" && !parsed.closeRecord) {
+    requirePermission(context, "clinical.reopen");
+  }
+
+  const credentialResult = await supabase
+    .from("clinical_professional_credentials")
+    .select("id")
+    .eq("tenant_id", context.tenantId)
+    .eq("id", parsed.physicianCredentialId)
+    .eq("user_id", context.userId)
+    .eq("professional_role", "physician")
+    .eq("status", "active")
+    .maybeSingle();
+
+  if (credentialResult.error || !credentialResult.data) {
+    throw new AppError("VALIDATION_FAILED", "Credencial médica inválida para este usuário.", {
+      status: 403,
+    });
+  }
+
+  const { data, error } = await supabase.rpc("save_medical_consultation", {
     assessment_value: parsed.assessment,
     audit_request_id: requestId,
     change_reason: parsed.reason,
+    close_record: parsed.closeRecord,
     objective_value: parsed.objective,
     physician_credential_id_value: parsed.physicianCredentialId,
     plan_value: parsed.plan,
@@ -394,14 +742,77 @@ export async function closeMedicalConsultation(
     target_tenant_id: context.tenantId,
   });
 
-  if (error || typeof data !== "string") {
-    throw new AppError("INTERNAL_ERROR", "Não foi possível fechar a consulta.", {
+  if (error) {
+    if (error.code === "42501") {
+      throw new AppError("PERMISSION_DENIED", "Sem permissão para registrar consulta.", {
+        status: 403,
+      });
+    }
+    if (error.message.includes("already closed")) {
+      throw new AppError("VALIDATION_FAILED", "Consulta já concluída.", { status: 409 });
+    }
+    if (error.message.includes("triage not completed")) {
+      throw new AppError("VALIDATION_FAILED", "Conclua a triagem antes da consulta.", {
+        status: 409,
+      });
+    }
+    if (error.message.includes("professional registration missing")) {
+      throw new AppError(
+        "VALIDATION_FAILED",
+        "Registro profissional incompleto para fechar a consulta.",
+        { status: 409 },
+      );
+    }
+    throw new AppError("INTERNAL_ERROR", "Não foi possível salvar a consulta.", {
       cause: error,
       status: 500,
     });
   }
 
+  if (typeof data !== "string") {
+    throw new AppError("INTERNAL_ERROR", "Não foi possível salvar a consulta.", { status: 500 });
+  }
+
   return data;
+}
+
+export { consultationInputFromStored, triageInputFromStored };
+
+export async function closeMedicalConsultation(
+  input: CloseMedicalConsultationInput,
+  requestId: string,
+) {
+  return saveMedicalConsultation(
+    {
+      closeRecord: true,
+      encounterId: input.encounterId,
+      input: {
+        assessment: input.assessment ?? "",
+        objective: {
+          generalAppearance: null,
+          physicalExam:
+            typeof input.objective.exameFisico === "string"
+              ? input.objective.exameFisico
+              : JSON.stringify(input.objective),
+          vitalSignsReview: null,
+        },
+        plan: input.plan ?? "",
+        subjective: {
+          chiefComplaint:
+            typeof input.subjective.queixa === "string"
+              ? input.subjective.queixa
+              : JSON.stringify(input.subjective),
+          historyOfPresentIllness: null,
+          occupationalHistory: null,
+          reviewOfSystems: null,
+        },
+      },
+      physicianCredentialId: input.physicianCredentialId,
+      reason: input.reason,
+      tenantId: input.tenantId,
+    },
+    requestId,
+  );
 }
 
 export async function createMedicalConclusion(

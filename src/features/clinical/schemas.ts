@@ -1,5 +1,11 @@
 import { z } from "zod";
 import {
+  buildConsultationStoredPayload,
+  consultationPayloadForRpc,
+  consultationStructuredInputSchema,
+  hasConsultationClinicalData,
+} from "./consultation-payload";
+import {
   buildTriageStoredPayload,
   hasTriageClinicalData,
   triageStructuredInputSchema,
@@ -43,7 +49,49 @@ export type SaveTriageRecordInput = {
 };
 export type SaveTriageRecordParsed = z.output<typeof saveTriageRecordSchema>;
 
-export const closeMedicalConsultationSchema = z.object({
+export const closeMedicalConsultationSchema = z
+  .object({
+    closeRecord: z.boolean().default(false),
+    encounterId: z.string().uuid(),
+    input: consultationStructuredInputSchema,
+    physicianCredentialId: z.string().uuid(),
+    reason: z.string().trim().min(3).max(500),
+    tenantId: z.string().uuid(),
+  })
+  .superRefine((value, context) => {
+    if (!hasConsultationClinicalData(value.input)) {
+      context.addIssue({
+        code: "custom",
+        message: "Informe pelo menos um dado clínico.",
+        path: ["input"],
+      });
+    }
+  })
+  .transform((value) => {
+    const payload = buildConsultationStoredPayload(value.input);
+    const rpc = consultationPayloadForRpc(payload);
+    return {
+      ...value,
+      assessment: rpc.assessment,
+      objective: rpc.objective,
+      payload,
+      plan: rpc.plan,
+      subjective: rpc.subjective,
+    };
+  });
+
+export type SaveMedicalConsultationInput = {
+  closeRecord?: boolean;
+  encounterId: string;
+  input: z.output<typeof consultationStructuredInputSchema>;
+  physicianCredentialId: string;
+  reason: string;
+  tenantId: string;
+};
+export type SaveMedicalConsultationParsed = z.output<typeof closeMedicalConsultationSchema>;
+
+/** @deprecated use SaveMedicalConsultationInput */
+export const closeMedicalConsultationLegacySchema = z.object({
   assessment: z.string().max(5000).optional().default(""),
   encounterId: z.string().uuid(),
   objective: clinicalPayloadSchema,
@@ -54,7 +102,7 @@ export const closeMedicalConsultationSchema = z.object({
   tenantId: z.string().uuid(),
 });
 
-export type CloseMedicalConsultationInput = z.infer<typeof closeMedicalConsultationSchema>;
+export type CloseMedicalConsultationInput = z.infer<typeof closeMedicalConsultationLegacySchema>;
 
 export const createMedicalConclusionSchema = z.object({
   conclusionCode: z.enum(["fit", "fit_with_restrictions", "unfit", "inconclusive"]),
@@ -91,6 +139,7 @@ export const physicianCredentialListSchema = z.array(
     id: z.string(),
     professional_role: z.string(),
     registration_number: z.string().nullable(),
+    user_id: z.string().uuid(),
     user_profiles: z.object({ display_name: z.string().nullable() }).nullable().optional(),
   }),
 );
@@ -167,4 +216,71 @@ export const approvedTriageFormVersionSchema = z.object({
   id: z.string().uuid(),
   triage_form_templates: z.object({ name: z.string() }).nullable(),
   version: z.number(),
+});
+
+export const consultationQueueRowSchema = triageQueueRowSchema
+  .omit({ triage_records: true })
+  .extend({
+    exam_orders: z
+      .array(
+        z.object({
+          exam_catalog: z.object({ name: z.string() }).nullable().optional(),
+          id: z.string().uuid(),
+          status: z.string(),
+        }),
+      )
+      .default([]),
+    medical_consultations: z
+      .array(
+        z.object({
+          current_version: z.number(),
+          id: z.string().uuid(),
+          physician_credential_id: z.string().uuid(),
+          status: z.string(),
+        }),
+      )
+      .default([]),
+    triage_records: z
+      .array(
+        z.object({
+          current_version: z.number(),
+          id: z.string().uuid(),
+          status: z.string(),
+          triage_record_versions: z
+            .array(
+              z.object({
+                payload: z.record(z.string(), z.unknown()),
+                version: z.number(),
+              }),
+            )
+            .default([]),
+        }),
+      )
+      .default([]),
+  });
+
+export const consultationQueueListSchema = z.array(consultationQueueRowSchema);
+
+export const consultationWorkspaceRecordSchema = z.object({
+  current_version: z.number(),
+  encounter_id: z.string().uuid(),
+  id: z.string().uuid(),
+  medical_consultation_versions: z
+    .array(
+      z.object({
+        assessment: z.string().nullable(),
+        objective: z.record(z.string(), z.unknown()),
+        plan: z.string().nullable(),
+        subjective: z.record(z.string(), z.unknown()),
+        version: z.number(),
+      }),
+    )
+    .default([]),
+  physician_credential_id: z.string().uuid(),
+  status: z.string(),
+});
+
+export const triageSummarySchema = z.object({
+  payload: z.record(z.string(), z.unknown()),
+  status: z.string(),
 });
