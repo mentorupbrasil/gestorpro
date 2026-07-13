@@ -50,3 +50,6 @@
 - Iniciada a Fase 7A na branch `feat/fase-7a-acuidade`.
 - Criada migration de acuidade visual com início de exame, resultado versionado, repetição sem apagamento e liberação da consulta quando concluído.
 - Criados motor de validação de medidas, serviços e tela operacional para acuidade visual.
+- Iniciada a Fase 7B na branch `feat/fase-7b-audiometria`.
+- Criada migration de audiometria com calibrações, início de exame, limiares versionados, payload original futuro e bloqueio por calibração inválida.
+- Criados motor de validação de repouso/limiares, serviços e tela operacional para audiometria.

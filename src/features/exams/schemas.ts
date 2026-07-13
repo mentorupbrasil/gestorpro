@@ -54,3 +54,61 @@ export const visualAcuityResultListSchema = z.array(
     status: z.string(),
   }),
 );
+
+export const audiometryThresholdsSchema = z.object({
+  left: z.record(z.string(), z.coerce.number()),
+  right: z.record(z.string(), z.coerce.number()),
+});
+
+export const startAudiometryExamSchema = z.object({
+  examOrderId: z.string().uuid(),
+  tenantId: z.string().uuid(),
+});
+
+export type StartAudiometryExamInput = z.infer<typeof startAudiometryExamSchema>;
+
+export const saveAudiometryResultSchema = z.object({
+  booth: z.record(z.string(), z.unknown()).default({}),
+  calibrationId: z.string().uuid(),
+  comparison: z.record(z.string(), z.unknown()).default({}),
+  complaints: z.array(z.string()).default([]),
+  completeResult: z.boolean().default(false),
+  correctionReason: z.string().min(3).max(500),
+  equipment: z.record(z.string(), z.unknown()),
+  inconclusiveResult: z.boolean().default(false),
+  masking: z.record(z.string(), z.unknown()).default({}),
+  normalizedPayload: z.record(z.string(), z.unknown()).default({}),
+  occupationalData: z.record(z.string(), z.unknown()),
+  originalImportPayload: z.record(z.string(), z.unknown()).nullable().default(null),
+  otoscopy: z.record(z.string(), z.unknown()).default({}),
+  professionalConclusion: z.string().min(5).max(5000),
+  report: z.string().max(10000).optional().default(""),
+  restReported: z.object({
+    hours: z.coerce.number(),
+    informedAt: z.string().optional(),
+  }),
+  resultId: z.string().uuid(),
+  tenantId: z.string().uuid(),
+  thresholds: audiometryThresholdsSchema,
+});
+
+export type SaveAudiometryResultInput = z.infer<typeof saveAudiometryResultSchema>;
+
+export const audiometryCalibrationListSchema = z.array(
+  z.object({
+    equipment_name: z.string(),
+    equipment_serial: z.string(),
+    id: z.string(),
+    status: z.string(),
+    valid_until: z.string(),
+  }),
+);
+
+export const audiometryResultListSchema = z.array(
+  z.object({
+    current_version: z.number(),
+    exam_order_id: z.string(),
+    id: z.string(),
+    status: z.string(),
+  }),
+);
