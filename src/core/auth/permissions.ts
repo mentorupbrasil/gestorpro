@@ -46,6 +46,8 @@ export const permissions = [
   "esocial.manage",
   "messages.read",
   "messages.manage",
+  "equipment.read",
+  "equipment.manage",
 ] as const;
 
 export type Permission = (typeof permissions)[number];

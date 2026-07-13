@@ -17,4 +17,4 @@ Atualizado em: 2026-07-13
 | 10 — Integrações             | IN_PROGRESS           | eSocial oficial consultado; sem envio real   |
 | 11 — Produção e piloto       | NOT_STARTED           | produção não autorizada                      |
 
-Branch atual: `feat/fase-10c-mensagens`. Último commit publicado antes da Fase 10C: `ac4c61f`.
+Branch atual: `feat/fase-10d-equipamentos-conector`. Último commit publicado antes da Fase 10D: `c485a34`.

@@ -77,3 +77,6 @@
 - Iniciada a Fase 10C na branch `feat/fase-10c-mensagens`.
 - Criada migration de mensagens com templates versionados, consentimento/base, opt-out, fila durável e entregas.
 - Criadas validações para bloquear conteúdo clínico sensível em mensagens abertas e exigir provedor oficial para WhatsApp.
+- Iniciada a Fase 10D na branch `feat/fase-10d-equipamentos-conector`.
+- Criada migration de equipamentos, calibrações, manutenções, conectores locais, tokens, eventos idempotentes e políticas de atualização.
+- Criadas validações de calibração/manutenção, escopo mínimo, payload redigido e bloqueio a promessa de integração universal.
