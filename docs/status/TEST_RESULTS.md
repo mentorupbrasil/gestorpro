@@ -1,14 +1,34 @@
 # Resultados de testes e verificações
 
-## 2026-07-13 — P0.1 Estação de triagem operacional
+## 2026-07-13 — P0.1 Estação de triagem operacional (fechamento operacional)
+
+### Gates locais (já aprovados nesta unidade)
 
 - `pnpm typecheck`: passou.
 - `pnpm lint`: passou com zero warnings.
 - `pnpm test tests/unit/triage-payload.test.ts`: 8 testes passaram.
 - `pnpm build`: passou; 27 rotas geradas.
 - `pnpm format:check`: arquivos da triagem formatados; avisos remanescentes apenas em arquivos fora do escopo (`database.generated.ts`, `select-tenant/page.tsx`, script offline).
-- Migration `202607140002_triage_operational_hardening.sql` criada; aplicação no Supabase autorizado ainda pendente.
-- Checklist manual documentado em `docs/implementation/P0_1_TRIAGEM_OPERACIONAL.md`.
+
+### Migration `202607140002_triage_operational_hardening.sql`
+
+- **Não aplicada.** Bloqueio confirmado em 2026-07-13:
+  - Arquivo `.env` ausente no workspace (somente `.env.example`).
+  - Variáveis de ambiente não definidas: `PGHOST`, `PGPASSWORD`, `DATABASE_URL`, `MIGRATION_DATABASE_URL`, `NEXT_PUBLIC_SUPABASE_URL`.
+- Sem credenciais locais, a migration não foi executada e nenhuma validação SQL/RPC foi inventada.
+- Script `pnpm migrate:triage` adicionado para aplicar quando `.env` existir.
+- Revalidação 2026-07-13 11:14: typecheck, lint e 8 testes unitários passaram novamente.
+
+### Checklist manual (`docs/implementation/P0_1_TRIAGEM_OPERACIONAL.md`)
+
+- Itens 1–12: **bloqueados** (dependem de Supabase autorizado + app em runtime; sem dados pessoais reais).
+- Alinhamento estático código ↔ migration registrado no doc de implementação; validação ponta a ponta pendente.
+
+### Veredito P0.1
+
+- **Código e testes unitários:** prontos.
+- **Operacional (migration + checklist manual):** pendente.
+- **P0.1 fechado:** não.
 
 ## 2026-07-13 — Consolidação segura de branches
 
