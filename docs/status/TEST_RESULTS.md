@@ -118,3 +118,14 @@
 - `pnpm test`: 27 arquivos e 91 testes passaram.
 - `pnpm build`: passou com Next.js 16.2.10; as novas rotas de espirometria, diagnósticos, laboratório, documentos, financeiro e integrações foram compiladas.
 - E2E integrado e acessibilidade visual autenticada permanecem na unidade seguinte, após seed estritamente fictício completo.
+
+## 2026-07-13 — Seed fictício e E2E integrado preparados
+
+- Seed autenticado ampliado com empresa, trabalhador, vínculo, PCMSO em rascunho, catálogo, encaminhamento, item, recurso e agendamento; todos possuem IDs fixos e nomes explicitamente fictícios.
+- `node --check scripts/seed-authenticated-e2e.mjs`: passou.
+- `pnpm format:check`, `pnpm lint` e `pnpm typecheck`: passaram.
+- `pnpm test`: 27 arquivos e 91 testes passaram.
+- `pnpm build`: passou com 26 páginas compiladas.
+- `pnpm test:e2e`: 4 testes públicos passaram; o roteiro autenticado integrado foi carregado e ficou `skipped` por ausência das variáveis temporárias `E2E_AUTH_*`, `PG*` e Supabase nesta sessão.
+- O seed não foi aplicado em banco externo nesta unidade; sua validação SQL real permanece pendente no Supabase de teste autorizado.
+- `agent-browser` não está instalado; a verificação de navegador utilizou o runner Playwright do repositório.

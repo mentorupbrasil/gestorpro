@@ -69,10 +69,12 @@ test.describe("authenticated workspace", () => {
     await page.getByRole("button", { name: "Acessar" }).click();
 
     await expect(page).toHaveURL(/\/app$/);
-    await expect(page.getByRole("heading", { name: "Ambiente administrativo" })).toBeVisible();
-    await expect(page.getByRole("link", { name: "Segurança da conta" })).toBeVisible();
+    await expect(
+      page.getByRole("heading", { name: "Central operacional da clínica" }),
+    ).toBeVisible();
+    await expect(page.getByRole("link", { name: "Segurança" })).toBeVisible();
 
-    await page.getByRole("link", { name: "Segurança da conta" }).click();
+    await page.getByRole("link", { name: "Segurança" }).click();
     await expect(page).toHaveURL(/\/app\/security$/);
     await expect(page.getByRole("heading", { name: "Segurança da conta" })).toBeVisible();
     await expect(page.getByText("Autenticação reforçada")).toBeVisible();
@@ -97,5 +99,32 @@ test.describe("authenticated workspace", () => {
     await page.getByRole("button", { name: "Criar unidade" }).click();
     await expect(page.getByText("Unidade criada com auditoria.")).toBeVisible();
     await expect(page.getByText(authorizedUnitCode)).toBeVisible();
+
+    await page.goto("/app/occupational");
+    await expect(page.getByText("Empresa Exemplo E2E Ltda. — DADO FICTÍCIO")).toBeVisible();
+    await expect(page.getByText("Trabalhador Fictício E2E")).toBeVisible();
+    await expect(page.getByText("Exame ocupacional fictício E2E")).toBeVisible();
+
+    await page.goto("/app/scheduling");
+    await expect(page.getByText("Sala de demonstração E2E")).toBeVisible();
+    await expect(page.getByText("Trabalhador Fictício E2E")).toBeVisible();
+
+    await page.goto("/app/check-in");
+    await expect(page.getByRole("option", { name: /Sala de demonstração E2E/ })).toBeVisible();
+
+    await page.goto("/app/documents");
+    await expect(
+      page.getByRole("heading", { name: "Templates, versões e entregas" }),
+    ).toBeVisible();
+
+    await page.goto("/app/finance");
+    await expect(
+      page.getByRole("heading", { name: "Contratos, faturamento e acesso da empresa" }),
+    ).toBeVisible();
+
+    await page.goto("/app/integrations");
+    await expect(
+      page.getByRole("heading", { name: "Webhooks, eSocial, mensagens e conector" }),
+    ).toBeVisible();
   });
 });

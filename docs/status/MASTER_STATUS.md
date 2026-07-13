@@ -17,6 +17,6 @@ Atualizado em: 2026-07-13
 | 10 — Integrações             | CHECKPOINT_PUBLISHED  | eSocial oficial consultado; sem envio real        |
 | 11 — Produção e piloto       | CHECKPOINT_PUBLISHED  | relatório NO-GO publicado; revisão geral iniciada |
 
-Revisão geral pós-checkpoints: `IN_PROGRESS`. Primeira unidade da revisão visual/UX transversal validada localmente. Ver [GENERAL_AUDIT_20260713.md](GENERAL_AUDIT_20260713.md).
+Revisão geral pós-checkpoints: `IN_PROGRESS`. Primeira unidade visual validada; seed fictício e E2E integrado preparados, com execução autenticada externa pendente. Ver [GENERAL_AUDIT_20260713.md](GENERAL_AUDIT_20260713.md).
 
 Branch atual: `codex/revisao-visual-ux`. Último checkpoint publicado: `934134c` em `chore/fase-11-producao-piloto`.

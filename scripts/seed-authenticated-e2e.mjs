@@ -26,6 +26,16 @@ const userId = "30000000-0000-4000-8000-000000000001";
 const identityId = "30000000-0000-4000-8000-000000000101";
 const membershipId = "c1000000-0000-4000-8000-000000000001";
 const unitId = "c2000000-0000-4000-8000-000000000001";
+const companyId = "d0000000-0000-4000-8000-000000000001";
+const workerId = "d1000000-0000-4000-8000-000000000001";
+const employmentId = "d2000000-0000-4000-8000-000000000001";
+const pcmsoProgramId = "d3000000-0000-4000-8000-000000000001";
+const pcmsoVersionId = "d4000000-0000-4000-8000-000000000001";
+const examCatalogId = "d5000000-0000-4000-8000-000000000001";
+const referralId = "d6000000-0000-4000-8000-000000000001";
+const referralItemId = "d6100000-0000-4000-8000-000000000001";
+const resourceId = "d7000000-0000-4000-8000-000000000001";
+const appointmentId = "d8000000-0000-4000-8000-000000000001";
 
 try {
   await sql.begin(async (tx) => {
@@ -210,9 +220,134 @@ try {
       where tenant_id is null and code = 'tenant_admin'
       on conflict do nothing
     `;
+
+    await tx`
+      insert into public.companies (id, tenant_id, legal_name, trade_name, tax_id_normalized, status)
+      values (
+        ${companyId},
+        ${tenantId},
+        'Empresa Exemplo E2E Ltda. — DADO FICTÍCIO',
+        'Empresa Exemplo E2E',
+        '00000000000000',
+        'active'
+      )
+      on conflict (id) do update set
+        legal_name = excluded.legal_name,
+        trade_name = excluded.trade_name,
+        status = 'active',
+        updated_at = now()
+    `;
+
+    await tx`
+      insert into public.workers (id, tenant_id, full_name, status)
+      values (${workerId}, ${tenantId}, 'Trabalhador Fictício E2E', 'active')
+      on conflict (id) do update set
+        full_name = excluded.full_name,
+        status = 'active',
+        updated_at = now()
+    `;
+
+    await tx`
+      insert into public.employment_contracts (
+        id, tenant_id, company_id, worker_id, starts_on, status
+      ) values (
+        ${employmentId}, ${tenantId}, ${companyId}, ${workerId}, current_date - 30, 'active'
+      )
+      on conflict (id) do update set
+        status = 'active',
+        ends_on = null,
+        updated_at = now()
+    `;
+
+    await tx`
+      insert into public.pcmso_programs (id, tenant_id, company_id, code, name, status)
+      values (
+        ${pcmsoProgramId}, ${tenantId}, ${companyId}, 'PCMSO_E2E',
+        'PCMSO de demonstração — DADO FICTÍCIO', 'active'
+      )
+      on conflict (id) do update set
+        name = excluded.name,
+        status = 'active',
+        updated_at = now()
+    `;
+
+    await tx`
+      insert into public.pcmso_versions (
+        id, tenant_id, company_id, pcmso_program_id, version_number, valid_from, status
+      ) values (
+        ${pcmsoVersionId}, ${tenantId}, ${companyId}, ${pcmsoProgramId}, 1,
+        current_date - 30, 'draft'
+      )
+      on conflict (id) do nothing
+    `;
+
+    await tx`
+      insert into public.exam_catalog (id, tenant_id, code, name, result_type, active)
+      values (
+        ${examCatalogId}, ${tenantId}, 'EXAME_E2E',
+        'Exame ocupacional fictício E2E', 'other', true
+      )
+      on conflict (id) do update set
+        name = excluded.name,
+        active = true,
+        updated_at = now()
+    `;
+
+    await tx`
+      insert into public.referrals (
+        id, tenant_id, company_id, worker_id, employment_contract_id,
+        occupational_exam_type, status, valid_until, idempotency_key, exam_preview
+      ) values (
+        ${referralId}, ${tenantId}, ${companyId}, ${workerId}, ${employmentId},
+        'periodic', 'scheduled', current_date + 30, 'demo-e2e-referral-v1',
+        jsonb_build_array(jsonb_build_object('examCatalogId', ${examCatalogId}::text))
+      )
+      on conflict (id) do update set
+        valid_until = current_date + 30,
+        updated_at = now()
+    `;
+
+    await tx`
+      insert into public.referral_items (
+        id, tenant_id, referral_id, exam_catalog_id, source, status
+      ) values (
+        ${referralItemId}, ${tenantId}, ${referralId}, ${examCatalogId}, 'protocol', 'confirmed'
+      )
+      on conflict (id) do update set status = 'confirmed'
+    `;
+
+    await tx`
+      insert into public.schedule_resources (
+        id, tenant_id, clinic_unit_id, resource_type, code, name, status
+      ) values (
+        ${resourceId}, ${tenantId}, ${unitId}, 'room', 'SALA_E2E',
+        'Sala de demonstração E2E', 'active'
+      )
+      on conflict (id) do update set
+        name = excluded.name,
+        status = 'active',
+        updated_at = now()
+    `;
+
+    await tx`
+      insert into public.appointments (
+        id, tenant_id, clinic_unit_id, referral_id, resource_id,
+        starts_at, ends_at, status, preparation_instructions
+      ) values (
+        ${appointmentId}, ${tenantId}, ${unitId}, ${referralId}, ${resourceId},
+        date_trunc('day', now()) + interval '1 day 09:00',
+        date_trunc('day', now()) + interval '1 day 09:30',
+        'scheduled', 'Cenário estritamente fictício; não usar para orientação clínica.'
+      )
+      on conflict (id) do update set
+        starts_at = excluded.starts_at,
+        ends_at = excluded.ends_at,
+        preparation_instructions = excluded.preparation_instructions,
+        updated_at = now()
+    `;
   });
 
-  console.log("Authenticated E2E seed is ready.");
+  console.log("Authenticated E2E seed and fictitious operational scenario are ready.");
 } finally {
   await sql.end({ timeout: 5 });
 }

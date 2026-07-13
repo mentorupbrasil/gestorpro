@@ -36,7 +36,7 @@ export default async function FinancePage() {
       .limit(40),
     supabase
       .from("company_portal_users")
-      .select("id, status, companies(legal_name), user_profiles(full_name)")
+      .select("id, status, companies(legal_name), user_profiles(display_name)")
       .eq("tenant_id", context.tenantId)
       .order("created_at", { ascending: false })
       .limit(40),

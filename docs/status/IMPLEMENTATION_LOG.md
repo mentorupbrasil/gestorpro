@@ -91,3 +91,7 @@
 - Adicionados consoles server-side iniciais para espirometria, ECG/EEG/radiologia, laboratório, documentos, financeiro/portal e integrações, todos com autorização por permissão e filtro tenant confiável.
 - Corrigida a leitura tipada de relações Supabase em laboratório e financeiro sem `any`.
 - Gates locais da primeira unidade visual: formatação, lint, typecheck, 91 testes e build verdes; nenhum deploy ou dado real utilizado.
+- Ampliado o seed autenticado com cenário operacional idempotente e estritamente fictício até agendamento, sem conclusão clínica, ASO emitido, destinatário real ou envio de integração.
+- Ampliado o E2E autenticado para navegar domínio ocupacional, agenda, check-in, documentos, financeiro e integrações após MFA.
+- Corrigida a relação do portal financeiro para consultar `user_profiles.display_name`, conforme o schema real.
+- E2E público permaneceu verde; execução autenticada do novo cenário ficou pendente por ausência de credenciais temporárias do Supabase de teste na sessão.
