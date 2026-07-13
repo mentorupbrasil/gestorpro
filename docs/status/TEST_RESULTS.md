@@ -1,5 +1,16 @@
 # Resultados de testes e verificações
 
+## 2026-07-13 — Consolidação segura de branches
+
+- Merge de `origin/main` com o histórico completo executado sem conflitos em branch temporária de integração.
+- `pnpm format:check`, `pnpm lint` e `pnpm typecheck`: passaram.
+- `pnpm test`: 28 arquivos e 100 testes passaram.
+- `pnpm security:secrets`: passou em 281 arquivos rastreados.
+- `pnpm audit --audit-level high`: zero vulnerabilidades conhecidas.
+- `pnpm build`: passou; 26 rotas geradas.
+- `pnpm test:e2e`: 4 públicos passaram; 1 autenticado permaneceu ignorado por ausência de credenciais temporárias.
+- Atualização remota de `main` e remoção de branches ainda não executadas neste checkpoint.
+
 ## 2026-07-13 — Fase A (primeira unidade)
 
 - `pnpm format`: passou.
