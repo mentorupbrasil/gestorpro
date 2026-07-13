@@ -97,3 +97,4 @@
 - E2E público permaneceu verde; execução autenticada do novo cenário ficou pendente por ausência de credenciais temporárias do Supabase de teste na sessão.
 - Completado o console operacional de espirometria com início de exame e registro versionado de manobra, preservando conclusão exclusivamente humana.
 - Adicionada validação server-side do tipo do catálogo antes de iniciar espirometria, impedindo uso de ordem de outra modalidade por envio manual de ID.
+- Organizadas as branches remotas após comparação de commits: 16 branches históricas `feat/fase-*`, todas integralmente contidas em `codex/revisao-visual-ux` e sem PR aberta, foram removidas sem excluir commits úteis.
