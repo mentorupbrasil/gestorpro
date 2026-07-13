@@ -65,3 +65,6 @@
 - Iniciada a Fase 8 na branch `feat/fase-8-documentos`.
 - Criada migration de documentos com templates versionados, documentos gerados, versões imutáveis, hash, storage privado, assinatura, entregas e logs de acesso.
 - Criadas validações para ASO incompleto, caminho privado, nome físico sem conteúdo clínico e impressão A4 configurável.
+- Iniciada a Fase 9 na branch `feat/fase-9-financeiro-portal`.
+- Criada migration de contratos, tabelas de preço versionadas, snapshots de preço, orçamentos, faturamento, faturas, pagamentos, ajustes, glosas e portal empresarial.
+- Criadas validações para impedir preço comercial alterar protocolo clínico, ignorar repetição técnica não cobrável e ocultar status clínico sensível no portal.

@@ -36,6 +36,10 @@ export const permissions = [
   "documents.manage",
   "documents.sign",
   "documents.deliver",
+  "finance.read",
+  "finance.manage",
+  "company_portal.read",
+  "company_portal.manage",
 ] as const;
 
 export type Permission = (typeof permissions)[number];

@@ -1,6 +1,6 @@
 # Próximas ações
 
-1. Publicar checkpoint inicial da Fase 2 com domínio ocupacional, PCMSO, catálogo, protocolos e motor de exames.
-2. Continuar blocos restantes da Fase 2 sem interromper para revisão humana intermediária.
-3. Registrar pendências finais da Fase 1/Fase 2 para revisão posterior solicitada pelo usuário.
-4. Avançar para Fase 3 após checkpoint técnico da Fase 2, preservando bloqueios de produção/decisão clínica.
+1. Publicar checkpoint da Fase 9 com financeiro, faturamento e portal empresarial.
+2. Avançar para Fase 10A — infraestrutura de integrações e webhooks.
+3. Antes da Fase 10B, consultar documentação oficial vigente do eSocial e registrar versão/data.
+4. Manter pendências de revisão final, typegen oficial e validação humana para retorno posterior.
