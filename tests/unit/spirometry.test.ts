@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import {
   assertAcceptedManeuver,
+  assertSpirometryCatalogType,
   computeSpirometryPercentages,
   validateSpirometryQuality,
 } from "@/features/exams/spirometry";
@@ -24,5 +25,15 @@ describe("spirometry workflow", () => {
     expect(() => assertAcceptedManeuver({ acceptManeuver: false, completeResult: true })).toThrow(
       "tentativa aceita",
     );
+  });
+
+  it("rejects a non-spirometry exam order before calling the workflow", () => {
+    expect(() => assertSpirometryCatalogType("laboratory")).toThrow(
+      "A ordem informada não é de espirometria",
+    );
+    expect(() => assertSpirometryCatalogType(undefined)).toThrow(
+      "A ordem informada não é de espirometria",
+    );
+    expect(assertSpirometryCatalogType("spirometry")).toBeUndefined();
   });
 });

@@ -3,6 +3,7 @@ import { redirect } from "next/navigation";
 import { requirePermission } from "@/core/auth/authorization";
 import { resolveAuthorizationContext } from "@/core/auth/session";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
+import { SpirometryForms } from "./spirometry-forms";
 
 export default async function SpirometryPage() {
   const selectedTenantId = (await cookies()).get("gestorpro_tenant")?.value;
@@ -15,7 +16,7 @@ export default async function SpirometryPage() {
   const [ordersResult, resultsResult, calibrationsResult, predictedSetsResult] = await Promise.all([
     supabase
       .from("exam_orders")
-      .select("id, encounter_id, status, exam_catalog(name)")
+      .select("id, encounter_id, status, exam_catalog(name, result_type)")
       .eq("tenant_id", context.tenantId)
       .in("status", ["ordered", "collected", "resulted"]),
     supabase
@@ -50,6 +51,9 @@ export default async function SpirometryPage() {
   const results = resultsResult.data ?? [];
   const calibrations = calibrationsResult.data ?? [];
   const predictedSets = predictedSetsResult.data ?? [];
+  const spirometryOrders = orders.filter(
+    (order) => order.exam_catalog?.[0]?.result_type === "spirometry",
+  );
 
   return (
     <main className="mx-auto max-w-7xl px-2 py-4 sm:px-4">
@@ -65,11 +69,31 @@ export default async function SpirometryPage() {
       </header>
 
       <section className="mt-5 grid gap-4 lg:grid-cols-4">
-        <MetricCard label="Pedidos relacionados" value={orders.length} />
+        <MetricCard label="Pedidos relacionados" value={spirometryOrders.length} />
         <MetricCard label="Resultados" value={results.length} />
         <MetricCard label="Calibrações" value={calibrations.length} />
         <MetricCard label="Conjuntos previstos" value={predictedSets.length} />
       </section>
+
+      <SpirometryForms
+        calibrations={calibrations
+          .filter((calibration) => calibration.status === "valid")
+          .map((calibration) => ({
+            id: calibration.id,
+            name: `${calibration.equipment_name} · ${calibration.equipment_serial}`,
+          }))}
+        orders={spirometryOrders.map((order) => ({
+          id: order.id,
+          name: order.exam_catalog?.[0]?.name ?? order.id,
+        }))}
+        predictedSets={predictedSets
+          .filter((set) => set.status === "active")
+          .map((set) => ({ id: set.id, name: `${set.code} · ${set.name}` }))}
+        results={results.map((result) => ({
+          id: result.id,
+          name: `${result.exam_order_id} · ${result.status} · v${result.current_version}`,
+        }))}
+      />
 
       <section className="mt-5 grid gap-5 xl:grid-cols-2">
         <DataPanel empty="Nenhum resultado de espirometria iniciado." title="Resultados recentes">

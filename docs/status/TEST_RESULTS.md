@@ -129,3 +129,12 @@
 - `pnpm test:e2e`: 4 testes públicos passaram; o roteiro autenticado integrado foi carregado e ficou `skipped` por ausência das variáveis temporárias `E2E_AUTH_*`, `PG*` e Supabase nesta sessão.
 - O seed não foi aplicado em banco externo nesta unidade; sua validação SQL real permanece pendente no Supabase de teste autorizado.
 - `agent-browser` não está instalado; a verificação de navegador utilizou o runner Playwright do repositório.
+
+## 2026-07-13 — Console operacional de espirometria
+
+- Adicionados início de exame e registro de manobra com Server Actions, Zod, autorização `exams.manage`, AAL2 e RPCs transacionais existentes.
+- Adicionado gate server-side que rejeita ordem cujo catálogo não seja do tipo `spirometry`.
+- Teste de regressão cobre ordem de laboratório, catálogo ausente e ordem válida de espirometria.
+- `pnpm format:check`, `pnpm lint` e `pnpm typecheck`: passaram.
+- `pnpm test`: 27 arquivos e 92 testes passaram.
+- `pnpm build`: passou com a rota dinâmica `/app/exams/spirometry`.

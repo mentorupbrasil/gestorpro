@@ -95,3 +95,5 @@
 - Ampliado o E2E autenticado para navegar domínio ocupacional, agenda, check-in, documentos, financeiro e integrações após MFA.
 - Corrigida a relação do portal financeiro para consultar `user_profiles.display_name`, conforme o schema real.
 - E2E público permaneceu verde; execução autenticada do novo cenário ficou pendente por ausência de credenciais temporárias do Supabase de teste na sessão.
+- Completado o console operacional de espirometria com início de exame e registro versionado de manobra, preservando conclusão exclusivamente humana.
+- Adicionada validação server-side do tipo do catálogo antes de iniciar espirometria, impedindo uso de ordem de outra modalidade por envio manual de ID.

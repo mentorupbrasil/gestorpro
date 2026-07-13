@@ -33,6 +33,7 @@ import {
 import { assertLaboratoryRelease, assertReferenceRangeConfig } from "./laboratory";
 import {
   assertAcceptedManeuver,
+  assertSpirometryCatalogType,
   computeSpirometryPercentages,
   validateSpirometryQuality,
 } from "./spirometry";
@@ -172,6 +173,21 @@ export async function startSpirometryExam(input: StartSpirometryExamInput, reque
   requireAal2(context);
 
   const supabase = await createServerSupabaseClient();
+  const { data: order, error: orderError } = await supabase
+    .from("exam_orders")
+    .select("id, exam_catalog(result_type)")
+    .eq("tenant_id", context.tenantId)
+    .eq("id", parsed.examOrderId)
+    .maybeSingle();
+
+  if (orderError || !order) {
+    throw new AppError("VALIDATION_FAILED", "A ordem de exame não foi encontrada.", {
+      cause: orderError,
+      status: 400,
+    });
+  }
+  assertSpirometryCatalogType(order.exam_catalog?.[0]?.result_type);
+
   const { data, error } = await supabase.rpc("start_spirometry_exam", {
     audit_request_id: requestId,
     target_exam_order_id: parsed.examOrderId,

@@ -6,6 +6,14 @@ export type SpirometryMeasuredValues = {
   pef?: number | undefined;
 };
 
+export function assertSpirometryCatalogType(resultType: string | null | undefined) {
+  if (resultType !== "spirometry") {
+    throw new AppError("VALIDATION_FAILED", "A ordem informada não é de espirometria.", {
+      status: 400,
+    });
+  }
+}
+
 export function computeSpirometryPercentages(
   measured: SpirometryMeasuredValues,
   predicted: SpirometryMeasuredValues,
