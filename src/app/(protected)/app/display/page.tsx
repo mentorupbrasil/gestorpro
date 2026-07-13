@@ -1,6 +1,6 @@
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
-import { requirePermission } from "@/core/auth/authorization";
+import { requireTenantOrUnitPermission } from "@/core/auth/authorization";
 import { resolveAuthorizationContext } from "@/core/auth/session";
 import { callEventListSchema, displayPanelListSchema } from "@/features/display/schemas";
 import { queueTicketListSchema } from "@/features/encounters/schemas";
@@ -12,7 +12,7 @@ export default async function DisplayPage() {
   if (!selectedTenantId) redirect("/select-tenant");
 
   const context = await resolveAuthorizationContext(selectedTenantId);
-  requirePermission(context, "display.read");
+  requireTenantOrUnitPermission(context, "display.read");
 
   const supabase = await createServerSupabaseClient();
   const [unitsResult, panelsResult, ticketsResult, callsResult] = await Promise.all([

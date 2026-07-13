@@ -1,6 +1,6 @@
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
-import { requirePermission } from "@/core/auth/authorization";
+import { requireTenantOrUnitPermission } from "@/core/auth/authorization";
 import { resolveAuthorizationContext } from "@/core/auth/session";
 import { encounterListSchema, queueTicketListSchema } from "@/features/encounters/schemas";
 import { appointmentListSchema } from "@/features/scheduling/schemas";
@@ -12,7 +12,7 @@ export default async function CheckInPage() {
   if (!selectedTenantId) redirect("/select-tenant");
 
   const context = await resolveAuthorizationContext(selectedTenantId);
-  requirePermission(context, "encounters.read");
+  requireTenantOrUnitPermission(context, "encounters.read");
 
   const supabase = await createServerSupabaseClient();
   const [appointmentsResult, encountersResult, queueResult] = await Promise.all([

@@ -1,6 +1,6 @@
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
-import { requirePermission } from "@/core/auth/authorization";
+import { requireTenantOrUnitPermission } from "@/core/auth/authorization";
 import { resolveAuthorizationContext } from "@/core/auth/session";
 import { examOrderListSchema, visualAcuityResultListSchema } from "@/features/exams/schemas";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
@@ -11,7 +11,7 @@ export default async function VisualAcuityPage() {
   if (!selectedTenantId) redirect("/select-tenant");
 
   const context = await resolveAuthorizationContext(selectedTenantId);
-  requirePermission(context, "exams.read");
+  requireTenantOrUnitPermission(context, "exams.read");
 
   const supabase = await createServerSupabaseClient();
   const [ordersResult, resultsResult] = await Promise.all([

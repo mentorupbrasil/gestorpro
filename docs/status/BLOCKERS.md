@@ -12,8 +12,8 @@
 
 ## Auth unit-scoped
 
-- Bug clínico (gate `requirePermission` antes do escopo de unidade) corrigido no código desta unidade.
-- Exames/agenda/display ainda usam em grande parte `requirePermission` tenant-wide — risco residual, fora deste corte.
+- Clínico + exames + check-in + display: gate app corrige unit-only (código nesta unidade).
+- Residual: policies RLS de exames/listagens ainda tipicamente `has_tenant_permission` — unit-only pode ver lista vazia até ondas RLS.
 
 ## P0.4 / P0.5 / P0.6
 

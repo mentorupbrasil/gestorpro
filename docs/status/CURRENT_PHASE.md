@@ -1,9 +1,9 @@
 # Fase atual
 
-- Fase atual: Fase A — fundação / P0 de autorização e higiene
-- Subfase atual: correção auth unit-scoped clínica + higiene `supabase/.temp`
-- Tarefa atual: validar testes unitários de autorização; dono aplicar `012` se ainda não aplicou
-- Concluído recentemente: P0.5/P0.6 apply (`010`/`011`); onda 4 migration `012` no repo; bug clinical gate unit-scoped corrigido
+- Fase atual: Fase A — autorização por unidade (app)
+- Subfase atual: exames / check-in / display com escopo de unidade
+- Tarefa atual: dono commitar; próximo bloco técnico sugerido = policies RLS unit-aware em exames
+- Feito nesta unidade: helpers `unit-scope.ts`; mutações de exames/check-in/display resolvem unidade no banco; páginas usam `requireTenantOrUnitPermission`
 - Branch: `feat/p0-2-consulta-operacional`
 - Produção: **NO-GO**
 - Atualizado em: 2026-07-13

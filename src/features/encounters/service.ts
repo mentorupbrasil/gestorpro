@@ -1,6 +1,7 @@
 import "server-only";
 
-import { requireAal2, requirePermission } from "@/core/auth/authorization";
+import { requireAal2, requireTenantOrUnitPermission } from "@/core/auth/authorization";
+import { requirePermissionOnAppointment } from "@/core/auth/unit-scope";
 import { resolveAuthorizationContext } from "@/core/auth/session";
 import { AppError } from "@/core/errors/app-error";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
@@ -9,10 +10,17 @@ import { checkInSchema, type CheckInInput } from "./schemas";
 export async function checkInAppointment(input: CheckInInput, requestId: string) {
   const parsed = checkInSchema.parse(input);
   const context = await resolveAuthorizationContext(parsed.tenantId);
-  requirePermission(context, "encounters.manage");
+  requireTenantOrUnitPermission(context, "encounters.manage");
   requireAal2(context);
 
   const supabase = await createServerSupabaseClient();
+  await requirePermissionOnAppointment(
+    supabase,
+    context,
+    parsed.appointmentId,
+    "encounters.manage",
+  );
+
   const { data, error } = await supabase.rpc("check_in_appointment", {
     audit_request_id: requestId,
     idempotency_key_value: parsed.idempotencyKey,
