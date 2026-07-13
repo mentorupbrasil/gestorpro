@@ -8,6 +8,6 @@
 - Bloqueios: credenciais temporárias de projeto Supabase com todas as migrations; cliente GitHub `gh`/conector autenticado indisponível; integridade composta exige validação SQL antes da migration
 - Testes concluídos nesta unidade: format, lint, typecheck, 100 unitários, scanner de segredo, auditoria sem vulnerabilidades, build e 4 E2E públicos
 - Testes pendentes: typegen check, migration/RLS/bypass PostgreSQL, E2E autenticado, CI remoto, carga, concorrência, backup/restore e acessibilidade
-- Branch em andamento: `codex/consolidar-main-20260713`; merge local e gates concluídos, atualização remota e limpeza ainda pendentes.
+- Branch em andamento: `main`; histórico remoto consolidado e branches auxiliares removidas sem perda de commits.
 - Último checkpoint publicado: `934134c` (`chore/fase-11-producao-piloto`)
 - Atualizado em: 2026-07-13 — início formal da Fase A

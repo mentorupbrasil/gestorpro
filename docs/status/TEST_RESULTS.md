@@ -9,7 +9,7 @@
 - `pnpm audit --audit-level high`: zero vulnerabilidades conhecidas.
 - `pnpm build`: passou; 26 rotas geradas.
 - `pnpm test:e2e`: 4 públicos passaram; 1 autenticado permaneceu ignorado por ausência de credenciais temporárias.
-- Atualização remota de `main` e remoção de branches ainda não executadas neste checkpoint.
+- `main` remota atualizada sem força; as três branches auxiliares apresentaram zero commits exclusivos antes da remoção.
 
 ## 2026-07-13 — Fase A (primeira unidade)
 

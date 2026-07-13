@@ -15,7 +15,7 @@ O inventário exato deve ser obtido com `git status --short` e registrado novame
 - Schema Drizzle, migration SQL, RLS, auditoria e testes unitários/SQL iniciais.
 - Telas e ações reais de login, seleção de tenant, unidades e memberships; loading/error/empty/permission states.
 - Revisão de segurança da Fase 1 e ADR de fronteiras Auth/banco.
-- Alterações ainda não commitadas porque os gates permanecem pendentes.
+- Alterações históricas commitadas e consolidadas em `main`; gates externos pendentes continuam registrados separadamente.
 
 ## Fase 1 — checkpoint de autenticação segura
 
@@ -36,4 +36,4 @@ O inventário exato deve ser obtido com `git status --short` e registrado novame
 - Segurança: nova migration de hardening, contexto tenant/unidade e testes negativos.
 - Typegen/supply chain: Supabase CLI, scripts de geração/check, workflows CodeQL/dependency review, Dependabot, scanner e overrides.
 - Documentação: auditorias, matrizes de produto/testes, roadmap/gates/dependências/release, break-glass, leitura sensível, sessão/dispositivo, README, AGENTS, ADR-0008 e status.
-- Nenhum segredo, dado real, deploy, merge ou produção.
+- Nenhum segredo, dado real, deploy ou produção. Consolidação Git em `main` autorizada pelo responsável e concluída sem reescrita ou perda de histórico.

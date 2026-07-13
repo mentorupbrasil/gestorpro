@@ -17,3 +17,4 @@
 - Estado: PARTIAL / IN_PROGRESS
 - Entregas: inventário, contenção de bypass, autorização por recurso, último admin, supply chain e documentação V2.
 - Gate: não aceito por typegen, PostgreSQL/RLS real, integridade composta, E2E autenticado e PR/CI remoto.
+- Repositório: históricos consolidados em `main` sem força ou perda de commits; branches auxiliares remotas removidas após verificação de ancestralidade.

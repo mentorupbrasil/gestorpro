@@ -31,3 +31,4 @@ Saídas resumidas e resultados estão em `TEST_RESULTS.md`; valores de segredo n
 - Consultadas referências públicas oficiais de SOC, RSData e Meddbase para benchmark, sem inferir ausência de funcionalidades não divulgadas.
 - Iniciada consolidação Git solicitada pelo responsável: referências remotas sincronizadas e ancestralidade mapeada. A atualização de `main` e a remoção das três branches auxiliares ficam condicionadas a merge sem perda, gates locais e verificação remota de todos os commits.
 - Merge de integração concluído sem conflitos; o arquivo exclusivo da antiga `main` foi preservado e todos os gates locais aplicáveis passaram antes de qualquer alteração remota.
+- `main` atualizada por push normal, sem força, após comprovação de ancestralidade. As branches remotas `chore/fase-11-producao-piloto`, `codex/desenvolvimento-completo-unimetra` e `codex/revisao-visual-ux` foram removidas somente depois de confirmadas com zero commits exclusivos.

@@ -27,4 +27,4 @@ Atualizado em: 2026-07-13
 
 Revisão geral pós-checkpoints: `IN_PROGRESS`. Primeira unidade visual validada; seed fictício e E2E integrado preparados, com execução autenticada externa pendente. Ver [GENERAL_AUDIT_20260713.md](GENERAL_AUDIT_20260713.md).
 
-Branch atual: `codex/desenvolvimento-completo-unimetra`. Base consolidada localmente em `1ce8c4e`; a branch está 24 commits à frente do remoto correspondente, sem reescrita de histórico.
+Branch remota atual: `main`. Em 2026-07-13, os históricos divergentes foram unidos por merge sem conflitos, validados localmente e publicados sem força; as três branches auxiliares remotas foram removidas somente após comprovação de ancestralidade integral.
