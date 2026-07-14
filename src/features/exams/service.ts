@@ -9,6 +9,7 @@ import {
 } from "@/core/auth/unit-scope";
 import { resolveAuthorizationContext } from "@/core/auth/session";
 import { AppError } from "@/core/errors/app-error";
+import { EXAM_ORDER_CATALOG_EMBED } from "@/lib/supabase/embeds";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 import { readEmbeddedRelation } from "@/lib/supabase/relations";
 import {
@@ -199,7 +200,7 @@ export async function startSpirometryExam(input: StartSpirometryExamInput, reque
   await requirePermissionOnExamOrder(supabase, context, parsed.examOrderId, "exams.manage");
   const { data: order, error: orderError } = await supabase
     .from("exam_orders")
-    .select("id, exam_catalog(result_type)")
+    .select(`id, ${EXAM_ORDER_CATALOG_EMBED}(result_type)`)
     .eq("tenant_id", context.tenantId)
     .eq("id", parsed.examOrderId)
     .maybeSingle();

@@ -3,6 +3,7 @@ import { redirect } from "next/navigation";
 import { PageLoadError, describeSupabaseFailure } from "@/components/ui/page-load-error";
 import { loadWorkspaceAuth } from "@/core/auth/load-workspace-auth";
 import { examOrderListSchema, visualAcuityResultListSchema } from "@/features/exams/schemas";
+import { EXAM_ORDER_CATALOG_EMBED } from "@/lib/supabase/embeds";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 import { PageHeader } from "@/components/ui/page-chrome";
 import { VisualAcuityForms } from "./visual-acuity-forms";
@@ -21,7 +22,7 @@ export default async function VisualAcuityPage() {
   const [ordersResult, resultsResult] = await Promise.all([
     supabase
       .from("exam_orders")
-      .select("id, encounter_id, status, exam_catalog(name)")
+      .select(`id, encounter_id, status, ${EXAM_ORDER_CATALOG_EMBED}(name)`)
       .eq("tenant_id", context.tenantId)
       .in("status", ["ordered", "collected"]),
     supabase

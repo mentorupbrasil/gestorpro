@@ -1,5 +1,10 @@
 # Log de implementação
 
+## 2026-07-14 — fix PGRST201 exam_catalog embed
+
+- Queries `exam_orders → exam_catalog` (e afins) usam FK composta (`exam_orders_exam_catalog_tenant_fk`) para eliminar ambiguidade com a FK legada.
+- Afeta acuidade/audiometria/espirometria, clínica e simulação de protocolo.
+
 ## 2026-07-14 — páginas protegidas: falhas de carregamento visíveis
 
 - Páginas operacionais convertem falhas de autorização, consultas Supabase e Zod em `PageLoadError` (sem error boundary genérico).

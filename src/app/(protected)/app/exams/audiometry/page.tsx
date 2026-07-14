@@ -7,6 +7,7 @@ import {
   audiometryResultListSchema,
   examOrderListSchema,
 } from "@/features/exams/schemas";
+import { EXAM_ORDER_CATALOG_EMBED } from "@/lib/supabase/embeds";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 import { PageHeader } from "@/components/ui/page-chrome";
 import { AudiometryForms } from "./audiometry-forms";
@@ -25,7 +26,7 @@ export default async function AudiometryPage() {
   const [ordersResult, resultsResult, calibrationsResult] = await Promise.all([
     supabase
       .from("exam_orders")
-      .select("id, encounter_id, status, exam_catalog(name)")
+      .select(`id, encounter_id, status, ${EXAM_ORDER_CATALOG_EMBED}(name)`)
       .eq("tenant_id", context.tenantId)
       .in("status", ["ordered", "collected"]),
     supabase

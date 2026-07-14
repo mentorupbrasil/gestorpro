@@ -548,7 +548,7 @@ export async function loadConsultationWorkspace(
             queue_tickets(priority, status, queue_definitions(name)),
             triage_records(id, status, current_version, triage_record_versions(version, payload)),
             medical_consultations(id, status, current_version, physician_credential_id),
-            exam_orders(id, status, exam_catalog(name))
+            exam_orders(id, status, exam_catalog!exam_orders_exam_catalog_tenant_fk(name))
           `,
           )
           .eq("tenant_id", context.tenantId)
@@ -631,7 +631,7 @@ export async function loadConsultationWorkspace(
           queue_tickets(priority, status, queue_definitions(name)),
           triage_records(id, status, current_version, triage_record_versions(version, payload)),
           medical_consultations(id, status, current_version, physician_credential_id),
-          exam_orders(id, status, exam_catalog(name))
+          exam_orders(id, status, exam_catalog!exam_orders_exam_catalog_tenant_fk(name))
         `,
         )
         .eq("tenant_id", context.tenantId)
@@ -810,7 +810,7 @@ export async function loadConclusionWorkspace(
               physician_credential_id,
               medical_consultation_versions(version, assessment, plan)
             ),
-            exam_orders(id, status, exam_catalog(name)),
+            exam_orders(id, status, exam_catalog!exam_orders_exam_catalog_tenant_fk(name)),
             encounter_flow_pauses(id, status),
             medical_conclusions(
               id,
@@ -908,7 +908,7 @@ export async function loadConclusionWorkspace(
             physician_credential_id,
             medical_consultation_versions(version, assessment, plan)
           ),
-          exam_orders(id, status, exam_catalog(name)),
+          exam_orders(id, status, exam_catalog!exam_orders_exam_catalog_tenant_fk(name)),
           encounter_flow_pauses(id, status),
           medical_conclusions(
             id,

@@ -2,6 +2,7 @@ import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { PageLoadError, describeSupabaseFailure } from "@/components/ui/page-load-error";
 import { loadWorkspaceAuth } from "@/core/auth/load-workspace-auth";
+import { EXAM_ORDER_CATALOG_EMBED } from "@/lib/supabase/embeds";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 import { readEmbeddedRelation } from "@/lib/supabase/relations";
 import { PageHeader, Surface } from "@/components/ui/page-chrome";
@@ -21,7 +22,7 @@ export default async function SpirometryPage() {
   const [ordersResult, resultsResult, calibrationsResult, predictedSetsResult] = await Promise.all([
     supabase
       .from("exam_orders")
-      .select("id, encounter_id, status, exam_catalog(name, result_type)")
+      .select(`id, encounter_id, status, ${EXAM_ORDER_CATALOG_EMBED}(name, result_type)`)
       .eq("tenant_id", context.tenantId)
       .in("status", ["ordered", "collected", "resulted"]),
     supabase

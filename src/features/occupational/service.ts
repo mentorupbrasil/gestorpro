@@ -3,6 +3,10 @@ import "server-only";
 import { requireAal2, requirePermission } from "@/core/auth/authorization";
 import { resolveAuthorizationContext } from "@/core/auth/session";
 import { AppError } from "@/core/errors/app-error";
+import {
+  EXAM_PROTOCOL_ITEM_CATALOG_EMBED,
+  EXAM_PROTOCOL_OVERRIDE_CATALOG_EMBED,
+} from "@/lib/supabase/embeds";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 import {
   createCompanySchema,
@@ -229,7 +233,7 @@ export async function simulateRequiredExams(input: SimulateRequiredExamsInput) {
       exam_protocol_items(
         required,
         conditions,
-        exam_catalog(id, code, name)
+        ${EXAM_PROTOCOL_ITEM_CATALOG_EMBED}(id, code, name)
       )
     `,
     )
@@ -282,7 +286,7 @@ export async function simulateRequiredExams(input: SimulateRequiredExamsInput) {
   if (parsed.workerId) {
     const { data: overrideRows } = await supabase
       .from("exam_protocol_overrides")
-      .select("action, justification, exam_catalog(id, code, name)")
+      .select(`action, justification, ${EXAM_PROTOCOL_OVERRIDE_CATALOG_EMBED}(id, code, name)`)
       .eq("tenant_id", context.tenantId)
       .eq("worker_id", parsed.workerId)
       .order("created_at", { ascending: false })
