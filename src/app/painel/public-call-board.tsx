@@ -10,7 +10,11 @@ type PublicState = {
     payload: Record<string, unknown>;
   } | null;
   panelName: string;
-  recentCalls: Array<{ createdAt: string; room?: string | null; ticketCode?: string | null }>;
+  recentCalls: Array<{
+    createdAt: string;
+    room?: string | null | undefined;
+    ticketCode?: string | null | undefined;
+  }>;
 };
 
 export function PublicCallBoard({

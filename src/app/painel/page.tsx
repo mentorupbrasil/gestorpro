@@ -32,7 +32,11 @@ export default async function PublicPanelPage({ searchParams }: Props) {
         initialState={{
           activeCall: state.activeCall ?? null,
           panelName: state.panelName,
-          recentCalls: state.recentCalls,
+          recentCalls: state.recentCalls.map((call) => ({
+            createdAt: call.createdAt,
+            room: call.room ?? null,
+            ticketCode: call.ticketCode ?? null,
+          })),
         }}
         sessionId={sessionId}
       />

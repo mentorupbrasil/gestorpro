@@ -11,14 +11,14 @@ const initial: ClosureFormState = {};
 
 export function ConclusionClosureForms({
   conclusionId,
-  conclusionVersion,
+  conclusionVersion = 1,
   encounterId,
-  encounterVersion,
+  encounterVersion = 1,
 }: {
-  conclusionId?: string;
-  conclusionVersion?: number;
-  encounterId?: string;
-  encounterVersion?: number;
+  conclusionId?: string | undefined;
+  conclusionVersion?: number | undefined;
+  encounterId?: string | undefined;
+  encounterVersion?: number | undefined;
 }) {
   const [signState, signAction, signPending] = useActionState(signConclusionAction, initial);
   const [closeState, closeAction, closePending] = useActionState(closeEncounterAction, initial);
