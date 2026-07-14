@@ -1,18 +1,14 @@
 # Fase atual
 
-- Fase atual: **P0 fechado no DB + P1 transição/chamadas/recepção (código)**
 - Branch: `feat/p0-security-rpc-checkin`
+- PR: https://github.com/mentorupbrasil/gestorpro/pull/12
+- P0 DB `028–031` + P1/P3 `032–033` aplicados no Postgres de teste
+- typecheck OK; testes P0/P1 unitários OK
 - Produção: **NO-GO**
 - Atualizado em: 2026-07-14
 
-## Evidência desta unidade
+## Ainda aberto (não “100%” produto)
 
-- Migrations `028`–`032` aplicadas no PostgreSQL de teste
-- Negativos RPC/RLS: passed
-- Unitários: 137+ passed; typecheck/lint/format/typegen/scanner: passed
-- E2E autenticado ponta a ponta ocupacional: **ainda pendente**
-- Revisão clínica/jurídica/pentest/GO: **não iniciada**
-
-## Próximo foco
-
-P1 restante (painel público autenticado por dispositivo, Realtime), depois exames/ASO/financeiro conforme prompt — sem declarar pronto.
+- E2E autenticado completo com seed (depende de `E2E_AUTH_*`)
+- Checks CI remotos da PR #12
+- GO humano / pentest / piloto
