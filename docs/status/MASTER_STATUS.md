@@ -1,13 +1,13 @@
 # Status mestre
 
-Atualizado em: 2026-07-13
+Atualizado em: 2026-07-14
 
 ## Reauditoria V2
 
 - Fase A — Reauditoria e correção da fundação: `PARTIAL / IN_PROGRESS`.
 - Produção e merge na `main`: não autorizados.
 - Fechado tecnicamente nesta linha: contenção DML/RPC, escopo por recurso, AAL2 no banco, typegen oficial, P0.1–P0.3 operacionais, FKs compostas ondas 1–3, **P0.5 papéis + P0.6 leitura sensível (código)**.
-- Gate A ainda aberto: checks remotos da PR #11 a confirmar; typegen pós-novas migrations; auth unit-scoped residual; ações humanas (`HUMAN_ACTIONS.md`).
+- Gate A ainda aberto: checks remotos da PR #11 a confirmar (build Vercel typecheck corrigido localmente — `z.input` Zod); typegen pós-novas migrations; auth unit-scoped residual; ações humanas (`HUMAN_ACTIONS.md`).
 - Estabilização: `023` aplicada; `024` (estrutura/PCMSO RPC) no repo — apply pendente.
 
 | Fase                         | Estado                | Observação                                        |

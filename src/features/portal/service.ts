@@ -14,7 +14,7 @@ export const upsertCompanyPortalUserSchema = z.object({
   userId: z.string().uuid(),
 });
 
-export type UpsertCompanyPortalUserInput = z.infer<typeof upsertCompanyPortalUserSchema>;
+export type UpsertCompanyPortalUserInput = z.input<typeof upsertCompanyPortalUserSchema>;
 
 export const upsertReleaseRuleSchema = z.object({
   companyId: z.string().uuid(),
@@ -24,7 +24,7 @@ export const upsertReleaseRuleSchema = z.object({
   tenantId: z.string().uuid(),
 });
 
-export type UpsertReleaseRuleInput = z.infer<typeof upsertReleaseRuleSchema>;
+export type UpsertReleaseRuleInput = z.input<typeof upsertReleaseRuleSchema>;
 
 export const companyPortalOverviewSchema = z.object({
   companyId: z.string().uuid(),

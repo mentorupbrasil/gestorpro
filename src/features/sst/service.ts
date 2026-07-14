@@ -16,7 +16,7 @@ export const createSstIncidentSchema = z.object({
   workerId: z.string().uuid().optional().nullable(),
 });
 
-export type CreateSstIncidentInput = z.infer<typeof createSstIncidentSchema>;
+export type CreateSstIncidentInput = z.input<typeof createSstIncidentSchema>;
 
 export const createSstEpiIssueSchema = z.object({
   companyId: z.string().uuid(),
@@ -33,7 +33,7 @@ export const createSstEpiIssueSchema = z.object({
   workerId: z.string().uuid(),
 });
 
-export type CreateSstEpiIssueInput = z.infer<typeof createSstEpiIssueSchema>;
+export type CreateSstEpiIssueInput = z.input<typeof createSstEpiIssueSchema>;
 
 export const createSstCipaMembershipSchema = z.object({
   companyId: z.string().uuid(),

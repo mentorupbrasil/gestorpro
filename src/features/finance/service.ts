@@ -27,7 +27,7 @@ export const createPriceSnapshotSchema = z.object({
   tenantId: z.string().uuid(),
 });
 
-export type CreatePriceSnapshotInput = z.infer<typeof createPriceSnapshotSchema>;
+export type CreatePriceSnapshotInput = z.input<typeof createPriceSnapshotSchema>;
 
 export const createBillingFromSnapshotSchema = z.object({
   snapshotId: z.string().uuid(),
@@ -54,7 +54,7 @@ export const recordPaymentSchema = z.object({
   tenantId: z.string().uuid(),
 });
 
-export type RecordPaymentInput = z.infer<typeof recordPaymentSchema>;
+export type RecordPaymentInput = z.input<typeof recordPaymentSchema>;
 
 export async function createEncounterPriceSnapshot(
   input: CreatePriceSnapshotInput,

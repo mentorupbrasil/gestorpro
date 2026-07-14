@@ -25,7 +25,7 @@ export const createDocumentVersionSchema = z.object({
   tenantId: z.string().uuid(),
 });
 
-export type CreateDocumentVersionInput = z.infer<typeof createDocumentVersionSchema>;
+export type CreateDocumentVersionInput = z.input<typeof createDocumentVersionSchema>;
 
 export const signDocumentVersionSchema = z.object({
   contentHash: z.string().trim().min(16),
@@ -34,7 +34,7 @@ export const signDocumentVersionSchema = z.object({
   tenantId: z.string().uuid(),
 });
 
-export type SignDocumentVersionInput = z.infer<typeof signDocumentVersionSchema>;
+export type SignDocumentVersionInput = z.input<typeof signDocumentVersionSchema>;
 
 export async function createGeneratedDocumentVersion(
   input: CreateDocumentVersionInput,

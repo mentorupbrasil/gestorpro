@@ -28,7 +28,7 @@ export const enqueueIntegrationJobSchema = z.object({
   tenantId: z.string().uuid(),
 });
 
-export type EnqueueIntegrationJobInput = z.infer<typeof enqueueIntegrationJobSchema>;
+export type EnqueueIntegrationJobInput = z.input<typeof enqueueIntegrationJobSchema>;
 
 export const createEsocialEventSchema = z.object({
   businessKey: z.string().trim().min(2).max(120),
@@ -43,7 +43,7 @@ export const createEsocialEventSchema = z.object({
   tenantId: z.string().uuid(),
 });
 
-export type CreateEsocialEventInput = z.infer<typeof createEsocialEventSchema>;
+export type CreateEsocialEventInput = z.input<typeof createEsocialEventSchema>;
 
 export const registerSpoolFileSchema = z.object({
   connectorId: z.string().uuid(),

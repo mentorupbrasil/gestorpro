@@ -75,6 +75,6 @@ export const appointmentListSchema = z.array(
   }),
 );
 
-export type CreateAppointmentInput = z.infer<typeof createAppointmentSchema>;
-export type CreateReferralInput = z.infer<typeof createReferralSchema>;
-export type CreateScheduleResourceInput = z.infer<typeof createScheduleResourceSchema>;
+export type CreateAppointmentInput = z.input<typeof createAppointmentSchema>;
+export type CreateReferralInput = z.input<typeof createReferralSchema>;
+export type CreateScheduleResourceInput = z.input<typeof createScheduleResourceSchema>;

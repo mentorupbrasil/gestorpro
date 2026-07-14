@@ -1,5 +1,13 @@
 # Log de implementação
 
+## 2026-07-14 — fix build Vercel + lint CI
+
+- Build Vercel (`next build` typecheck) falhou: `createGeneratedDocumentVersion` exigia `rectificationReason` porque `CreateDocumentVersionInput` usava `z.infer` (output com defaults aplicados).
+- Corrigido: tipos de input de serviços/actions passaram de `z.infer` para `z.input` onde o schema tem `.default()` (documents, exams, finance, integrations, portal, scheduling, sst).
+- CI `quality`/`pnpm lint`: `Date.now()` no render em `integrations-forms.tsx` → `useState(() => crypto.randomUUID())` (mesmo padrão de documentos).
+- Dependency review: falha de configuração do repositório (Dependency graph) — ação humana em Settings → Security; aviso Node 20 é do action pinado, não do app.
+- Gates locais: `tsc --noEmit` e `pnpm lint` OK. Commit/push pendente do usuário.
+
 ## 2026-07-12
 
 - Confirmados raiz, remoto, branch, status, arquivos e histórico.

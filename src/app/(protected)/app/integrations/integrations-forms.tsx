@@ -1,6 +1,6 @@
 "use client";
 
-import { useActionState, useId } from "react";
+import { useActionState, useState } from "react";
 import {
   createEsocialEventAction,
   enqueueJobAction,
@@ -22,7 +22,7 @@ export function IntegrationsWorkspaceForms({
   deadLetterOptions: Option[];
   layoutOptions: Option[];
 }) {
-  const idempotencySeed = useId();
+  const [idempotencyKey] = useState(() => `job-${crypto.randomUUID()}`);
   const [jobState, jobAction, jobPending] = useActionState(
     enqueueJobAction,
     {} as IntegrationsFormState,
@@ -58,11 +58,7 @@ export function IntegrationsWorkspaceForms({
           name="jobType"
           required
         />
-        <input
-          name="idempotencyKey"
-          type="hidden"
-          value={`job-${idempotencySeed.replace(/:/g, "")}-${Date.now()}`}
-        />
+        <input name="idempotencyKey" type="hidden" value={idempotencyKey} />
         <button
           className="rounded bg-emerald-800 px-3 py-2 text-sm font-medium text-white disabled:opacity-60"
           disabled={jobPending || connectionOptions.length === 0}

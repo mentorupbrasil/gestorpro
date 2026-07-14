@@ -7,7 +7,10 @@
 
 ## CI remoto
 
-- Não afirmar “CI verde” sem evidência na PR #11. Checks remotos não foram revalidados nesta sessão (`gh` indisponível no PATH do agente).
+- Build Vercel: typecheck corrigido localmente (`z.input` Zod).
+- `quality`: lint `Date.now` em integrações corrigido localmente (`pnpm lint` OK).
+- Dependency review: **não é falha de código** — “Dependency review is not supported”; habilitar Dependency graph em https://github.com/mentorupbrasil/gestorpro/settings/security_analysis. Aviso Node 20 é do action, não do workflow app (CI já usa Node 24).
+- Awaiting commit/push e revalidação remota. Não afirmar “CI verde” sem evidência na PR #11.
 - CI workflow ignora push direto na `main` (`branches-ignore: [main]`) — esperado até branch protection humana.
 
 ## Auth unit-scoped
