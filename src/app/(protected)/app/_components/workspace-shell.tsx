@@ -99,7 +99,7 @@ export function WorkspaceShell({ children }: Readonly<{ children: ReactNode }>) 
                   Ambiente seguro
                 </p>
                 <p className="mt-1 text-sm text-slate-600">
-                  Dados fictícios em desenvolvimento. Produção segue bloqueada até GO formal.
+                  Sessão autenticada com controle de acesso por organização.
                 </p>
               </div>
               <form action={signOut}>

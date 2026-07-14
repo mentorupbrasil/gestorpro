@@ -1,5 +1,11 @@
 # Log de implementação
 
+## 2026-07-14 — remove Demo da UX operacional
+
+- Removidos: seção “Ambientes de teste” no select-tenant, banner “Dados fictícios…”, script `seed-clinical-demo` / `pnpm seed:clinical:demo`.
+- Tenants E2E/TEST/DEMO ficam ocultos na seleção (não aparecem como “Demo”).
+- Seeds/E2E de CI permanecem só como tooling de teste, fora da UI.
+
 ## 2026-07-14 — ASO/documentos path opaco + pending render (`027`)
 
 - Migration `202607140027_stabilization_document_opaque_path_pending_render.sql`: bucket `clinical-private`; create com path opaco + `pending`; `finalize_document_version_render`; imutabilidade com exceção estreita.

@@ -92,7 +92,7 @@ export function IntegrationsWorkspaceForms({
         <input
           className="w-full rounded border px-3 py-2 text-sm"
           name="businessKey"
-          placeholder="chave de negócio fictícia"
+          placeholder="chave de negócio"
           required
         />
         <button

@@ -1,5 +1,6 @@
 # Próximas ações
 
-1. Polimento (escolher foco): UX operacional, seed fictício, E2E do fluxo central, template ASO real (sair do stub PDF)
-2. Confirmar `SUPABASE_SERVICE_ROLE_KEY` nos ambientes onde o upload de PDF deve funcionar
-3. Sem merge/`main`/produção — **NO-GO**
+1. Polimento UX operacional (sem Demo/banner de dados fictícios)
+2. Template ASO real / seed E2E (só tooling de teste, fora da UI) / E2E do fluxo central
+3. Confirmar `SUPABASE_SERVICE_ROLE_KEY` onde o upload de PDF deve funcionar
+4. Sem merge/`main`/produção — **NO-GO**
