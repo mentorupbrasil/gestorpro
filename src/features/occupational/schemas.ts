@@ -112,6 +112,23 @@ export const createManualExamOverrideSchema = z.object({
   workerId: z.uuid().nullable(),
 });
 
+export const createExamProtocolPackageSchema = z.object({
+  activate: z.boolean().default(true),
+  examCatalogIds: z.array(z.uuid()).min(1),
+  occupationalExamType: occupationalExamTypeSchema,
+  pcmsoVersionId: z.uuid(),
+  riskCodes: z.array(z.string().trim().min(1).max(32)).default([]),
+  tenantId: z.uuid(),
+});
+
+export const simulateRequiredExamsSchema = z.object({
+  asOf: z.string().regex(/^[0-9]{4}-[0-9]{2}-[0-9]{2}$/),
+  occupationalExamType: occupationalExamTypeSchema,
+  riskCodes: z.array(z.string().trim().min(1).max(32)).default([]),
+  tenantId: z.uuid(),
+  workerId: z.uuid().optional(),
+});
+
 export const companyListSchema = z.array(
   z.object({
     id: z.uuid(),
@@ -154,7 +171,9 @@ export const pcmsoVersionListSchema = z.array(
 export type CreateCompanyInput = z.infer<typeof createCompanySchema>;
 export type CreateExamCatalogItemInput = z.infer<typeof createExamCatalogItemSchema>;
 export type CreateManualExamOverrideInput = z.infer<typeof createManualExamOverrideSchema>;
+export type CreateExamProtocolPackageInput = z.infer<typeof createExamProtocolPackageSchema>;
 export type CreateOccupationalStructureInput = z.infer<typeof createOccupationalStructureSchema>;
 export type CreatePcmsoVersionInput = z.infer<typeof createPcmsoVersionSchema>;
 export type CreateWorkerInput = z.infer<typeof createWorkerSchema>;
+export type SimulateRequiredExamsInput = z.infer<typeof simulateRequiredExamsSchema>;
 export type OccupationalExamType = z.infer<typeof occupationalExamTypeSchema>;

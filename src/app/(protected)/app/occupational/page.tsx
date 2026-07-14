@@ -12,6 +12,7 @@ import { createServerSupabaseClient } from "@/lib/supabase/server";
 import { CompanyForm } from "./company-form";
 import { ExamCatalogForm } from "./exam-catalog-form";
 import { PcmsoVersionForm } from "./pcmso-version-form";
+import { ProtocolWorkspace } from "./protocol-workspace";
 import { StructureForm } from "./structure-form";
 import { WorkerForm } from "./worker-form";
 
@@ -27,7 +28,8 @@ export default async function OccupationalPage() {
   requirePermission(context, "occupational.read");
 
   const supabase = await createServerSupabaseClient();
-  const [companiesResult, workersResult, pcmsoResult, catalogResult] = await Promise.all([
+  const [companiesResult, workersResult, pcmsoResult, catalogResult, protocolsResult] =
+    await Promise.all([
     supabase
       .from("companies")
       .select("id, legal_name, trade_name, tax_id_normalized, status")
@@ -48,9 +50,21 @@ export default async function OccupationalPage() {
       .select("id, code, name, result_type, active")
       .eq("tenant_id", context.tenantId)
       .order("code"),
+    supabase
+      .from("exam_protocols")
+      .select("id, occupational_exam_type, status, pcmso_version_id")
+      .eq("tenant_id", context.tenantId)
+      .order("created_at", { ascending: false })
+      .limit(50),
   ]);
 
-  if (companiesResult.error || workersResult.error || pcmsoResult.error || catalogResult.error) {
+  if (
+    companiesResult.error ||
+    workersResult.error ||
+    pcmsoResult.error ||
+    catalogResult.error ||
+    protocolsResult.error
+  ) {
     throw new Error("Não foi possível carregar o domínio ocupacional.");
   }
 
@@ -58,6 +72,7 @@ export default async function OccupationalPage() {
   const workers = workerListSchema.parse(workersResult.data);
   const pcmsoVersions = pcmsoVersionListSchema.parse(pcmsoResult.data);
   const examCatalog = examCatalogListSchema.parse(catalogResult.data);
+  const protocols = protocolsResult.data ?? [];
 
   return (
     <main className="mx-auto max-w-6xl px-6 py-10">
@@ -97,6 +112,28 @@ export default async function OccupationalPage() {
           />
         ) : null}
       </section>
+
+      {context.permissions.has("protocols.manage") ||
+      context.permissions.has("occupational.read") ? (
+        <ProtocolWorkspace
+          catalogs={examCatalog.map((item) => ({
+            id: item.id,
+            label: `${item.code} · ${item.name}`,
+          }))}
+          pcmsoVersions={pcmsoVersions.map((version) => ({
+            id: version.id,
+            label: `${version.companies?.legal_name ?? "Empresa"} · v${version.version_number} (${version.status})`,
+          }))}
+          protocols={protocols.map((protocol) => ({
+            id: protocol.id,
+            label: `${protocol.occupational_exam_type} · ${protocol.status}`,
+          }))}
+          workers={workers.map((worker) => ({
+            id: worker.id,
+            label: worker.full_name,
+          }))}
+        />
+      ) : null}
 
       <section className="mt-10 grid gap-8">
         <div>

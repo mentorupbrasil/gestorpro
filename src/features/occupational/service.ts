@@ -7,17 +7,26 @@ import { createServerSupabaseClient } from "@/lib/supabase/server";
 import {
   createCompanySchema,
   createExamCatalogItemSchema,
+  createExamProtocolPackageSchema,
   createManualExamOverrideSchema,
   createOccupationalStructureSchema,
   createPcmsoVersionSchema,
   createWorkerSchema,
+  simulateRequiredExamsSchema,
   type CreateCompanyInput,
   type CreateExamCatalogItemInput,
+  type CreateExamProtocolPackageInput,
   type CreateManualExamOverrideInput,
   type CreateOccupationalStructureInput,
   type CreatePcmsoVersionInput,
   type CreateWorkerInput,
+  type SimulateRequiredExamsInput,
 } from "./schemas";
+import {
+  calculateRequiredExams,
+  type ExamProtocolOverrideSnapshot,
+  type ExamProtocolSnapshot,
+} from "./exam-engine";
 
 export async function createCompany(input: CreateCompanyInput, requestId: string) {
   const parsed = createCompanySchema.parse(input);
@@ -317,6 +326,139 @@ export async function createOccupationalStructure(input: CreateOccupationalStruc
   });
 
   return employment.id as string;
+}
+
+export async function createExamProtocolPackage(
+  input: CreateExamProtocolPackageInput,
+  requestId: string,
+) {
+  const parsed = createExamProtocolPackageSchema.parse(input);
+  const context = await resolveAuthorizationContext(parsed.tenantId);
+  requirePermission(context, "protocols.manage");
+  requireAal2(context);
+
+  const items = parsed.examCatalogIds.map((examCatalogId) => ({
+    conditions: parsed.riskCodes.length > 0 ? { riskCodes: parsed.riskCodes } : {},
+    examCatalogId,
+    required: true,
+  }));
+
+  const supabase = await createServerSupabaseClient();
+  const { data, error } = await supabase.rpc("create_exam_protocol_package", {
+    activate_protocol: parsed.activate,
+    audit_request_id: requestId,
+    items_value: items,
+    occupational_exam_type_value: parsed.occupationalExamType,
+    target_pcmso_version_id: parsed.pcmsoVersionId,
+    target_tenant_id: context.tenantId,
+  });
+
+  if (error || typeof data !== "string") {
+    throw new AppError("INTERNAL_ERROR", "Não foi possível criar o protocolo de exames.", {
+      cause: error,
+      status: 500,
+    });
+  }
+
+  return data;
+}
+
+export async function simulateRequiredExams(input: SimulateRequiredExamsInput) {
+  const parsed = simulateRequiredExamsSchema.parse(input);
+  const context = await resolveAuthorizationContext(parsed.tenantId);
+  requirePermission(context, "occupational.read");
+
+  const supabase = await createServerSupabaseClient();
+  const { data: protocolRows, error } = await supabase
+    .from("exam_protocols")
+    .select(
+      `
+      id,
+      status,
+      occupational_exam_type,
+      pcmso_versions(id, status, valid_from, valid_until),
+      exam_protocol_items(
+        required,
+        conditions,
+        exam_catalog(id, code, name)
+      )
+    `,
+    )
+    .eq("tenant_id", context.tenantId);
+
+  if (error) {
+    throw new AppError("INTERNAL_ERROR", "Não foi possível carregar protocolos.", {
+      cause: error,
+      status: 500,
+    });
+  }
+
+  const protocols: ExamProtocolSnapshot[] = (protocolRows ?? []).flatMap((row) => {
+    const version = Array.isArray(row.pcmso_versions) ? row.pcmso_versions[0] : row.pcmso_versions;
+    if (!version) return [];
+    const items = (row.exam_protocol_items ?? []).flatMap((item) => {
+      const exam = Array.isArray(item.exam_catalog) ? item.exam_catalog[0] : item.exam_catalog;
+      if (!exam) return [];
+      const conditions =
+        item.conditions && typeof item.conditions === "object" && !Array.isArray(item.conditions)
+          ? (item.conditions as { riskCodes?: string[] })
+          : {};
+      return [
+        {
+          exam: { code: exam.code, id: exam.id, name: exam.name },
+          required: item.required,
+          riskCodes: conditions.riskCodes ?? [],
+        },
+      ];
+    });
+
+    return [
+      {
+        id: row.id,
+        items,
+        occupationalExamType:
+          row.occupational_exam_type as ExamProtocolSnapshot["occupationalExamType"],
+        pcmsoVersion: {
+          id: version.id,
+          status: version.status as "draft" | "approved" | "expired",
+          validFrom: version.valid_from,
+          validUntil: version.valid_until,
+        },
+        status: row.status as ExamProtocolSnapshot["status"],
+      },
+    ];
+  });
+
+  let overrides: ExamProtocolOverrideSnapshot[] = [];
+  if (parsed.workerId) {
+    const { data: overrideRows } = await supabase
+      .from("exam_protocol_overrides")
+      .select("action, justification, exam_catalog(id, code, name)")
+      .eq("tenant_id", context.tenantId)
+      .eq("worker_id", parsed.workerId)
+      .order("created_at", { ascending: false })
+      .limit(20);
+
+    overrides = (overrideRows ?? []).flatMap((row) => {
+      const exam = Array.isArray(row.exam_catalog) ? row.exam_catalog[0] : row.exam_catalog;
+      if (!exam) return [];
+      return [
+        {
+          action: row.action as "add" | "remove",
+          exam: { code: exam.code, id: exam.id, name: exam.name },
+          justification: row.justification,
+        },
+      ];
+    });
+  }
+
+  return calculateRequiredExams({
+    asOf: parsed.asOf,
+    occupationalExamType: parsed.occupationalExamType,
+    overrides,
+    protocols,
+    riskCodes: parsed.riskCodes,
+  });
 }
 
 export async function createManualExamOverride(

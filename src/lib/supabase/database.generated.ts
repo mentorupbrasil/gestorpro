@@ -8113,6 +8113,17 @@ export type Database = {
         };
         Returns: boolean;
       };
+      create_exam_protocol_package: {
+        Args: {
+          activate_protocol: boolean;
+          audit_request_id: string;
+          items_value: Json;
+          occupational_exam_type_value: string;
+          target_pcmso_version_id: string;
+          target_tenant_id: string;
+        };
+        Returns: string;
+      };
 
       has_unit_permission: {
         Args: { permission_code: string; target_unit_id: string };
