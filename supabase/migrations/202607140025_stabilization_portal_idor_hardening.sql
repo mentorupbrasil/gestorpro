@@ -48,6 +48,10 @@ as $$
   );
 $$;
 
+-- Policies ainda referenciam a assinatura antiga (uuid): dropar antes do DROP FUNCTION.
+drop policy if exists portal_release_rules_select on public.company_document_release_rules;
+drop policy if exists portal_invoices_company_select on public.invoices;
+
 -- Remover assinatura antiga (só company_id) para não mascarar IDOR.
 drop function if exists public.is_company_portal_member(uuid);
 
@@ -329,7 +333,6 @@ begin
 end;
 $$;
 
-drop policy if exists portal_release_rules_select on public.company_document_release_rules;
 create policy portal_release_rules_select on public.company_document_release_rules
   for select to authenticated
   using (
@@ -338,7 +341,6 @@ create policy portal_release_rules_select on public.company_document_release_rul
     or public.has_tenant_permission(tenant_id, 'company_portal.manage')
   );
 
-drop policy if exists portal_invoices_company_select on public.invoices;
 create policy portal_invoices_company_select on public.invoices
   for select to authenticated
   using (
