@@ -19,9 +19,8 @@
 
 ## P0.4 / P0.5 / P0.6
 
-- `010`–`023` aplicadas (dono).
-- `024` (estrutura ocupacional + PCMSO RPC) no repo — apply pendente.
-- Dívida ainda aberta: fluxo PCMSO draft→approve humanizado completo; ASO PDF; preço server-side; portal IDOR; CI/Dependency Review/Vercel — evidência externa.
+- `010`–`024` aplicadas (dono). `025` portal IDOR no repo — **apply pendente**.
+- Dívida restante: preço server-side; ASO PDF; PCMSO draft→approve humanizado.
 - Fase N / produção: **NO-GO**.
 
 ## Já resolvido (não reabrir)

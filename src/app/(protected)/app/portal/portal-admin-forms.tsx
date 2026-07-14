@@ -5,7 +5,13 @@ import { upsertPortalUserAction, upsertReleaseRuleAction, type PortalFormState }
 
 type Option = { id: string; label: string };
 
-export function PortalAdminForms({ companyOptions }: { companyOptions: Option[] }) {
+export function PortalAdminForms({
+  companyOptions,
+  membershipOptions,
+}: {
+  companyOptions: Option[];
+  membershipOptions: Option[];
+}) {
   const [userState, userAction, userPending] = useActionState(
     upsertPortalUserAction,
     {} as PortalFormState,
@@ -19,6 +25,9 @@ export function PortalAdminForms({ companyOptions }: { companyOptions: Option[] 
     <section className="mt-5 grid gap-4 lg:grid-cols-2">
       <form action={userAction} className="space-y-3 rounded-3xl border bg-white/90 p-5 shadow-sm">
         <h2 className="text-lg font-semibold">Usuário do portal</h2>
+        <p className="text-xs text-slate-600">
+          Só vínculos ativos do tenant. UUID livre não é aceito.
+        </p>
         <select className="w-full rounded border px-3 py-2 text-sm" name="companyId" required>
           <option value="">Empresa…</option>
           {companyOptions.map((item) => (
@@ -27,12 +36,14 @@ export function PortalAdminForms({ companyOptions }: { companyOptions: Option[] 
             </option>
           ))}
         </select>
-        <input
-          className="w-full rounded border px-3 py-2 text-sm font-mono"
-          name="userId"
-          placeholder="user_id (uuid)"
-          required
-        />
+        <select className="w-full rounded border px-3 py-2 text-sm" name="userId" required>
+          <option value="">Membro do tenant…</option>
+          {membershipOptions.map((item) => (
+            <option key={item.id} value={item.id}>
+              {item.label}
+            </option>
+          ))}
+        </select>
         <select
           className="w-full rounded border px-3 py-2 text-sm"
           defaultValue="active"
@@ -44,7 +55,7 @@ export function PortalAdminForms({ companyOptions }: { companyOptions: Option[] 
         </select>
         <button
           className="rounded bg-emerald-800 px-3 py-2 text-sm font-medium text-white disabled:opacity-60"
-          disabled={userPending || companyOptions.length === 0}
+          disabled={userPending || companyOptions.length === 0 || membershipOptions.length === 0}
           type="submit"
         >
           Gravar acesso

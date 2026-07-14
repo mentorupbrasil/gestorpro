@@ -1,6 +1,7 @@
 # Próximas ações
 
-1. Confirmar checks do push `f74e295` (script Prettier pós-typegen) — espelho do CI já verde em `40db238`
-2. Aplicar `202607140024_...sql` no Supabase se ainda não aplicou (`.sql` puro)
-3. Próxima dívida útil: preço server-side **ou** ASO PDF/storage **ou** portal invite/IDOR
-4. Sem merge/`main`/produção — **NO-GO**
+1. **Humano:** aplicar `supabase/migrations/202607140025_stabilization_portal_idor_hardening.sql` (arquivo `.sql` puro no SQL Editor)
+2. Commit/push da unidade portal (se ainda local) e confirmar CI
+3. Próxima unidade de código: **preço server-side** (não confiar em `amountCents` do cliente)
+4. Depois: ASO PDF/storage → polimento UX/seed/E2E
+5. Sem merge/`main`/produção — **NO-GO**

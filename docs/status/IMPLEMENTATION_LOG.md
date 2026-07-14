@@ -1,5 +1,12 @@
 # Log de implementação
 
+## 2026-07-14 — portal IDOR hardening (`025`)
+
+- Migration `202607140025_stabilization_portal_idor_hardening.sql`: `is_company_portal_member(tenant, company)` (+ membership ativa); upsert exige membership do tenant; release rule valida empresa∈tenant; FKs compostas portal→companies.
+- UI: seletor de membros ativos do tenant (sem UUID livre).
+- pgTAP negativo: `supabase/tests/portal_idor_hardening.sql`.
+- Typegen offline regenerado. Apply no Supabase: pendente do dono.
+
 ## 2026-07-14 — fix types:supabase:check (CI)
 
 - CI `quality` falhava em `pnpm types:supabase:check`: fingerprint das migrations ≠ `database.generated.sha256`.

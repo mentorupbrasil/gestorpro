@@ -25,7 +25,7 @@ export default async function CompanyPortalPage({ searchParams }: PortalPageProp
   const canReadTenant = hasTenantOrUnitPermission(context, "company_portal.read");
 
   const supabase = await createServerSupabaseClient();
-  const [companiesResult, membershipsResult] = await Promise.all([
+  const [companiesResult, membershipsResult, tenantMembersResult] = await Promise.all([
     canReadTenant || canManage
       ? supabase
           .from("companies")
@@ -40,9 +40,18 @@ export default async function CompanyPortalPage({ searchParams }: PortalPageProp
       .eq("tenant_id", context.tenantId)
       .eq("user_id", context.userId)
       .eq("status", "active"),
+    canManage
+      ? supabase
+          .from("tenant_memberships")
+          .select("user_id, user_profiles(display_name)")
+          .eq("tenant_id", context.tenantId)
+          .eq("status", "active")
+          .order("created_at")
+          .limit(120)
+      : Promise.resolve({ data: [], error: null }),
   ]);
 
-  if (companiesResult.error || membershipsResult.error) {
+  if (companiesResult.error || membershipsResult.error || tenantMembersResult.error) {
     throw new Error("Não foi possível carregar o portal empresarial.");
   }
 
@@ -58,6 +67,14 @@ export default async function CompanyPortalPage({ searchParams }: PortalPageProp
     id: row.id,
     label: row.legal_name,
   }));
+
+  const membershipOptions = (tenantMembersResult.data ?? []).map((row) => {
+    const profile = Array.isArray(row.user_profiles) ? row.user_profiles[0] : row.user_profiles;
+    return {
+      id: row.user_id,
+      label: profile?.display_name ?? row.user_id,
+    };
+  });
 
   const selectableCompanies =
     canReadTenant || canManage
@@ -116,7 +133,9 @@ export default async function CompanyPortalPage({ searchParams }: PortalPageProp
         </p>
       )}
 
-      {canManage ? <PortalAdminForms companyOptions={adminCompanies} /> : null}
+      {canManage ? (
+        <PortalAdminForms companyOptions={adminCompanies} membershipOptions={membershipOptions} />
+      ) : null}
 
       {overview ? (
         <section className="mt-5 grid gap-4 lg:grid-cols-3">

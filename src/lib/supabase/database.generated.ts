@@ -5265,6 +5265,7 @@ export type Database = {
       is_company_portal_member: {
         Args: {
           target_company_id: string;
+          target_tenant_id: string;
         };
         Returns: boolean;
       };
