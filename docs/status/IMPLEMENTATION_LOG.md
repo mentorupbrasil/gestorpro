@@ -1,5 +1,11 @@
 # Log de implementação
 
+## 2026-07-14 — fix types:supabase:check (CI)
+
+- CI `quality` falhava em `pnpm types:supabase:check`: fingerprint das migrations ≠ `database.generated.sha256`.
+- Regenerados tipos offline via `pnpm types:supabase:generate` (sem `SUPABASE_*`); `types:supabase:check` + `tsc --noEmit` OK.
+- Substituir por typegen oficial quando houver projeto autorizado + token temporário.
+
 ## 2026-07-14 — fix build Vercel + lint CI
 
 - Build Vercel (`next build` typecheck) falhou: `createGeneratedDocumentVersion` exigia `rectificationReason` porque `CreateDocumentVersionInput` usava `z.infer` (output com defaults aplicados).

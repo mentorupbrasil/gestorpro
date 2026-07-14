@@ -7,10 +7,10 @@
 
 ## CI remoto
 
-- Build Vercel: typecheck corrigido localmente (`z.input` Zod).
-- `quality`: lint `Date.now` em integrações corrigido localmente (`pnpm lint` OK).
-- Dependency review: **não é falha de código** — “Dependency review is not supported”; habilitar Dependency graph em https://github.com/mentorupbrasil/gestorpro/settings/security_analysis. Aviso Node 20 é do action, não do workflow app (CI já usa Node 24).
-- Awaiting commit/push e revalidação remota. Não afirmar “CI verde” sem evidência na PR #11.
+- Build Vercel: passou após `z.input` Zod.
+- Dependency review: passou (Dependency graph habilitado).
+- `quality`: lint OK; passo `types:supabase:check` falhava por fingerprint das migrations — regenerado offline (`pnpm types:supabase:generate` sem credenciais) + `tsc` OK; commit/push desta unidade.
+- Não afirmar “CI verde” sem evidência na PR #11 após o push.
 - CI workflow ignora push direto na `main` (`branches-ignore: [main]`) — esperado até branch protection humana.
 
 ## Auth unit-scoped
