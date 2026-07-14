@@ -1,21 +1,25 @@
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
-import { requirePermission } from "@/core/auth/authorization";
-import { resolveAuthorizationContext } from "@/core/auth/session";
+import { PageLoadError, describeSupabaseFailure } from "@/components/ui/page-load-error";
+import { loadWorkspaceAuth } from "@/core/auth/load-workspace-auth";
 import {
   appointmentListSchema,
   referralListSchema,
   scheduleResourceListSchema,
 } from "@/features/scheduling/schemas";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
+import { PageHeader, Surface } from "@/components/ui/page-chrome";
 import { SchedulingForms } from "./scheduling-forms";
 
 export default async function SchedulingPage() {
   const selectedTenantId = (await cookies()).get("gestorpro_tenant")?.value;
   if (!selectedTenantId) redirect("/select-tenant");
 
-  const context = await resolveAuthorizationContext(selectedTenantId);
-  requirePermission(context, "schedule.read");
+  const auth = await loadWorkspaceAuth(selectedTenantId, "schedule.read");
+  if ("error" in auth) {
+    return <PageLoadError title="Encaminhamentos e agenda" detail={auth.error} />;
+  }
+  const context = auth.context;
 
   const supabase = await createServerSupabaseClient();
   const [
@@ -66,25 +70,46 @@ export default async function SchedulingPage() {
     resourcesResult.error ||
     appointmentsResult.error
   ) {
-    throw new Error("Não foi possível carregar a agenda.");
+    return (
+      <PageLoadError
+        title="Encaminhamentos e agenda"
+        detail={describeSupabaseFailure(
+          [
+            unitsResult,
+            companiesResult,
+            workersResult,
+            referralsResult,
+            resourcesResult,
+            appointmentsResult,
+          ],
+          "Não foi possível carregar a agenda.",
+        )}
+      />
+    );
   }
 
-  const resources = scheduleResourceListSchema.parse(resourcesResult.data);
-  const referrals = referralListSchema.parse(referralsResult.data);
-  const appointments = appointmentListSchema.parse(appointmentsResult.data);
+  const parsedResources = scheduleResourceListSchema.safeParse(resourcesResult.data);
+  const parsedReferrals = referralListSchema.safeParse(referralsResult.data);
+  const parsedAppointments = appointmentListSchema.safeParse(appointmentsResult.data);
+  if (!parsedResources.success || !parsedReferrals.success || !parsedAppointments.success) {
+    return (
+      <PageLoadError
+        title="Encaminhamentos e agenda"
+        detail="Dados inconsistentes retornados pelo Supabase (relação/embed). Atualize migrations ou contate suporte."
+      />
+    );
+  }
+  const resources = parsedResources.data;
+  const referrals = parsedReferrals.data;
+  const appointments = parsedAppointments.data;
 
   return (
-    <main className="mx-auto max-w-6xl px-6 py-10">
-      <header className="border-b border-slate-200 pb-5">
-        <p className="text-sm font-semibold uppercase tracking-wide text-emerald-800">
-          Recepção e agenda
-        </p>
-        <h1 className="mt-1 text-2xl font-semibold">Encaminhamentos e agenda</h1>
-        <p className="mt-2 max-w-3xl text-sm text-slate-600">
-          Agendamento não cria atendimento clínico. Conflitos de recurso são bloqueados e histórico
-          fica preservado.
-        </p>
-      </header>
+    <div>
+      <PageHeader
+        description="Encaminhamento calcula exames pelo protocolo vigente. Agendamento não cria atendimento clínico; conflitos de recurso são bloqueados."
+        eyebrow="Recepção e agenda"
+        title="Encaminhamentos e agenda"
+      />
 
       <SchedulingForms
         clinicUnits={(unitsResult.data ?? []).map((unit) => ({ id: unit.id, name: unit.name }))}
@@ -106,21 +131,19 @@ export default async function SchedulingPage() {
         }))}
       />
 
-      <section className="mt-10 grid gap-8 lg:grid-cols-2">
-        <div>
-          <h2 className="text-lg font-semibold">Encaminhamentos</h2>
+      <section className="mt-4 grid gap-3 lg:grid-cols-2">
+        <Surface className="p-4">
+          <h2 className="text-base font-semibold text-gp-text">Encaminhamentos</h2>
           {referrals.length === 0 ? (
-            <p className="mt-3 rounded bg-slate-100 p-4 text-sm text-slate-700">
-              Nenhum encaminhamento criado.
-            </p>
+            <p className="mt-3 text-sm text-gp-text-muted">Nenhum encaminhamento criado.</p>
           ) : (
-            <ul className="mt-4 divide-y divide-slate-200 text-sm">
+            <ul className="mt-3 divide-y divide-gp-border text-sm">
               {referrals.map((referral) => (
-                <li className="py-3" key={referral.id}>
-                  <span className="font-semibold">
+                <li className="py-2.5" key={referral.id}>
+                  <span className="font-semibold text-gp-text">
                     {referral.workers?.full_name ?? "Trabalhador"}
                   </span>
-                  <span className="ml-2 text-slate-600">
+                  <span className="ml-2 text-gp-text-muted">
                     {referral.companies?.legal_name ?? "Empresa"} ·{" "}
                     {referral.occupational_exam_type} · {referral.status}
                   </span>
@@ -128,30 +151,28 @@ export default async function SchedulingPage() {
               ))}
             </ul>
           )}
-        </div>
+        </Surface>
 
-        <div>
-          <h2 className="text-lg font-semibold">Agenda</h2>
+        <Surface className="p-4">
+          <h2 className="text-base font-semibold text-gp-text">Agenda</h2>
           {appointments.length === 0 ? (
-            <p className="mt-3 rounded bg-slate-100 p-4 text-sm text-slate-700">
-              Nenhum agendamento criado.
-            </p>
+            <p className="mt-3 text-sm text-gp-text-muted">Nenhum agendamento criado.</p>
           ) : (
-            <ul className="mt-4 divide-y divide-slate-200 text-sm">
+            <ul className="mt-3 divide-y divide-gp-border text-sm">
               {appointments.map((appointment) => (
-                <li className="py-3" key={appointment.id}>
-                  <span className="font-semibold">
+                <li className="py-2.5" key={appointment.id}>
+                  <span className="font-semibold text-gp-text">
                     {new Date(appointment.starts_at).toLocaleString("pt-BR")}
                   </span>
-                  <span className="ml-2 text-slate-600">
+                  <span className="ml-2 text-gp-text-muted">
                     {appointment.schedule_resources?.name ?? "Recurso"} · {appointment.status}
                   </span>
                 </li>
               ))}
             </ul>
           )}
-        </div>
+        </Surface>
       </section>
-    </main>
+    </div>
   );
 }

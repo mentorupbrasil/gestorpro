@@ -1,23 +1,28 @@
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
-import { requirePermission } from "@/core/auth/authorization";
-import { resolveAuthorizationContext } from "@/core/auth/session";
+import { PageLoadError, describeSupabaseFailure } from "@/components/ui/page-load-error";
+import { loadWorkspaceAuth } from "@/core/auth/load-workspace-auth";
 import { examOrderListSchema, visualAcuityResultListSchema } from "@/features/exams/schemas";
+import { EXAM_ORDER_CATALOG_EMBED } from "@/lib/supabase/embeds";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
+import { PageHeader } from "@/components/ui/page-chrome";
 import { VisualAcuityForms } from "./visual-acuity-forms";
 
 export default async function VisualAcuityPage() {
   const selectedTenantId = (await cookies()).get("gestorpro_tenant")?.value;
   if (!selectedTenantId) redirect("/select-tenant");
 
-  const context = await resolveAuthorizationContext(selectedTenantId);
-  requirePermission(context, "exams.read");
+  const auth = await loadWorkspaceAuth(selectedTenantId, "exams.read", "tenantOrUnit");
+  if ("error" in auth) {
+    return <PageLoadError title="Acuidade visual" detail={auth.error} />;
+  }
+  const context = auth.context;
 
   const supabase = await createServerSupabaseClient();
   const [ordersResult, resultsResult] = await Promise.all([
     supabase
       .from("exam_orders")
-      .select("id, encounter_id, status, exam_catalog(name)")
+      .select(`id, encounter_id, status, ${EXAM_ORDER_CATALOG_EMBED}(name)`)
       .eq("tenant_id", context.tenantId)
       .in("status", ["ordered", "collected"]),
     supabase
@@ -28,24 +33,37 @@ export default async function VisualAcuityPage() {
   ]);
 
   if (ordersResult.error || resultsResult.error) {
-    throw new Error("Não foi possível carregar acuidade visual.");
+    return (
+      <PageLoadError
+        title="Acuidade visual"
+        detail={describeSupabaseFailure(
+          [ordersResult, resultsResult],
+          "Não foi possível carregar acuidade visual.",
+        )}
+      />
+    );
   }
 
-  const orders = examOrderListSchema.parse(ordersResult.data);
-  const results = visualAcuityResultListSchema.parse(resultsResult.data);
+  const parsedOrders = examOrderListSchema.safeParse(ordersResult.data);
+  const parsedResults = visualAcuityResultListSchema.safeParse(resultsResult.data);
+  if (!parsedOrders.success || !parsedResults.success) {
+    return (
+      <PageLoadError
+        title="Acuidade visual"
+        detail="Dados inconsistentes retornados pelo Supabase (relação/embed). Atualize migrations ou contate suporte."
+      />
+    );
+  }
+  const orders = parsedOrders.data;
+  const results = parsedResults.data;
 
   return (
-    <main className="mx-auto max-w-6xl px-6 py-10">
-      <header className="border-b border-slate-200 pb-5">
-        <p className="text-sm font-semibold uppercase tracking-wide text-emerald-800">
-          Exames complementares
-        </p>
-        <h1 className="mt-1 text-2xl font-semibold">Acuidade visual</h1>
-        <p className="mt-2 max-w-3xl text-sm text-slate-600">
-          Registra medidas por olho, binocular, com/sem correção, condições de teste e conclusão
-          profissional. Correções criam nova versão; nada é apagado.
-        </p>
-      </header>
+    <div>
+      <PageHeader
+        description="Registra medidas por olho, binocular, com/sem correção, condições de teste e conclusão profissional. Correções criam nova versão; nada é apagado."
+        eyebrow="Exames complementares"
+        title="Acuidade visual"
+      />
 
       <VisualAcuityForms
         orders={orders.map((order) => ({
@@ -57,6 +75,6 @@ export default async function VisualAcuityPage() {
           name: `${result.exam_order_id} · ${result.status} · v${result.current_version}`,
         }))}
       />
-    </main>
+    </div>
   );
 }

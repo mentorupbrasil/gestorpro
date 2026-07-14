@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { embeddedOneSchema } from "@/lib/supabase/relations";
 import {
   buildConsultationStoredPayload,
   consultationPayloadForRpc,
@@ -120,7 +121,7 @@ export const encounterClinicalListSchema = z.array(
   z.object({
     id: z.string(),
     status: z.string(),
-    workers: z.object({ full_name: z.string() }).nullable().optional(),
+    workers: embeddedOneSchema(z.object({ full_name: z.string() })).optional(),
   }),
 );
 
@@ -128,7 +129,7 @@ export const triageFormVersionListSchema = z.array(
   z.object({
     id: z.string(),
     version: z.number(),
-    triage_form_templates: z.object({ name: z.string() }).nullable().optional(),
+    triage_form_templates: embeddedOneSchema(z.object({ name: z.string() })).optional(),
   }),
 );
 
@@ -140,7 +141,7 @@ export const physicianCredentialListSchema = z.array(
     professional_role: z.string(),
     registration_number: z.string().nullable(),
     user_id: z.string().uuid(),
-    user_profiles: z.object({ display_name: z.string().nullable() }).nullable().optional(),
+    user_profiles: embeddedOneSchema(z.object({ display_name: z.string().nullable() })).optional(),
   }),
 );
 
@@ -156,7 +157,7 @@ export const clinicalTimelineSchema = z.array(
 export const triageQueueRowSchema = z.object({
   checked_in_at: z.string(),
   clinic_unit_id: z.string().uuid(),
-  clinic_units: z.object({ name: z.string() }).nullable(),
+  clinic_units: embeddedOneSchema(z.object({ name: z.string() })),
   encounter_steps: z
     .array(
       z.object({
@@ -172,17 +173,17 @@ export const triageQueueRowSchema = z.object({
       z.object({
         id: z.string().uuid(),
         priority: z.number(),
-        queue_definitions: z.object({ name: z.string() }).nullable(),
+        queue_definitions: embeddedOneSchema(z.object({ name: z.string() })),
         status: z.string(),
       }),
     )
     .default([]),
-  referrals: z
-    .object({
-      companies: z.object({ legal_name: z.string() }).nullable(),
+  referrals: embeddedOneSchema(
+    z.object({
+      companies: embeddedOneSchema(z.object({ legal_name: z.string() })),
       occupational_exam_type: z.string(),
-    })
-    .nullable(),
+    }),
+  ),
   status: z.string(),
   triage_records: z
     .array(
@@ -193,7 +194,7 @@ export const triageQueueRowSchema = z.object({
       }),
     )
     .default([]),
-  workers: z.object({ full_name: z.string() }).nullable(),
+  workers: embeddedOneSchema(z.object({ full_name: z.string() })),
 });
 
 export const triageQueueListSchema = z.array(triageQueueRowSchema);
@@ -214,7 +215,7 @@ export const triageWorkspaceRecordSchema = z.object({
 
 export const approvedTriageFormVersionSchema = z.object({
   id: z.string().uuid(),
-  triage_form_templates: z.object({ name: z.string() }).nullable(),
+  triage_form_templates: embeddedOneSchema(z.object({ name: z.string() })),
   version: z.number(),
 });
 
@@ -224,7 +225,7 @@ export const consultationQueueRowSchema = triageQueueRowSchema
     exam_orders: z
       .array(
         z.object({
-          exam_catalog: z.object({ name: z.string() }).nullable().optional(),
+          exam_catalog: embeddedOneSchema(z.object({ name: z.string() })).optional(),
           id: z.string().uuid(),
           status: z.string(),
         }),
@@ -338,3 +339,49 @@ export const triageSummarySchema = z.object({
   payload: z.record(z.string(), z.unknown()),
   status: z.string(),
 });
+
+export const createClinicalAlertSchema = z.object({
+  encounterId: z.string().uuid(),
+  message: z.string().trim().min(3).max(1000),
+  severity: z.enum(["info", "attention", "urgent"]),
+  sourceType: z.enum(["triage", "exam", "manual"]).default("manual"),
+  tenantId: z.string().uuid(),
+});
+
+export type CreateClinicalAlertInput = z.input<typeof createClinicalAlertSchema>;
+export type CreateClinicalAlertParsed = z.output<typeof createClinicalAlertSchema>;
+
+export const acknowledgeClinicalAlertSchema = z.object({
+  alertId: z.string().uuid(),
+  note: z.string().trim().max(500).optional().default(""),
+  tenantId: z.string().uuid(),
+});
+
+export type AcknowledgeClinicalAlertInput = z.input<typeof acknowledgeClinicalAlertSchema>;
+export type AcknowledgeClinicalAlertParsed = z.output<typeof acknowledgeClinicalAlertSchema>;
+
+export const createConsultationAddendumSchema = z.object({
+  consultationId: z.string().uuid(),
+  note: z.string().trim().min(3).max(5000),
+  reason: z.string().trim().min(3).max(500),
+  tenantId: z.string().uuid(),
+});
+
+export type CreateConsultationAddendumInput = z.infer<typeof createConsultationAddendumSchema>;
+
+export const pauseEncounterFlowSchema = z.object({
+  encounterId: z.string().uuid(),
+  reason: z.string().trim().min(3).max(500),
+  tenantId: z.string().uuid(),
+});
+
+export type PauseEncounterFlowInput = z.infer<typeof pauseEncounterFlowSchema>;
+
+export const resolveEncounterFlowPauseSchema = z.object({
+  pauseId: z.string().uuid(),
+  resolvedNote: z.string().trim().max(500).optional().default(""),
+  tenantId: z.string().uuid(),
+});
+
+export type ResolveEncounterFlowPauseInput = z.input<typeof resolveEncounterFlowPauseSchema>;
+export type ResolveEncounterFlowPauseParsed = z.output<typeof resolveEncounterFlowPauseSchema>;

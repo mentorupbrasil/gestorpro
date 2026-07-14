@@ -53,8 +53,7 @@ const connection = connectionString
       user: process.env.PGUSER ?? "postgres",
     });
 
-const migrationPath =
-  "supabase/migrations/202607140003_consultation_operational_hardening.sql";
+const migrationPath = "supabase/migrations/202607140003_consultation_operational_hardening.sql";
 
 try {
   const migration = await fs.readFile(migrationPath, "utf8");

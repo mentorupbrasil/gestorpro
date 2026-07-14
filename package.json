@@ -23,14 +23,17 @@
     "types:supabase:generate": "node scripts/generate-supabase-types.mjs",
     "types:supabase:generate:offline": "node scripts/generate-supabase-types-offline.mjs",
     "validate:supabase:phase2": "node scripts/validate-phase2-supabase.mjs",
-    "seed:clinical:demo": "node scripts/seed-clinical-demo.mjs",
     "migrate:all": "node scripts/apply-all-migrations.mjs",
-    "validate:supabase:triage": "node scripts/validate-triage-supabase.mjs"
+    "validate:supabase:triage": "node scripts/validate-triage-supabase.mjs",
+    "validate:supabase:composite-fk": "node scripts/validate-composite-fk-preflight.mjs",
+    "validate:supabase:composite-fk:negatives": "node scripts/validate-composite-fk-negatives.mjs",
+    "migrate:p0-4:composite-fk": "node scripts/apply-p0-4-composite-fks.mjs"
   },
   "dependencies": {
     "@supabase/ssr": "0.12.0",
     "@supabase/supabase-js": "2.110.2",
     "drizzle-orm": "0.45.2",
+    "geist": "^1.7.2",
     "next": "16.2.10",
     "postgres": "3.4.7",
     "react": "19.2.7",

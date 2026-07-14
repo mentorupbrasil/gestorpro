@@ -22,6 +22,6 @@
 ## Pendências
 
 - reabrir cada RPC congelada somente com AAL2 quando crítico, autorização pelo recurso real, auditoria na mesma transação e teste negativo;
-- implementar concessão/remoção de papéis por RPC com limite de delegação;
-- revogação global de sessões no Supabase Auth exige fluxo server-only/service-role e validação em ambiente autorizado;
-- implementar break-glass completo antes de qualquer acesso clínico emergencial.
+- aplicar e validar no banco autorizado a migration `202607140010` (`assign_membership_role` / `revoke_membership_role`);
+- confirmar revogação global de sessões (`auth.admin.signOut` global) no ambiente autorizado após bloqueio;
+- implementar P0.6 leituras auditadas; break-glass completo antes de qualquer acesso clínico emergencial.

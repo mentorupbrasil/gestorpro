@@ -1,63 +1,82 @@
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
-import { requirePermission } from "@/core/auth/authorization";
-import { resolveAuthorizationContext } from "@/core/auth/session";
+import { PageLoadError, describeSupabaseFailure } from "@/components/ui/page-load-error";
+import { loadWorkspaceAuth } from "@/core/auth/load-workspace-auth";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 import { clinicUnitListSchema } from "@/features/platform/schemas";
+import { PageHeader, Surface } from "@/components/ui/page-chrome";
 import { CreateUnitForm } from "./create-unit-form";
 
 export default async function UnitsPage() {
   const selectedTenantId = (await cookies()).get("gestorpro_tenant")?.value;
   if (!selectedTenantId) redirect("/select-tenant");
 
-  const context = await resolveAuthorizationContext(selectedTenantId);
-  requirePermission(context, "units.read");
+  const auth = await loadWorkspaceAuth(selectedTenantId, "units.read");
+  if ("error" in auth) {
+    return <PageLoadError title="Unidades da clínica" detail={auth.error} />;
+  }
+  const context = auth.context;
   const supabase = await createServerSupabaseClient();
   const { data: units, error } = await supabase
     .from("clinic_units")
     .select("id, code, name, status")
     .eq("tenant_id", context.tenantId)
     .order("name");
-  if (error) throw new Error("Não foi possível carregar as unidades autorizadas.");
-  const clinicUnits = clinicUnitListSchema.parse(units);
+  if (error) {
+    return (
+      <PageLoadError
+        title="Unidades da clínica"
+        detail={describeSupabaseFailure([{ error }], "Não foi possível carregar as unidades autorizadas.")}
+      />
+    );
+  }
+  const parsedUnits = clinicUnitListSchema.safeParse(units);
+  if (!parsedUnits.success) {
+    return (
+      <PageLoadError
+        title="Unidades da clínica"
+        detail="Dados inconsistentes retornados pelo Supabase (relação/embed). Atualize migrations ou contate suporte."
+      />
+    );
+  }
+  const clinicUnits = parsedUnits.data;
 
   return (
-    <main className="mx-auto max-w-5xl px-6 py-10">
-      <header className="border-b border-slate-200 pb-5">
-        <p className="text-sm font-semibold uppercase tracking-wide text-emerald-800">
-          Administração
-        </p>
-        <h1 className="mt-1 text-2xl font-semibold">Unidades da clínica</h1>
-      </header>
+    <div>
+      <PageHeader eyebrow="Administração" title="Unidades da clínica" />
 
       {clinicUnits.length === 0 ? (
-        <p className="mt-6 bg-slate-100 p-4 text-slate-700">
-          Nenhuma unidade cadastrada neste tenant.
-        </p>
+        <Surface className="p-4">
+          <p className="text-sm text-gp-text-muted">Nenhuma unidade cadastrada neste tenant.</p>
+        </Surface>
       ) : (
-        <div className="mt-6 overflow-x-auto">
-          <table className="w-full border-collapse text-left text-sm">
+        <Surface className="overflow-x-auto">
+          <table className="gp-table">
             <thead>
-              <tr className="border-b border-slate-300">
-                <th className="px-2 py-3">Código</th>
-                <th className="px-2 py-3">Nome</th>
-                <th className="px-2 py-3">Status</th>
+              <tr>
+                <th>Código</th>
+                <th>Nome</th>
+                <th>Status</th>
               </tr>
             </thead>
             <tbody>
               {clinicUnits.map((unit) => (
-                <tr className="border-b border-slate-200" key={unit.id}>
-                  <td className="px-2 py-3 font-mono">{unit.code}</td>
-                  <td className="px-2 py-3">{unit.name}</td>
-                  <td className="px-2 py-3">{unit.status === "active" ? "Ativa" : "Inativa"}</td>
+                <tr key={unit.id}>
+                  <td className="font-mono">{unit.code}</td>
+                  <td>{unit.name}</td>
+                  <td>
+                    <span className="gp-badge">
+                      {unit.status === "active" ? "Ativa" : "Inativa"}
+                    </span>
+                  </td>
                 </tr>
               ))}
             </tbody>
           </table>
-        </div>
+        </Surface>
       )}
 
       {context.permissions.has("units.manage") ? <CreateUnitForm /> : null}
-    </main>
+    </div>
   );
 }

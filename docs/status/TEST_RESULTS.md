@@ -1,5 +1,46 @@
 # Resultados de testes e verificações
 
+## 2026-07-13 — P0.5 proteção de papéis
+
+- `vitest` `tests/unit/platform-schemas.test.ts`: schemas de assign/revoke OK.
+- Migration `202607140010` no repo; apply no Supabase autorizado ainda pendente.
+- Fingerprint `src/lib/supabase/database.generated.sha256` regenerado após a migration.
+- Tipos RPC `assign_membership_role` / `revoke_membership_role` adicionados em `database.generated.ts`.
+
+## 2026-07-13 — Validação manual MFA P0.1–P0.3 + RLS negativos
+
+- MFA/TOTP enrollment no usuário demo (`/app/security`): sessão `aal2`.
+- Fluxo encounter `e8000000-0000-4000-8000-000000000001` (Tenant E2E):
+  - Triagem: rascunho + IMC 24.2 + conclusão; eventos `triage.started`/`triage.completed`.
+  - Consulta: SOAP + conclusão; evento `consultation.completed`.
+  - Conclusão: `medical_conclusions.signature_status = prepared`, código `fit`.
+- Correções necessárias para fechar o fluxo:
+  - `totp-enrollment-form.tsx`: QR `data:image/svg+xml` via `<img>` (next/image quebrava).
+  - Select de credenciais médicas: incluir `council_region` + `professional_role`.
+  - Migration `202607140005_log_audit_alias.sql` (RPCs chamavam `log_audit` inexistente).
+  - Migration `202607140006_fix_triage_queue_tickets_update.sql` (remove `queue_tickets.updated_at` inválido).
+- `node scripts/validate-rls-bypass-negatives.mjs`: AAL1 bloqueado; outsider sem permissão; tenant B invisível; audit append-only.
+- `node --env-file=.env scripts/validate-phase1-supabase.mjs`: passou.
+- `npm run types:supabase:generate`: **oficial** (`SUPABASE_ACCESS_TOKEN` + Management API); `types:supabase:check` OK.
+- `npm run typecheck`: passou.
+
+## 2026-07-13 — Typegen oficial remoto
+
+- Token gravado só no `.env` (gitignored). CLI Supabase listou o projeto `dacittcezvtqljanhobb`.
+- `src/lib/supabase/database.generated.ts` regenerado (~239 KB); fingerprint alinhado às migrations.
+- Script `generate-supabase-types.mjs` ajustado para `corepack pnpm` no Windows.
+- GitHub CLI instalado; repo tornado privado após login `mentorupbrasil`.
+
+## 2026-07-13 — CI verde + PR draft
+
+- CI `feat/p0-2-consulta-operacional`: success após normalização LF do fingerprint.
+- PR draft: https://github.com/mentorupbrasil/gestorpro/pull/11 (sem merge produção).
+
+- Preflight: 0 mismatches de tenant nos vínculos clínicos.
+- Dry-run + apply: `202607140007_p0_4_composite_tenant_fks_clinical.sql`.
+- Negativo: update `encounters.worker_id` cruzado bloqueado (`encounters_worker_tenant_fk`).
+- Typegen/fingerprint refeitos após migration; `format:check` e `typecheck` OK localmente.
+
 ## 2026-07-13 — P0.3 Estação de conclusão operacional
 
 - `npm run typecheck`: passou.

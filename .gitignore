@@ -11,3 +11,4 @@ test-results/
 .vercel/
 *.log
 .DS_Store
+supabase/.temp/

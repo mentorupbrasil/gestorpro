@@ -1,9 +1,18 @@
-import { cookies } from "next/headers";
+import { cookies, headers } from "next/headers";
 import { redirect } from "next/navigation";
 import { z } from "zod";
-import { requirePermission } from "@/core/auth/authorization";
-import { resolveAuthorizationContext } from "@/core/auth/session";
-import { loadConclusionWorkspace, loadConsultationWorkspace, loadTriageWorkspace } from "@/features/clinical/service";
+import { PageLoadError } from "@/components/ui/page-load-error";
+import { loadWorkspaceAuth } from "@/core/auth/load-workspace-auth";
+import { AppError } from "@/core/errors/app-error";
+import {
+  loadConclusionWorkspace,
+  loadConsultationWorkspace,
+  loadTriageWorkspace,
+} from "@/features/clinical/service";
+import { getRequestId } from "@/lib/http/request-id";
+import { createServerSupabaseClient } from "@/lib/supabase/server";
+import { PageHeader } from "@/components/ui/page-chrome";
+import { ClinicalFlowPanel } from "./clinical-flow-panel";
 import { ConclusionStation } from "./conclusion-station";
 import { ConsultationStation } from "./consultation-station";
 import { TriageStation } from "./triage-station";
@@ -16,8 +25,11 @@ export default async function ClinicalPage({ searchParams }: ClinicalPageProps) 
   const selectedTenantId = (await cookies()).get("gestorpro_tenant")?.value;
   if (!selectedTenantId) redirect("/select-tenant");
 
-  const context = await resolveAuthorizationContext(selectedTenantId);
-  requirePermission(context, "clinical.read");
+  const auth = await loadWorkspaceAuth(selectedTenantId, "clinical.read", "tenantOrUnit");
+  if ("error" in auth) {
+    return <PageLoadError title="Triagem, consulta e conclusão médica" detail={auth.error} />;
+  }
+  const context = auth.context;
 
   const resolvedSearchParams = searchParams ? await searchParams : undefined;
   const selectedEncounterId = resolvedSearchParams?.encounter
@@ -30,24 +42,69 @@ export default async function ClinicalPage({ searchParams }: ClinicalPageProps) 
     ? z.uuid().safeParse(resolvedSearchParams.conclusion).data
     : undefined;
 
-  const [triageWorkspace, consultationWorkspace, conclusionWorkspace] = await Promise.all([
-    loadTriageWorkspace(selectedTenantId, selectedEncounterId),
-    loadConsultationWorkspace(selectedTenantId, selectedConsultationId),
-    loadConclusionWorkspace(selectedTenantId, selectedConclusionId),
-  ]);
+  let triageWorkspace: Awaited<ReturnType<typeof loadTriageWorkspace>>;
+  let consultationWorkspace: Awaited<ReturnType<typeof loadConsultationWorkspace>>;
+  let conclusionWorkspace: Awaited<ReturnType<typeof loadConclusionWorkspace>>;
+  try {
+    [triageWorkspace, consultationWorkspace, conclusionWorkspace] = await Promise.all([
+      loadTriageWorkspace(selectedTenantId, selectedEncounterId),
+      loadConsultationWorkspace(
+        selectedTenantId,
+        selectedConsultationId,
+        getRequestId(await headers()),
+      ),
+      loadConclusionWorkspace(selectedTenantId, selectedConclusionId),
+    ]);
+  } catch (error) {
+    const detail =
+      error instanceof AppError || error instanceof Error
+        ? error.message
+        : "Não foi possível carregar o espaço clínico.";
+    return <PageLoadError title="Triagem, consulta e conclusão médica" detail={detail} />;
+  }
+
+  const flowEncounterId =
+    triageWorkspace.selectedEncounter?.encounterId ??
+    consultationWorkspace.selectedEncounter?.encounterId ??
+    conclusionWorkspace.selectedEncounter?.encounterId ??
+    null;
+  const flowConsultationId =
+    consultationWorkspace.selectedRecord?.consultationId ??
+    consultationWorkspace.selectedEncounter?.consultationId ??
+    null;
+
+  let alerts: { id: string; message: string; severity: string; status: string }[] = [];
+  let pauses: { id: string; reason: string; status: string }[] = [];
+
+  if (flowEncounterId) {
+    const supabase = await createServerSupabaseClient();
+    const [alertsResult, pausesResult] = await Promise.all([
+      supabase
+        .from("clinical_alerts")
+        .select("id, message, severity, status")
+        .eq("tenant_id", context.tenantId)
+        .eq("encounter_id", flowEncounterId)
+        .order("created_at", { ascending: false })
+        .limit(20),
+      supabase
+        .from("encounter_flow_pauses")
+        .select("id, reason, status")
+        .eq("tenant_id", context.tenantId)
+        .eq("encounter_id", flowEncounterId)
+        .order("created_at", { ascending: false })
+        .limit(10),
+    ]);
+    alerts = alertsResult.data ?? [];
+    pauses = pausesResult.data ?? [];
+  }
 
   return (
-    <main className="mx-auto max-w-7xl px-6 py-10">
-      <header className="border-b border-slate-200 pb-5">
-        <p className="text-sm font-semibold uppercase tracking-wide text-emerald-800">
-          Clínica ocupacional
-        </p>
-        <h1 className="mt-1 text-2xl font-semibold">Triagem, consulta e conclusão médica</h1>
-        <p className="mt-2 max-w-3xl text-sm text-slate-600">
-          Dados clínicos são sensíveis, exigem MFA para escrita e ficam separados da recepção e da
-          empresa. Alertas são auxiliares; aptidão final continua sendo decisão humana do médico.
-        </p>
-      </header>
+    <div>
+      <PageHeader
+        description="Dados clínicos são sensíveis, exigem MFA para escrita e ficam separados da recepção e da empresa. Alertas são auxiliares; aptidão final continua sendo decisão humana do médico."
+        eyebrow="Clínica ocupacional"
+        title="Triagem, consulta e conclusão médica"
+      />
 
       <TriageStation
         formVersionId={triageWorkspace.formVersion.id}
@@ -73,6 +130,13 @@ export default async function ClinicalPage({ searchParams }: ClinicalPageProps) 
         selectedEncounter={conclusionWorkspace.selectedEncounter}
         selectedRecord={conclusionWorkspace.selectedRecord}
       />
-    </main>
+
+      <ClinicalFlowPanel
+        alerts={alerts}
+        consultationId={flowConsultationId}
+        encounterId={flowEncounterId}
+        pauses={pauses}
+      />
+    </div>
   );
 }

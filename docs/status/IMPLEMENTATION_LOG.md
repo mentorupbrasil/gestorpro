@@ -1,5 +1,64 @@
 # Log de implementação
 
+## 2026-07-14 — fix PGRST201 exam_catalog embed
+
+- Queries `exam_orders → exam_catalog` (e afins) usam FK composta (`exam_orders_exam_catalog_tenant_fk`) para eliminar ambiguidade com a FK legada.
+- Afeta acuidade/audiometria/espirometria, clínica e simulação de protocolo.
+
+## 2026-07-14 — páginas protegidas: falhas de carregamento visíveis
+
+- Páginas operacionais convertem falhas de autorização, consultas Supabase e Zod em `PageLoadError` (sem error boundary genérico).
+- Schemas passam a aceitar embeds PostgREST como objeto **ou** array (`embeddedOneSchema`); `display_name`/`content_hash` nulos deixam de derrubar a tela.
+- Clínica e portal capturam falhas de workspace/overview; teste unitário do embed.
+- Validação: `tsc --noEmit` + vitest `embedded-relation` / `platform-schemas` OK.
+
+## 2026-07-14 — polimento de layout (shell)
+
+- Shell grafite recolhível (~240 px), topbar compacta (unidade/org, busca visual, alertas, perfil).
+- Menu por grupos; **Exames** expansível; SST removido do menu (sem duplicata).
+- Tokens CSS estilo Supabase + Geist Sans; overview usando `PageHeader`/`Surface`/tabela densa.
+- Sem mudança de regra de negócio/banco.
+
+## 2026-07-14 — remove Demo da UX operacional
+
+- Removidos: seção “Ambientes de teste” no select-tenant, banner “Dados fictícios…”, script `seed-clinical-demo` / `pnpm seed:clinical:demo`.
+- Tenants E2E/TEST/DEMO ficam ocultos na seleção (não aparecem como “Demo”).
+- Seeds/E2E de CI permanecem só como tooling de teste, fora da UI.
+
+## 2026-07-14 — ASO/documentos path opaco + pending render (`027`)
+
+- Migration `202607140027_stabilization_document_opaque_path_pending_render.sql`: bucket `clinical-private`; create com path opaco + `pending`; `finalize_document_version_render`; imutabilidade com exceção estreita.
+- App: remove `storagePath` do cliente; sobe stub PDF sem PHI via service role; só então finaliza `rendered`.
+- Apply: **feita pelo dono** (2026-07-14).
+
+## 2026-07-14 — preço server-side (`026`)
+
+- Migration `202607140026_stabilization_server_side_price_snapshot.sql`: RPC resolve `unit_price_cents` da tabela aprovada; ignora amountCents/hash do cliente; valida encounter/contrato/tabela.
+- App/UI: formulário usa `billableCode` (sem valor livre).
+- pgTAP: `supabase/tests/server_side_price_snapshot.sql`.
+- Apply: pendente do dono (após `025`).
+
+## 2026-07-14 — portal IDOR hardening (`025`)
+
+- Migration `202607140025_stabilization_portal_idor_hardening.sql`: `is_company_portal_member(tenant, company)` (+ membership ativa); upsert exige membership do tenant; release rule valida empresa∈tenant; FKs compostas portal→companies.
+- UI: seletor de membros ativos do tenant (sem UUID livre).
+- pgTAP negativo: `supabase/tests/portal_idor_hardening.sql`.
+- Typegen offline regenerado. Apply no Supabase: pendente do dono.
+
+## 2026-07-14 — fix types:supabase:check (CI)
+
+- CI `quality` falhava em `pnpm types:supabase:check`: fingerprint das migrations ≠ `database.generated.sha256`.
+- Regenerados tipos offline via `pnpm types:supabase:generate` (sem `SUPABASE_*`); `types:supabase:check` + `tsc --noEmit` OK.
+- Substituir por typegen oficial quando houver projeto autorizado + token temporário.
+
+## 2026-07-14 — fix build Vercel + lint CI
+
+- Build Vercel (`next build` typecheck) falhou: `createGeneratedDocumentVersion` exigia `rectificationReason` porque `CreateDocumentVersionInput` usava `z.infer` (output com defaults aplicados).
+- Corrigido: tipos de input de serviços/actions passaram de `z.infer` para `z.input` onde o schema tem `.default()` (documents, exams, finance, integrations, portal, scheduling, sst).
+- CI `quality`/`pnpm lint`: `Date.now()` no render em `integrations-forms.tsx` → `useState(() => crypto.randomUUID())` (mesmo padrão de documentos).
+- Dependency review: falha de configuração do repositório (Dependency graph) — ação humana em Settings → Security; aviso Node 20 é do action pinado, não do app.
+- Gates locais: `tsc --noEmit` e `pnpm lint` OK. Commit/push pendente do usuário.
+
 ## 2026-07-12
 
 - Confirmados raiz, remoto, branch, status, arquivos e histórico.
@@ -112,3 +171,21 @@
 - Corrigidas duas vulnerabilidades moderadas transitivas com overrides de PostCSS/esbuild; auditoria passou sem achados.
 - Corrigidas leituras de relações embutidas do Supabase (`exam_catalog`, `companies`, `external_laboratories`) que quebravam espirometria, financeiro e laboratório em runtime.
 - Adicionado fluxo de uso real: cadastro em `/sign-up`, criação de organização em `/select-tenant` e provisionamento via `provision_tenant_for_user` com service role no servidor.
+
+## 2026-07-13 — P0.5 proteção administrativa de papéis
+
+- Migration `202607140010_p0_5_admin_role_protection.sql`: RPCs `assign_membership_role` e `revoke_membership_role` com AAL2, `roles.manage`, anti-autoelevação, proteção do último `tenant_admin`, auditoria transacional e grant explícito.
+- App: schemas/serviço/actions + UI em `/app/access` para conceder/remover papéis.
+- Bloqueio/inativação de vínculo passa a tentar `auth.admin.signOut(userId, "global")` via service role (best-effort).
+- Teste pgTAP negativo em `supabase/tests/p0_5_admin_role_protection.sql`; schemas unitários ampliados; fingerprint de migrations atualizado.
+
+## 2026-07-13 — P0.6 auditoria de leitura sensível (checkpoint)
+
+- Migration `202607140011_p0_6_sensitive_read_audit.sql`: RPCs `log_sensitive_read` e `log_document_access` (metadados only).
+- Helper `src/features/audit/sensitive-read.ts`; wired em consulta (`chart.viewed`) e lista de documentos (`document.list_viewed`).
+- Apply no Supabase autorizado ainda pendente.
+
+## 2026-07-13 — P0.5/P0.6 apply + P0.4 onda 4
+
+- Dono aplicou 202607140010 e 202607140011 no Supabase autorizado (SQL Editor, sem erro).
+- Criada migration 202607140012_p0_4_composite_tenant_fks_pcmso_exams_docs.sql (PCMSO/protocolos/riscos, exames 7a–d, documentos, painel).

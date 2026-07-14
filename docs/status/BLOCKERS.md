@@ -1,33 +1,32 @@
 # Bloqueios
 
-## Fase A — governança remota
+## Produção / merge
 
-- O repositório público permanece bloqueio de produção e exige ação humana para torná-lo privado e revisar acessos, apps, chaves, tokens, webhooks, Vercel, Supabase e histórico de segredos.
-- O cliente `gh` e um conector GitHub autenticado não estão disponíveis nesta sessão. PR e CI podem ser inventariados pelas evidências locais/públicas acessíveis, mas converter PR em draft ou atualizar sua descrição exige ferramenta autenticada.
+- **NO-GO** permanente até GO humano.
+- Ver `docs/status/HUMAN_ACTIONS.md` (privado, token, Vercel, proteção da `main`).
 
-## P0.1 — triagem operacional
+## CI remoto
 
-- Migration `202607140002` aplicada no Supabase autorizado (2026-07-13).
-- Checklist UI manual ainda pendente (`pnpm dev`).
+- PR #11 (commit `40db238`): **quality, review, Vercel, CodeQL** passaram.
+- Causa do `types:supabase:check`: fingerprint das migrations atualizado com typegen offline + Prettier no arquivo gerado.
+- Scripts de typegen agora rodam Prettier após gerar (`f74e295`) para não reeditar `format:check`.
+- CI workflow ignora push direto na `main` (`branches-ignore: [main]`) — esperado até branch protection humana.
 
-## P0.2 — consulta operacional
+## Auth unit-scoped
 
-- Migration `202607140003` aplicada no Supabase autorizado (2026-07-13).
-- Checklist UI manual pendente.
+- Clínico + exames + check-in + display: gate app corrige unit-only (código nesta unidade).
+- Residual: policies RLS de exames/listagens ainda tipicamente `has_tenant_permission` — unit-only pode ver lista vazia até ondas RLS.
 
-## P0.3 — conclusão operacional
+## P0.4 / P0.5 / P0.6
 
-- Código e testes unitários entregues (2026-07-13).
-- Migration `202607140004_grant_operational_rpcs.sql` aplicada.
-- Checklist UI manual pendente (`/app/clinical?conclusion=<encounter_id>` + MFA).
+- `010`–`027` aplicadas (dono) — portal IDOR, preço server-side, documentos path/PDF pending→rendered.
+- Dívida restante (polimento): template ASO real; PCMSO draft→approve humanizado; seed/E2E amplo.
+- Fase N / produção: **NO-GO**.
 
-## Fase A — typegen e PostgreSQL
-- Docker/PostgreSQL local continuam indisponíveis; a migration de hardening e os testes de bypass não puderam ser executados em banco real nesta sessão.
-- Em 2026-07-12, um projeto Supabase de teste autorizado foi validado via Session Pooler: migration aplicada, RLS real testado, isolamento tenant A/B confirmado, membership bloqueada perde acesso e auditoria append-only bloqueia mutação.
-- Em 2026-07-12, MFA/TOTP e E2E autenticado real foram validados no mesmo ambiente Supabase autorizado.
+## Já resolvido (não reabrir)
 
-Os bloqueios de banco/RLS real, MFA/AAL2 e E2E autenticado foram removidos apenas para o checkpoint antigo. A Fase A não pode ser aceita enquanto typegen, hardening/RLS real, integridade composta e E2E autenticado da nova base permanecerem pendentes.
-
-## Fase A — integridade multi-tenant
-
-- As FKs atuais são predominantemente simples por `id`. Constraints compostas exigem aplicação/validação em banco descartável para não introduzir migration que falhe sobre dados existentes desconhecidos.
+- P0.1–P0.3 operacionais MFA
+- Typegen oficial + fingerprint LF-safe (regenerar após novas migrations se necessário)
+- FKs ondas 1–3
+- SST write-rpc-only (`023`)
+- DML residual de estrutura/PCMSO no app (`024`, após apply)

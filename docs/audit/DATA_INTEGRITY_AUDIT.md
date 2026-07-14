@@ -15,4 +15,4 @@ As migrations usam `tenant_id` e FKs simples por `id`, mas a maior parte dos rel
 
 Adicionar gradualmente `UNIQUE (tenant_id, id)` nos pais e FKs compostas nos filhos, validar dados existentes e criar testes que tentem inserir referências cruzadas via papel privilegiado. A mudança não deve ser aplicada sem validação SQL completa das migrations atuais, pois pode revelar dados fictícios inconsistentes já existentes.
 
-Estado: `BLOQUEADOR DO GATE DA FASE A`; nenhuma alegação de integridade cruzada completa até a migration composta passar em banco descartável.
+Estado (2026-07-13): lote clínico P0.4 **aplicado** no banco autorizado (`UNIQUE (tenant_id, id)` + FKs compostas em encounters/triagem/consulta/conclusão/documentos gerados); negativo de cruzamento passou. Ondas empresa/agenda/exames/financeiro ainda pendentes — Gate A não fecha só com o lote clínico.

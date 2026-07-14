@@ -37,12 +37,12 @@ export function VisualAcuityForms({
   );
 
   return (
-    <section className="mt-8 grid gap-6 lg:grid-cols-2">
-      <form action={startAction} className="rounded border border-slate-200 p-5">
+    <section className="mt-4 grid gap-3 lg:grid-cols-2">
+      <form action={startAction} className="gp-surface p-4">
         <h2 className="text-lg font-semibold">Iniciar exame</h2>
         <label className="mt-4 grid gap-1 text-sm">
           Ordem de exame
-          <select className="rounded border border-slate-300 px-3 py-2" name="examOrderId" required>
+          <select className="gp-input" name="examOrderId" required>
             <option value="">Selecione</option>
             {orders.map((order) => (
               <option key={order.id} value={order.id}>
@@ -51,22 +51,18 @@ export function VisualAcuityForms({
             ))}
           </select>
         </label>
-        <button
-          className="mt-4 rounded bg-emerald-800 px-4 py-2 text-sm font-semibold text-white disabled:opacity-60"
-          disabled={startPending}
-          type="submit"
-        >
+        <button className="mt-4 gp-btn gp-btn-primary" disabled={startPending} type="submit">
           Iniciar acuidade
         </button>
         <Feedback state={startState} />
       </form>
 
-      <form action={saveAction} className="rounded border border-slate-200 p-5">
+      <form action={saveAction} className="gp-surface p-4">
         <h2 className="text-lg font-semibold">Resultado versionado</h2>
         <div className="mt-4 grid gap-3">
           <label className="grid gap-1 text-sm">
             Exame iniciado
-            <select className="rounded border border-slate-300 px-3 py-2" name="resultId" required>
+            <select className="gp-input" name="resultId" required>
               <option value="">Selecione</option>
               {results.map((result) => (
                 <option key={result.id} value={result.id}>
@@ -78,7 +74,7 @@ export function VisualAcuityForms({
           <label className="grid gap-1 text-sm">
             Resultado JSON
             <textarea
-              className="min-h-44 rounded border border-slate-300 px-3 py-2 font-mono text-xs"
+              className="min-h-44 gp-input font-mono text-xs"
               name="payload"
               required
               defaultValue={JSON.stringify(
@@ -95,7 +91,7 @@ export function VisualAcuityForms({
           <label className="grid gap-1 text-sm">
             Condições do teste JSON
             <textarea
-              className="min-h-24 rounded border border-slate-300 px-3 py-2 font-mono text-xs"
+              className="min-h-24 gp-input font-mono text-xs"
               name="testConditions"
               required
               defaultValue={JSON.stringify(
@@ -107,41 +103,29 @@ export function VisualAcuityForms({
           </label>
           <label className="grid gap-1 text-sm">
             Equipamento
-            <input className="rounded border border-slate-300 px-3 py-2" name="equipmentName" />
+            <input className="gp-input" name="equipmentName" />
           </label>
           <label className="grid gap-1 text-sm">
             Tabela
-            <input className="rounded border border-slate-300 px-3 py-2" name="chartType" />
+            <input className="gp-input" name="chartType" />
           </label>
           <label className="grid gap-1 text-sm">
             Observações
-            <textarea className="rounded border border-slate-300 px-3 py-2" name="observations" />
+            <textarea className="gp-input" name="observations" />
           </label>
           <label className="grid gap-1 text-sm">
             Conclusão profissional do exame
-            <textarea
-              className="rounded border border-slate-300 px-3 py-2"
-              name="professionalConclusion"
-              required
-            />
+            <textarea className="gp-input" name="professionalConclusion" required />
           </label>
           <label className="grid gap-1 text-sm">
             Motivo da versão/correção
-            <input
-              className="rounded border border-slate-300 px-3 py-2"
-              name="correctionReason"
-              required
-            />
+            <input className="gp-input" name="correctionReason" required />
           </label>
           <label className="flex items-center gap-2 text-sm">
             <input name="completeResult" type="checkbox" /> Concluir etapa do exame
           </label>
         </div>
-        <button
-          className="mt-4 rounded bg-emerald-800 px-4 py-2 text-sm font-semibold text-white disabled:opacity-60"
-          disabled={savePending}
-          type="submit"
-        >
+        <button className="mt-4 gp-btn gp-btn-primary" disabled={savePending} type="submit">
           Salvar versão
         </button>
         <Feedback state={saveState} />

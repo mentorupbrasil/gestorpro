@@ -2,8 +2,7 @@ import fs from "node:fs/promises";
 import { existsSync, readFileSync } from "node:fs";
 import postgres from "postgres";
 
-const migrationPath =
-  "supabase/migrations/202607140002_triage_operational_hardening.sql";
+const migrationPath = "supabase/migrations/202607140002_triage_operational_hardening.sql";
 
 const tenantA = "f1000000-0000-4000-8000-000000000001";
 const tenantB = "f2000000-0000-4000-8000-000000000001";
@@ -84,7 +83,11 @@ function createConnection() {
 async function setAuth(sql, userId, aal = "aal2") {
   await sql`set local role authenticated`;
   await sql`select set_config('request.jwt.claim.sub', ${userId}, true)`;
-  await sql`select set_config('request.jwt.claims', ${JSON.stringify({ aal })}, true)`;
+  await sql`select set_config(
+    'request.jwt.claims',
+    ${JSON.stringify({ sub: userId, role: "authenticated", aal })},
+    true
+  )`;
 }
 
 async function expectSqlState(sql, state, run) {
@@ -306,7 +309,9 @@ async function validateTriage(connection) {
         where triage_record_id = ${draftRecordId.recordId}::uuid
       `;
       if (persisted.count !== 2) {
-        throw new Error(`Expected 2 triage versions after reload simulation, got ${persisted.count}.`);
+        throw new Error(
+          `Expected 2 triage versions after reload simulation, got ${persisted.count}.`,
+        );
       }
 
       await sql`

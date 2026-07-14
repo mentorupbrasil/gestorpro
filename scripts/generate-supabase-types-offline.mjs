@@ -1,3 +1,4 @@
+import { spawnSync } from "node:child_process";
 import fs from "node:fs/promises";
 import path from "node:path";
 import { getSupabaseSchemaFingerprint } from "./supabase-schema-fingerprint.mjs";
@@ -107,12 +108,17 @@ function parseFunctions(migrationSql) {
 function renderTableType(columns) {
   const entries = [...columns.entries()].sort(([left], [right]) => left.localeCompare(right));
   const rowFields = entries
-    .map(([name, column]) => `          ${name}: ${column.nullable ? `${column.type} | null` : column.type}`)
+    .map(
+      ([name, column]) =>
+        `          ${name}: ${column.nullable ? `${column.type} | null` : column.type}`,
+    )
     .join("\n");
   const insertFields = entries
     .map(([name, column]) => `          ${name}${column.nullable ? "?" : ""}: ${column.type}`)
     .join("\n");
-  const updateFields = entries.map(([name, column]) => `          ${name}?: ${column.type}`).join("\n");
+  const updateFields = entries
+    .map(([name, column]) => `          ${name}?: ${column.type}`)
+    .join("\n");
 
   return `{
         Row: {
@@ -198,6 +204,16 @@ const fingerprint = await getSupabaseSchemaFingerprint();
 await fs.mkdir(outputDirectory, { recursive: true });
 await fs.writeFile(typePath, source, { encoding: "utf8", mode: 0o600 });
 await fs.writeFile(fingerprintPath, `${fingerprint}\n`, { encoding: "utf8", mode: 0o600 });
+
+const format = spawnSync(
+  process.execPath,
+  [path.resolve("node_modules/prettier/bin/prettier.cjs"), "--write", typePath],
+  { encoding: "utf8", stdio: "inherit" },
+);
+if (format.status !== 0) {
+  console.error("Prettier failed on generated Supabase types.");
+  process.exit(format.status ?? 1);
+}
 
 console.log(
   `Offline Supabase types generated for ${tables.size} tables and ${functions.size} functions.`,

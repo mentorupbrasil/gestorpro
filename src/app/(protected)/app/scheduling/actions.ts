@@ -64,14 +64,22 @@ export async function createReferralAction(
   });
   if (!form.success) return { error: "Revise empresa, trabalhador e tipo ocupacional." };
 
+  const requestId = getRequestId(await headers());
   try {
-    await createReferral({ ...form.data, tenantId: selectedTenantId });
+    const created = await createReferral({ ...form.data, tenantId: selectedTenantId }, requestId);
+    revalidatePath("/app/scheduling");
+    return {
+      success: `Encaminhamento pronto para agenda com ${created.examCount} exame(s) do protocolo.`,
+    };
   } catch (error) {
+    if (error instanceof AppError && error.code === "PROTOCOL_MISSING") {
+      return { error: "Cadastre/ative um protocolo PCMSO antes de encaminhar." };
+    }
+    if (error instanceof AppError && error.code === "PROTOCOL_CONFLICT") {
+      return { error: "Há conflito de protocolos vigentes. Resolva no domínio ocupacional." };
+    }
     return { error: publicError(error, "Não foi possível criar o encaminhamento.") };
   }
-
-  revalidatePath("/app/scheduling");
-  return { success: "Encaminhamento pronto para agenda." };
 }
 
 export async function createScheduleResourceAction(
@@ -89,7 +97,10 @@ export async function createScheduleResourceAction(
   if (!form.success) return { error: "Revise unidade, tipo e código do recurso." };
 
   try {
-    await createScheduleResource({ ...form.data, tenantId: selectedTenantId });
+    await createScheduleResource(
+      { ...form.data, tenantId: selectedTenantId },
+      getRequestId(await headers()),
+    );
   } catch (error) {
     return { error: publicError(error, "Não foi possível criar o recurso.") };
   }

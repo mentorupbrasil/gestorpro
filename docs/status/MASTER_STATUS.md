@@ -1,30 +1,28 @@
 # Status mestre
 
-Atualizado em: 2026-07-13
+Atualizado em: 2026-07-14
 
 ## Reauditoria V2
 
 - Fase A — Reauditoria e correção da fundação: `PARTIAL / IN_PROGRESS`.
-- Os checkpoints históricos das Fases 1–11 permanecem preservados, mas não equivalem a aceite técnico pelos gates do Plano Mestre V2.
 - Produção e merge na `main`: não autorizados.
-- Primeira unidade: contenção de DML/RPC, escopo por unidade, AAL2 no banco, último admin, supply chain e documentos obrigatórios concluídos localmente.
-- Gate ainda aberto: typegen oficial remoto (offline ativo), PostgreSQL/RLS real da base consolidada, integridade composta, E2E autenticado, CI/PR remoto.
+- Fechado tecnicamente nesta linha: contenção DML/RPC, escopo por recurso, AAL2 no banco, typegen oficial, P0.1–P0.3 operacionais, FKs compostas ondas 1–3, **P0.5 papéis + P0.6 leitura sensível (código)**.
+- Gate A ainda aberto: checks remotos da PR #11 a confirmar (build Vercel typecheck corrigido localmente — `z.input` Zod); typegen pós-novas migrations; auth unit-scoped residual; ações humanas (`HUMAN_ACTIONS.md`).
+- Estabilização: `023`–`027` aplicadas; fase atual = **polimento** (layout `/app/*` densificado com `PageHeader`/`Surface`/`gp-*`).
 
 | Fase                         | Estado                | Observação                                        |
 | ---------------------------- | --------------------- | ------------------------------------------------- |
 | 0 — Fundação documental      | TECHNICALLY_COMPLETED | auditoria aprovada; ADRs permanecem PROPOSTA      |
-| 1 — Plataforma e segurança   | REAUDIT_IN_PROGRESS   | CLI instalada; typegen/schema real ainda pendente |
-| 2 — Domínio ocupacional      | CHECKPOINT_PUBLISHED  | revisão final posterior solicitada                |
+| 1 — Plataforma e segurança   | REAUDIT_IN_PROGRESS   | P0.5 no repo; validação DB pendente               |
+| 2 — Domínio ocupacional      | CHECKPOINT_PUBLISHED  | estabilização: `024` estrutura/PCMSO RPC pendente |
 | 3 — Encaminhamentos e agenda | CHECKPOINT_PUBLISHED  | revisão final posterior solicitada                |
-| 4 — Check-in, etapas e filas | CHECKPOINT_PUBLISHED  | revisão final posterior solicitada                |
+| 4 — Check-in, etapas e filas | CHECKPOINT_PUBLISHED  | Fase F `016` aplicada/commitada                   |
 | 5 — Painel de chamadas       | CHECKPOINT_PUBLISHED  | revisão final posterior solicitada                |
-| 6 — Triagem e consulta       | CHECKPOINT_PUBLISHED  | validação clínica futura                          |
-| 7 — Exames complementares    | CHECKPOINT_PUBLISHED  | validação profissional futura                     |
-| 8 — Documentos               | CHECKPOINT_PUBLISHED  | modelos/assinatura dependem de humanos            |
-| 9 — Financeiro e portal      | CHECKPOINT_PUBLISHED  | validação contábil/jurídica futura                |
-| 10 — Integrações             | CHECKPOINT_PUBLISHED  | eSocial oficial consultado; sem envio real        |
-| 11 — Produção e piloto       | CHECKPOINT_PUBLISHED  | relatório NO-GO publicado; revisão geral iniciada |
+| 6 — Triagem e consulta       | CHECKPOINT_PUBLISHED  | Fase G `017` aplicada                             |
+| 7 — Exames complementares    | CHECKPOINT_PUBLISHED  | Fase H wire diagnóstico+lab                       |
+| 8 — Documentos               | CHECKPOINT_PUBLISHED  | Fase I `018` aplicada                             |
+| 9 — Financeiro e portal      | CHECKPOINT_PUBLISHED  | J `019` + K `020`                                 |
+| 10 — Integrações             | CHECKPOINT_PUBLISHED  | Fase L `021`                                      |
+| 11 — Produção e piloto       | CHECKPOINT_PUBLISHED  | NO-GO; conversar antes de qualquer GO             |
 
-Revisão geral pós-checkpoints: `IN_PROGRESS`. Primeira unidade visual validada; seed fictício e E2E integrado preparados, com execução autenticada externa pendente. Ver [GENERAL_AUDIT_20260713.md](GENERAL_AUDIT_20260713.md).
-
-Branch remota atual: `main`. Em 2026-07-13, os históricos divergentes foram unidos por merge sem conflitos, validados localmente e publicados sem força; as três branches auxiliares remotas foram removidas somente após comprovação de ancestralidade integral.
+Branch de trabalho: `feat/p0-2-consulta-operacional`. PR draft: https://github.com/mentorupbrasil/gestorpro/pull/11

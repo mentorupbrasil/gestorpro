@@ -1,16 +1,21 @@
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
-import { requirePermission } from "@/core/auth/authorization";
-import { resolveAuthorizationContext } from "@/core/auth/session";
+import { PageLoadError, describeSupabaseFailure } from "@/components/ui/page-load-error";
+import { loadWorkspaceAuth } from "@/core/auth/load-workspace-auth";
+import { LaboratoryForms } from "./laboratory-forms";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 import { readEmbeddedRelation } from "@/lib/supabase/relations";
+import { PageHeader, Surface } from "@/components/ui/page-chrome";
 
 export default async function LaboratoryPage() {
   const selectedTenantId = (await cookies()).get("gestorpro_tenant")?.value;
   if (!selectedTenantId) redirect("/select-tenant");
 
-  const context = await resolveAuthorizationContext(selectedTenantId);
-  requirePermission(context, "exams.read");
+  const auth = await loadWorkspaceAuth(selectedTenantId, "exams.read", "tenantOrUnit");
+  if ("error" in auth) {
+    return <PageLoadError title="Laboratório" detail={auth.error} />;
+  }
+  const context = auth.context;
 
   const supabase = await createServerSupabaseClient();
   const [ordersResult, samplesResult, resultsResult, laboratoriesResult] = await Promise.all([
@@ -45,7 +50,15 @@ export default async function LaboratoryPage() {
     resultsResult.error ||
     laboratoriesResult.error
   ) {
-    throw new Error("Não foi possível carregar laboratório.");
+    return (
+      <PageLoadError
+        title="Laboratório"
+        detail={describeSupabaseFailure(
+          [ordersResult, samplesResult, resultsResult, laboratoriesResult],
+          "Não foi possível carregar laboratório.",
+        )}
+      />
+    );
   }
 
   const orders = ordersResult.data ?? [];
@@ -57,33 +70,28 @@ export default async function LaboratoryPage() {
   ).length;
 
   return (
-    <main className="mx-auto max-w-7xl px-2 py-4 sm:px-4">
-      <header className="rounded-3xl border border-white/70 bg-white/90 p-6 shadow-sm">
-        <p className="text-sm font-semibold uppercase tracking-wide text-emerald-800">
-          Exames complementares
-        </p>
-        <h1 className="mt-2 text-3xl font-semibold tracking-tight">Laboratório</h1>
-        <p className="mt-3 max-w-3xl text-sm leading-6 text-slate-600">
-          Console para pedidos, amostras, eventos, resultados versionados e críticos. Resultado
-          crítico só pode ser liberado com confirmação explícita.
-        </p>
-      </header>
+    <div>
+      <PageHeader
+        description="Console para pedidos, amostras, eventos, resultados versionados e críticos. Resultado crítico só pode ser liberado com confirmação explícita."
+        eyebrow="Exames complementares"
+        title="Laboratório"
+      />
 
-      <section className="mt-5 grid gap-4 md:grid-cols-4">
+      <section className="mb-4 grid gap-3 sm:grid-cols-4">
         <Metric label="Pedidos" value={orders.length} />
         <Metric label="Amostras" value={samples.length} />
         <Metric label="Resultados" value={results.length} />
         <Metric label="Críticos abertos" value={criticalOpen} />
       </section>
 
-      <section className="mt-5 grid gap-5 xl:grid-cols-2">
+      <section className="mb-4 grid gap-3 xl:grid-cols-2">
         <Panel empty="Nenhum pedido laboratorial criado." title="Pedidos recentes">
           {orders.map((order) => (
-            <li className="py-3" key={order.id}>
-              <span className="font-semibold">
+            <li className="py-2.5" key={order.id}>
+              <span className="font-semibold text-gp-text">
                 {readEmbeddedRelation(order.external_laboratories)?.name ?? "Laboratório interno"}
               </span>
-              <span className="ml-2 text-sm text-slate-600">
+              <span className="ml-2 text-sm text-gp-text-muted">
                 {order.status}
                 {order.barcode_value ? ` · código ${order.barcode_value}` : ""}
               </span>
@@ -92,23 +100,25 @@ export default async function LaboratoryPage() {
         </Panel>
         <Panel empty="Nenhum laboratório externo cadastrado." title="Laboratórios externos">
           {laboratories.map((laboratory) => (
-            <li className="flex justify-between gap-3 py-3" key={laboratory.id}>
-              <span className="font-semibold">{laboratory.name}</span>
-              <span className="text-sm text-slate-600">{laboratory.status}</span>
+            <li className="flex justify-between gap-3 py-2.5" key={laboratory.id}>
+              <span className="font-semibold text-gp-text">{laboratory.name}</span>
+              <span className="gp-badge">{laboratory.status}</span>
             </li>
           ))}
         </Panel>
       </section>
-    </main>
+
+      <LaboratoryForms />
+    </div>
   );
 }
 
 function Metric({ label, value }: Readonly<{ label: string; value: number }>) {
   return (
-    <div className="rounded-2xl border border-white/70 bg-white/90 p-5 shadow-sm">
-      <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">{label}</p>
-      <p className="mt-2 text-3xl font-semibold text-emerald-950">{value}</p>
-    </div>
+    <Surface className="p-3">
+      <p className="text-xs font-semibold uppercase tracking-wide text-gp-text-muted">{label}</p>
+      <p className="mt-1 text-base font-semibold text-gp-text">{value}</p>
+    </Surface>
   );
 }
 
@@ -118,13 +128,13 @@ function Panel({
   title,
 }: Readonly<{ children: React.ReactNode[]; empty: string; title: string }>) {
   return (
-    <div className="rounded-3xl border border-white/70 bg-white/90 p-5 shadow-sm">
-      <h2 className="text-lg font-semibold">{title}</h2>
+    <Surface className="p-4">
+      <h2 className="text-base font-semibold text-gp-text">{title}</h2>
       {children.length === 0 ? (
-        <p className="mt-4 rounded-2xl bg-slate-100 p-4 text-sm text-slate-700">{empty}</p>
+        <p className="mt-3 text-sm text-gp-text-muted">{empty}</p>
       ) : (
-        <ul className="mt-4 divide-y divide-slate-100">{children}</ul>
+        <ul className="mt-3 divide-y divide-gp-border text-sm">{children}</ul>
       )}
-    </div>
+    </Surface>
   );
 }

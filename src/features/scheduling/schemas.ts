@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { embeddedOneSchema } from "@/lib/supabase/relations";
 
 export const createScheduleResourceSchema = z.object({
   clinicUnitId: z.uuid(),
@@ -13,6 +14,10 @@ export const createScheduleResourceSchema = z.object({
 });
 
 export const createReferralSchema = z.object({
+  asOf: z
+    .string()
+    .regex(/^[0-9]{4}-[0-9]{2}-[0-9]{2}$/)
+    .optional(),
   companyId: z.uuid(),
   occupationalExamType: z.enum([
     "admission",
@@ -21,6 +26,7 @@ export const createReferralSchema = z.object({
     "return_to_work",
     "change_of_risk",
   ]),
+  riskCodes: z.array(z.string().trim().min(1).max(32)).default([]),
   tenantId: z.uuid(),
   validUntil: z
     .string()
@@ -52,11 +58,11 @@ export const scheduleResourceListSchema = z.array(
 
 export const referralListSchema = z.array(
   z.object({
-    companies: z.object({ legal_name: z.string() }).nullable(),
+    companies: embeddedOneSchema(z.object({ legal_name: z.string() })),
     id: z.uuid(),
     occupational_exam_type: z.string(),
     status: z.string(),
-    workers: z.object({ full_name: z.string() }).nullable(),
+    workers: embeddedOneSchema(z.object({ full_name: z.string() })),
   }),
 );
 
@@ -64,12 +70,12 @@ export const appointmentListSchema = z.array(
   z.object({
     ends_at: z.string(),
     id: z.uuid(),
-    schedule_resources: z.object({ name: z.string() }).nullable(),
+    schedule_resources: embeddedOneSchema(z.object({ name: z.string() })),
     starts_at: z.string(),
     status: z.string(),
   }),
 );
 
-export type CreateAppointmentInput = z.infer<typeof createAppointmentSchema>;
-export type CreateReferralInput = z.infer<typeof createReferralSchema>;
-export type CreateScheduleResourceInput = z.infer<typeof createScheduleResourceSchema>;
+export type CreateAppointmentInput = z.input<typeof createAppointmentSchema>;
+export type CreateReferralInput = z.input<typeof createReferralSchema>;
+export type CreateScheduleResourceInput = z.input<typeof createScheduleResourceSchema>;

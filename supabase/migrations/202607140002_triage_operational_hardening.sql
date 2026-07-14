@@ -192,8 +192,7 @@ begin
       and status = 'blocked';
 
     update public.queue_tickets ticket
-      set status = 'done',
-          updated_at = now()
+      set status = 'done'
     from public.encounter_steps step
     where ticket.encounter_step_id = step.id
       and step.tenant_id = target_tenant_id

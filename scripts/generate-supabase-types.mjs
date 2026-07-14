@@ -17,10 +17,10 @@ if (!projectId || !accessToken) {
   process.exit(offline.status ?? 1);
 }
 
-const executable = process.platform === "win32" ? "pnpm.cmd" : "pnpm";
 const result = spawnSync(
-  executable,
+  "corepack",
   [
+    "pnpm",
     "exec",
     "supabase",
     "gen",
@@ -31,7 +31,12 @@ const result = spawnSync(
     "--schema",
     "public",
   ],
-  { encoding: "utf8", env: process.env, maxBuffer: 32 * 1024 * 1024 },
+  {
+    encoding: "utf8",
+    env: process.env,
+    maxBuffer: 32 * 1024 * 1024,
+    shell: process.platform === "win32",
+  },
 );
 
 if (result.status !== 0) {
@@ -55,5 +60,15 @@ const fingerprint = await getSupabaseSchemaFingerprint();
 await fs.writeFile(temporaryTypePath, result.stdout, { encoding: "utf8", mode: 0o600 });
 await fs.rename(temporaryTypePath, typePath);
 await fs.writeFile(fingerprintPath, `${fingerprint}\n`, { encoding: "utf8", mode: 0o600 });
+
+const format = spawnSync(
+  process.execPath,
+  [path.resolve("node_modules/prettier/bin/prettier.cjs"), "--write", typePath],
+  { encoding: "utf8", stdio: "inherit" },
+);
+if (format.status !== 0) {
+  console.error("Prettier failed on generated Supabase types.");
+  process.exit(format.status ?? 1);
+}
 
 console.log("Official Supabase types generated and schema fingerprint updated.");

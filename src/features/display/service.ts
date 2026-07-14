@@ -1,6 +1,10 @@
 import "server-only";
 
-import { requireAal2, requirePermission } from "@/core/auth/authorization";
+import { requireAal2, requireTenantOrUnitPermission } from "@/core/auth/authorization";
+import {
+  requirePermissionOnClinicUnitRow,
+  requirePermissionOnQueueTicket,
+} from "@/core/auth/unit-scope";
 import { resolveAuthorizationContext } from "@/core/auth/session";
 import { AppError } from "@/core/errors/app-error";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
@@ -14,10 +18,12 @@ import {
 export async function createDisplayPanel(input: CreateDisplayPanelInput) {
   const parsed = createDisplayPanelSchema.parse(input);
   const context = await resolveAuthorizationContext(parsed.tenantId);
-  requirePermission(context, "display.manage");
+  requireTenantOrUnitPermission(context, "display.manage");
   requireAal2(context);
 
   const supabase = await createServerSupabaseClient();
+  await requirePermissionOnClinicUnitRow(supabase, context, parsed.clinicUnitId, "display.manage");
+
   const { data, error } = await supabase
     .from("display_panels")
     .upsert(
@@ -47,10 +53,12 @@ export async function createDisplayPanel(input: CreateDisplayPanelInput) {
 export async function createCallEvent(input: CreateCallEventInput, requestId: string) {
   const parsed = createCallEventSchema.parse(input);
   const context = await resolveAuthorizationContext(parsed.tenantId);
-  requirePermission(context, "display.manage");
+  requireTenantOrUnitPermission(context, "display.manage");
   requireAal2(context);
 
   const supabase = await createServerSupabaseClient();
+  await requirePermissionOnQueueTicket(supabase, context, parsed.queueTicketId, "display.manage");
+
   const { data, error } = await supabase.rpc("create_call_event", {
     audit_request_id: requestId,
     call_action: parsed.action,
