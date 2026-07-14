@@ -1,8 +1,8 @@
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { getPrimaryTotpFactor, getVerifiedTotpFactors } from "@/core/auth/mfa";
-import { requirePermission } from "@/core/auth/authorization";
-import { resolveAuthorizationContext } from "@/core/auth/session";
+import { PageLoadError, describeSupabaseFailure } from "@/components/ui/page-load-error";
+import { loadWorkspaceAuth } from "@/core/auth/load-workspace-auth";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 import { PageHeader, Surface } from "@/components/ui/page-chrome";
 import { TotpChallengeForm } from "./totp-challenge-form";
@@ -13,8 +13,11 @@ export default async function AccountSecurityPage() {
   const selectedTenantId = (await cookies()).get("gestorpro_tenant")?.value;
   if (!selectedTenantId) redirect("/select-tenant");
 
-  const context = await resolveAuthorizationContext(selectedTenantId);
-  requirePermission(context, "tenant.read");
+  const auth = await loadWorkspaceAuth(selectedTenantId, "tenant.read");
+  if ("error" in auth) {
+    return <PageLoadError title="Segurança da conta" detail={auth.error} />;
+  }
+  const context = auth.context;
 
   const supabase = await createServerSupabaseClient();
   const [{ data: aalData, error: aalError }, { data: factorsData, error: factorsError }] =
@@ -24,7 +27,15 @@ export default async function AccountSecurityPage() {
     ]);
 
   if (aalError || factorsError) {
-    throw new Error("Não foi possível carregar a segurança da conta.");
+    return (
+      <PageLoadError
+        title="Segurança da conta"
+        detail={describeSupabaseFailure(
+          [{ error: aalError }, { error: factorsError }],
+          "Não foi possível carregar a segurança da conta.",
+        )}
+      />
+    );
   }
 
   const verifiedTotpFactors = getVerifiedTotpFactors(factorsData.all);

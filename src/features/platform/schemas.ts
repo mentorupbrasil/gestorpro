@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { embeddedOneSchema } from "@/lib/supabase/relations";
 
 export const createClinicUnitSchema = z.object({
   code: z
@@ -44,7 +45,9 @@ export const signUpSchema = z.object({
 export const tenantOptionListSchema = z.array(
   z.object({
     tenant_id: z.uuid(),
-    tenants: z.object({ legal_name: z.string(), trade_name: z.string().nullable() }).nullable(),
+    tenants: embeddedOneSchema(
+      z.object({ legal_name: z.string(), trade_name: z.string().nullable() }),
+    ),
   }),
 );
 
@@ -63,18 +66,18 @@ export const accessMembershipListSchema = z.array(
     membership_roles: z.array(
       z.object({
         id: z.uuid(),
-        roles: z
-          .object({
+        roles: embeddedOneSchema(
+          z.object({
             code: z.string(),
             id: z.uuid(),
             name: z.string(),
-          })
-          .nullable(),
+          }),
+        ),
       }),
     ),
     status: z.enum(["active", "blocked", "inactive"]),
     user_id: z.uuid(),
-    user_profiles: z.object({ display_name: z.string() }).nullable(),
+    user_profiles: embeddedOneSchema(z.object({ display_name: z.string().nullable() })),
   }),
 );
 

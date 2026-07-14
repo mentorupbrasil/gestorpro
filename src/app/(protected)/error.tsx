@@ -1,5 +1,7 @@
 "use client";
 
+import { AppError } from "@/core/errors/app-error";
+
 export default function ProtectedError({
   error,
   reset,
@@ -7,10 +9,11 @@ export default function ProtectedError({
   error: Error & { digest?: string };
   reset: () => void;
 }) {
+  const isAppError = error instanceof AppError || error.name === "AppError";
   const detail =
     error.message &&
-    !error.message.includes("Server Components render") &&
-    !error.message.includes("digest")
+    (isAppError ||
+      (!error.message.includes("Server Components render") && !error.message.includes("digest")))
       ? error.message
       : "Verifique sua sessão, permissões e migrations do Supabase. Nenhuma alteração foi realizada.";
 
@@ -21,6 +24,9 @@ export default function ProtectedError({
           Não foi possível carregar esta área
         </h1>
         <p className="mt-2 text-slate-700">{detail}</p>
+        {error.digest ? (
+          <p className="mt-2 font-mono text-xs text-slate-500">digest: {error.digest}</p>
+        ) : null}
         <button
           className="mt-5 rounded bg-slate-900 px-4 py-2 font-semibold text-white"
           onClick={reset}

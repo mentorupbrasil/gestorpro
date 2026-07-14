@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { embeddedOneSchema } from "@/lib/supabase/relations";
 
 export const checkInSchema = z.object({
   appointmentId: z.uuid(),
@@ -15,17 +16,21 @@ export const encounterListSchema = z.array(
       .optional(),
     id: z.uuid(),
     status: z.string(),
-    workers: z.object({ full_name: z.string() }).nullable(),
+    workers: embeddedOneSchema(z.object({ full_name: z.string() })),
   }),
 );
 
 export const queueTicketListSchema = z.array(
   z.object({
     created_at: z.string(),
-    encounters: z.object({ workers: z.object({ full_name: z.string() }).nullable() }).nullable(),
+    encounters: embeddedOneSchema(
+      z.object({
+        workers: embeddedOneSchema(z.object({ full_name: z.string() })),
+      }),
+    ),
     id: z.uuid(),
     priority: z.number(),
-    queue_definitions: z.object({ name: z.string() }).nullable(),
+    queue_definitions: embeddedOneSchema(z.object({ name: z.string() })),
     status: z.string(),
   }),
 );

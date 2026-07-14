@@ -1,7 +1,7 @@
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
-import { requireTenantOrUnitPermission } from "@/core/auth/authorization";
-import { resolveAuthorizationContext } from "@/core/auth/session";
+import { PageLoadError, describeSupabaseFailure } from "@/components/ui/page-load-error";
+import { loadWorkspaceAuth } from "@/core/auth/load-workspace-auth";
 import {
   audiometryCalibrationListSchema,
   audiometryResultListSchema,
@@ -15,8 +15,11 @@ export default async function AudiometryPage() {
   const selectedTenantId = (await cookies()).get("gestorpro_tenant")?.value;
   if (!selectedTenantId) redirect("/select-tenant");
 
-  const context = await resolveAuthorizationContext(selectedTenantId);
-  requireTenantOrUnitPermission(context, "exams.read");
+  const auth = await loadWorkspaceAuth(selectedTenantId, "exams.read", "tenantOrUnit");
+  if ("error" in auth) {
+    return <PageLoadError title="Audiometria" detail={auth.error} />;
+  }
+  const context = auth.context;
 
   const supabase = await createServerSupabaseClient();
   const [ordersResult, resultsResult, calibrationsResult] = await Promise.all([
@@ -38,12 +41,31 @@ export default async function AudiometryPage() {
   ]);
 
   if (ordersResult.error || resultsResult.error || calibrationsResult.error) {
-    throw new Error("Não foi possível carregar audiometria.");
+    return (
+      <PageLoadError
+        title="Audiometria"
+        detail={describeSupabaseFailure(
+          [ordersResult, resultsResult, calibrationsResult],
+          "Não foi possível carregar audiometria.",
+        )}
+      />
+    );
   }
 
-  const orders = examOrderListSchema.parse(ordersResult.data);
-  const results = audiometryResultListSchema.parse(resultsResult.data);
-  const calibrations = audiometryCalibrationListSchema.parse(calibrationsResult.data);
+  const parsedOrders = examOrderListSchema.safeParse(ordersResult.data);
+  const parsedResults = audiometryResultListSchema.safeParse(resultsResult.data);
+  const parsedCalibrations = audiometryCalibrationListSchema.safeParse(calibrationsResult.data);
+  if (!parsedOrders.success || !parsedResults.success || !parsedCalibrations.success) {
+    return (
+      <PageLoadError
+        title="Audiometria"
+        detail="Dados inconsistentes retornados pelo Supabase (relação/embed). Atualize migrations ou contate suporte."
+      />
+    );
+  }
+  const orders = parsedOrders.data;
+  const results = parsedResults.data;
+  const calibrations = parsedCalibrations.data;
 
   return (
     <div>

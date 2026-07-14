@@ -1,7 +1,7 @@
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
-import { requireTenantOrUnitPermission } from "@/core/auth/authorization";
-import { resolveAuthorizationContext } from "@/core/auth/session";
+import { PageLoadError, describeSupabaseFailure } from "@/components/ui/page-load-error";
+import { loadWorkspaceAuth } from "@/core/auth/load-workspace-auth";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 import { PageHeader, Surface } from "@/components/ui/page-chrome";
 import { DiagnosticExamForm } from "./diagnostic-form";
@@ -10,8 +10,11 @@ export default async function DiagnosticExamsPage() {
   const selectedTenantId = (await cookies()).get("gestorpro_tenant")?.value;
   if (!selectedTenantId) redirect("/select-tenant");
 
-  const context = await resolveAuthorizationContext(selectedTenantId);
-  requireTenantOrUnitPermission(context, "exams.read");
+  const auth = await loadWorkspaceAuth(selectedTenantId, "exams.read", "tenantOrUnit");
+  if ("error" in auth) {
+    return <PageLoadError title="ECG, EEG e radiologia" detail={auth.error} />;
+  }
+  const context = auth.context;
 
   const supabase = await createServerSupabaseClient();
   const [resultsResult, versionsResult] = await Promise.all([
@@ -30,7 +33,15 @@ export default async function DiagnosticExamsPage() {
   ]);
 
   if (resultsResult.error || versionsResult.error) {
-    throw new Error("Não foi possível carregar exames diagnósticos.");
+    return (
+      <PageLoadError
+        title="ECG, EEG e radiologia"
+        detail={describeSupabaseFailure(
+          [resultsResult, versionsResult],
+          "Não foi possível carregar exames diagnósticos.",
+        )}
+      />
+    );
   }
 
   const results = resultsResult.data ?? [];

@@ -1,7 +1,7 @@
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
-import { requireTenantOrUnitPermission } from "@/core/auth/authorization";
-import { resolveAuthorizationContext } from "@/core/auth/session";
+import { PageLoadError, describeSupabaseFailure } from "@/components/ui/page-load-error";
+import { loadWorkspaceAuth } from "@/core/auth/load-workspace-auth";
 import { encounterListSchema, queueTicketListSchema } from "@/features/encounters/schemas";
 import { appointmentListSchema } from "@/features/scheduling/schemas";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
@@ -12,8 +12,11 @@ export default async function CheckInPage() {
   const selectedTenantId = (await cookies()).get("gestorpro_tenant")?.value;
   if (!selectedTenantId) redirect("/select-tenant");
 
-  const context = await resolveAuthorizationContext(selectedTenantId);
-  requireTenantOrUnitPermission(context, "encounters.read");
+  const auth = await loadWorkspaceAuth(selectedTenantId, "encounters.read", "tenantOrUnit");
+  if ("error" in auth) {
+    return <PageLoadError title="Check-in transacional" detail={auth.error} />;
+  }
+  const context = auth.context;
 
   const supabase = await createServerSupabaseClient();
   const [appointmentsResult, encountersResult, queueResult] = await Promise.all([
@@ -39,12 +42,31 @@ export default async function CheckInPage() {
   ]);
 
   if (appointmentsResult.error || encountersResult.error || queueResult.error) {
-    throw new Error("Não foi possível carregar check-in e filas.");
+    return (
+      <PageLoadError
+        title="Check-in transacional"
+        detail={describeSupabaseFailure(
+          [appointmentsResult, encountersResult, queueResult],
+          "Não foi possível carregar check-in e filas.",
+        )}
+      />
+    );
   }
 
-  const appointments = appointmentListSchema.parse(appointmentsResult.data);
-  const encounters = encounterListSchema.parse(encountersResult.data);
-  const tickets = queueTicketListSchema.parse(queueResult.data);
+  const parsedAppointments = appointmentListSchema.safeParse(appointmentsResult.data);
+  const parsedEncounters = encounterListSchema.safeParse(encountersResult.data);
+  const parsedTickets = queueTicketListSchema.safeParse(queueResult.data);
+  if (!parsedAppointments.success || !parsedEncounters.success || !parsedTickets.success) {
+    return (
+      <PageLoadError
+        title="Check-in transacional"
+        detail="Dados inconsistentes retornados pelo Supabase (relação/embed). Atualize migrations ou contate suporte."
+      />
+    );
+  }
+  const appointments = parsedAppointments.data;
+  const encounters = parsedEncounters.data;
+  const tickets = parsedTickets.data;
 
   return (
     <div>

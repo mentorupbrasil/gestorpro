@@ -1,7 +1,7 @@
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
-import { requireTenantOrUnitPermission } from "@/core/auth/authorization";
-import { resolveAuthorizationContext } from "@/core/auth/session";
+import { PageLoadError, describeSupabaseFailure } from "@/components/ui/page-load-error";
+import { loadWorkspaceAuth } from "@/core/auth/load-workspace-auth";
 import { examOrderListSchema, visualAcuityResultListSchema } from "@/features/exams/schemas";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 import { PageHeader } from "@/components/ui/page-chrome";
@@ -11,8 +11,11 @@ export default async function VisualAcuityPage() {
   const selectedTenantId = (await cookies()).get("gestorpro_tenant")?.value;
   if (!selectedTenantId) redirect("/select-tenant");
 
-  const context = await resolveAuthorizationContext(selectedTenantId);
-  requireTenantOrUnitPermission(context, "exams.read");
+  const auth = await loadWorkspaceAuth(selectedTenantId, "exams.read", "tenantOrUnit");
+  if ("error" in auth) {
+    return <PageLoadError title="Acuidade visual" detail={auth.error} />;
+  }
+  const context = auth.context;
 
   const supabase = await createServerSupabaseClient();
   const [ordersResult, resultsResult] = await Promise.all([
@@ -29,11 +32,29 @@ export default async function VisualAcuityPage() {
   ]);
 
   if (ordersResult.error || resultsResult.error) {
-    throw new Error("Não foi possível carregar acuidade visual.");
+    return (
+      <PageLoadError
+        title="Acuidade visual"
+        detail={describeSupabaseFailure(
+          [ordersResult, resultsResult],
+          "Não foi possível carregar acuidade visual.",
+        )}
+      />
+    );
   }
 
-  const orders = examOrderListSchema.parse(ordersResult.data);
-  const results = visualAcuityResultListSchema.parse(resultsResult.data);
+  const parsedOrders = examOrderListSchema.safeParse(ordersResult.data);
+  const parsedResults = visualAcuityResultListSchema.safeParse(resultsResult.data);
+  if (!parsedOrders.success || !parsedResults.success) {
+    return (
+      <PageLoadError
+        title="Acuidade visual"
+        detail="Dados inconsistentes retornados pelo Supabase (relação/embed). Atualize migrations ou contate suporte."
+      />
+    );
+  }
+  const orders = parsedOrders.data;
+  const results = parsedResults.data;
 
   return (
     <div>

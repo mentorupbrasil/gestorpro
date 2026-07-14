@@ -1,7 +1,7 @@
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
-import { requirePermission } from "@/core/auth/authorization";
-import { resolveAuthorizationContext } from "@/core/auth/session";
+import { PageLoadError, describeSupabaseFailure } from "@/components/ui/page-load-error";
+import { loadWorkspaceAuth } from "@/core/auth/load-workspace-auth";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 import { clinicUnitListSchema } from "@/features/platform/schemas";
 import { PageHeader, Surface } from "@/components/ui/page-chrome";
@@ -11,16 +11,35 @@ export default async function UnitsPage() {
   const selectedTenantId = (await cookies()).get("gestorpro_tenant")?.value;
   if (!selectedTenantId) redirect("/select-tenant");
 
-  const context = await resolveAuthorizationContext(selectedTenantId);
-  requirePermission(context, "units.read");
+  const auth = await loadWorkspaceAuth(selectedTenantId, "units.read");
+  if ("error" in auth) {
+    return <PageLoadError title="Unidades da clínica" detail={auth.error} />;
+  }
+  const context = auth.context;
   const supabase = await createServerSupabaseClient();
   const { data: units, error } = await supabase
     .from("clinic_units")
     .select("id, code, name, status")
     .eq("tenant_id", context.tenantId)
     .order("name");
-  if (error) throw new Error("Não foi possível carregar as unidades autorizadas.");
-  const clinicUnits = clinicUnitListSchema.parse(units);
+  if (error) {
+    return (
+      <PageLoadError
+        title="Unidades da clínica"
+        detail={describeSupabaseFailure([{ error }], "Não foi possível carregar as unidades autorizadas.")}
+      />
+    );
+  }
+  const parsedUnits = clinicUnitListSchema.safeParse(units);
+  if (!parsedUnits.success) {
+    return (
+      <PageLoadError
+        title="Unidades da clínica"
+        detail="Dados inconsistentes retornados pelo Supabase (relação/embed). Atualize migrations ou contate suporte."
+      />
+    );
+  }
+  const clinicUnits = parsedUnits.data;
 
   return (
     <div>

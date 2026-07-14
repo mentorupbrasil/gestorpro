@@ -2,8 +2,10 @@ import { cookies } from "next/headers";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { z } from "zod";
+import type { AuthorizationContext } from "@/core/auth/authorization";
 import { hasTenantOrUnitPermission, requirePermission } from "@/core/auth/authorization";
 import { resolveAuthorizationContext } from "@/core/auth/session";
+import { PageLoadError, describeSupabaseFailure } from "@/components/ui/page-load-error";
 import { loadCompanyPortalOverview } from "@/features/portal/service";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 import { PageHeader, Surface } from "@/components/ui/page-chrome";
@@ -21,7 +23,17 @@ export default async function CompanyPortalPage({ searchParams }: PortalPageProp
   const selectedTenantId = (await cookies()).get("gestorpro_tenant")?.value;
   if (!selectedTenantId) redirect("/select-tenant");
 
-  const context = await resolveAuthorizationContext(selectedTenantId);
+  let context: AuthorizationContext;
+  try {
+    context = await resolveAuthorizationContext(selectedTenantId);
+  } catch (error) {
+    return (
+      <PageLoadError
+        title="Visão da empresa"
+        detail={error instanceof Error ? error.message : "Falha ao validar sessão ou permissões."}
+      />
+    );
+  }
   const canManage = hasTenantOrUnitPermission(context, "company_portal.manage");
   const canReadTenant = hasTenantOrUnitPermission(context, "company_portal.read");
 
@@ -53,7 +65,15 @@ export default async function CompanyPortalPage({ searchParams }: PortalPageProp
   ]);
 
   if (companiesResult.error || membershipsResult.error || tenantMembersResult.error) {
-    throw new Error("Não foi possível carregar o portal empresarial.");
+    return (
+      <PageLoadError
+        title="Visão da empresa"
+        detail={describeSupabaseFailure(
+          [companiesResult, membershipsResult, tenantMembersResult],
+          "Não foi possível carregar o portal empresarial.",
+        )}
+      />
+    );
   }
 
   const membershipCompanies = (membershipsResult.data ?? []).map((row) => {
@@ -85,7 +105,16 @@ export default async function CompanyPortalPage({ searchParams }: PortalPageProp
       : membershipCompanies;
 
   if (!canReadTenant && !canManage && selectableCompanies.length === 0) {
-    requirePermission(context, "company_portal.read");
+    try {
+      requirePermission(context, "company_portal.read");
+    } catch (error) {
+      return (
+        <PageLoadError
+          title="Visão da empresa"
+          detail={error instanceof Error ? error.message : "Você não possui permissão para acessar o portal."}
+        />
+      );
+    }
   }
 
   const resolved = searchParams ? await searchParams : undefined;
@@ -97,7 +126,16 @@ export default async function CompanyPortalPage({ searchParams }: PortalPageProp
       ? requestedCompany
       : selectableCompanies[0]?.id;
 
-  const overview = companyId ? await loadCompanyPortalOverview(selectedTenantId, companyId) : null;
+  let overview: Awaited<ReturnType<typeof loadCompanyPortalOverview>> | null = null;
+  let overviewError: string | null = null;
+  if (companyId) {
+    try {
+      overview = await loadCompanyPortalOverview(selectedTenantId, companyId);
+    } catch (error) {
+      overviewError =
+        error instanceof Error ? error.message : "Não foi possível carregar os dados da empresa.";
+    }
+  }
 
   return (
     <div>
@@ -133,6 +171,15 @@ export default async function CompanyPortalPage({ searchParams }: PortalPageProp
 
       {canManage ? (
         <PortalAdminForms companyOptions={adminCompanies} membershipOptions={membershipOptions} />
+      ) : null}
+
+      {overviewError ? (
+        <div role="alert">
+          <Surface className="mt-4 border-red-200 bg-red-50 p-4">
+            <p className="text-sm font-semibold text-red-900">Não foi possível carregar a visão da empresa</p>
+            <p className="mt-1 text-sm text-red-800">{overviewError}</p>
+          </Surface>
+        </div>
       ) : null}
 
       {overview ? (

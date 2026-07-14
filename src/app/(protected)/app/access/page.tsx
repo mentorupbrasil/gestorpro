@@ -1,7 +1,7 @@
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
-import { requirePermission } from "@/core/auth/authorization";
-import { resolveAuthorizationContext } from "@/core/auth/session";
+import { PageLoadError, describeSupabaseFailure } from "@/components/ui/page-load-error";
+import { loadWorkspaceAuth } from "@/core/auth/load-workspace-auth";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 import { accessMembershipListSchema, assignableRoleListSchema } from "@/features/platform/schemas";
 import { PageHeader, Surface } from "@/components/ui/page-chrome";
@@ -11,8 +11,11 @@ import { MembershipStatusForm } from "./membership-status-form";
 export default async function AccessPage() {
   const selectedTenantId = (await cookies()).get("gestorpro_tenant")?.value;
   if (!selectedTenantId) redirect("/select-tenant");
-  const context = await resolveAuthorizationContext(selectedTenantId);
-  requirePermission(context, "memberships.read");
+  const auth = await loadWorkspaceAuth(selectedTenantId, "memberships.read");
+  if ("error" in auth) {
+    return <PageLoadError title="Acessos e vínculos" detail={auth.error} />;
+  }
+  const context = auth.context;
 
   const supabase = await createServerSupabaseClient();
   const [{ data: memberships, error }, { data: roles, error: rolesError }] = await Promise.all([
@@ -29,10 +32,29 @@ export default async function AccessPage() {
       .or(`tenant_id.is.null,tenant_id.eq.${context.tenantId}`)
       .order("name"),
   ]);
-  if (error) throw new Error("Não foi possível carregar os vínculos autorizados.");
-  if (rolesError) throw new Error("Não foi possível carregar os papéis autorizados.");
-  const accessMemberships = accessMembershipListSchema.parse(memberships);
-  const assignableRoles = assignableRoleListSchema.parse(roles);
+  if (error || rolesError) {
+    return (
+      <PageLoadError
+        title="Acessos e vínculos"
+        detail={describeSupabaseFailure(
+          [{ error }, { error: rolesError }],
+          "Não foi possível carregar os acessos autorizados.",
+        )}
+      />
+    );
+  }
+  const parsedMemberships = accessMembershipListSchema.safeParse(memberships);
+  const parsedRoles = assignableRoleListSchema.safeParse(roles);
+  if (!parsedMemberships.success || !parsedRoles.success) {
+    return (
+      <PageLoadError
+        title="Acessos e vínculos"
+        detail="Dados inconsistentes retornados pelo Supabase (relação/embed). Atualize migrations ou contate suporte."
+      />
+    );
+  }
+  const accessMemberships = parsedMemberships.data;
+  const assignableRoles = parsedRoles.data;
   const canManageRoles = context.permissions.has("roles.manage");
 
   return (

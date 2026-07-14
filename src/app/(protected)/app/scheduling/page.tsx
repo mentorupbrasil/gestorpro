@@ -1,7 +1,7 @@
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
-import { requirePermission } from "@/core/auth/authorization";
-import { resolveAuthorizationContext } from "@/core/auth/session";
+import { PageLoadError, describeSupabaseFailure } from "@/components/ui/page-load-error";
+import { loadWorkspaceAuth } from "@/core/auth/load-workspace-auth";
 import {
   appointmentListSchema,
   referralListSchema,
@@ -15,8 +15,11 @@ export default async function SchedulingPage() {
   const selectedTenantId = (await cookies()).get("gestorpro_tenant")?.value;
   if (!selectedTenantId) redirect("/select-tenant");
 
-  const context = await resolveAuthorizationContext(selectedTenantId);
-  requirePermission(context, "schedule.read");
+  const auth = await loadWorkspaceAuth(selectedTenantId, "schedule.read");
+  if ("error" in auth) {
+    return <PageLoadError title="Encaminhamentos e agenda" detail={auth.error} />;
+  }
+  const context = auth.context;
 
   const supabase = await createServerSupabaseClient();
   const [
@@ -67,12 +70,38 @@ export default async function SchedulingPage() {
     resourcesResult.error ||
     appointmentsResult.error
   ) {
-    throw new Error("Não foi possível carregar a agenda.");
+    return (
+      <PageLoadError
+        title="Encaminhamentos e agenda"
+        detail={describeSupabaseFailure(
+          [
+            unitsResult,
+            companiesResult,
+            workersResult,
+            referralsResult,
+            resourcesResult,
+            appointmentsResult,
+          ],
+          "Não foi possível carregar a agenda.",
+        )}
+      />
+    );
   }
 
-  const resources = scheduleResourceListSchema.parse(resourcesResult.data);
-  const referrals = referralListSchema.parse(referralsResult.data);
-  const appointments = appointmentListSchema.parse(appointmentsResult.data);
+  const parsedResources = scheduleResourceListSchema.safeParse(resourcesResult.data);
+  const parsedReferrals = referralListSchema.safeParse(referralsResult.data);
+  const parsedAppointments = appointmentListSchema.safeParse(appointmentsResult.data);
+  if (!parsedResources.success || !parsedReferrals.success || !parsedAppointments.success) {
+    return (
+      <PageLoadError
+        title="Encaminhamentos e agenda"
+        detail="Dados inconsistentes retornados pelo Supabase (relação/embed). Atualize migrations ou contate suporte."
+      />
+    );
+  }
+  const resources = parsedResources.data;
+  const referrals = parsedReferrals.data;
+  const appointments = parsedAppointments.data;
 
   return (
     <div>

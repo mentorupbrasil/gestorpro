@@ -1,7 +1,7 @@
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
-import { requireTenantOrUnitPermission } from "@/core/auth/authorization";
-import { resolveAuthorizationContext } from "@/core/auth/session";
+import { PageLoadError, describeSupabaseFailure } from "@/components/ui/page-load-error";
+import { loadWorkspaceAuth } from "@/core/auth/load-workspace-auth";
 import { callEventListSchema, displayPanelListSchema } from "@/features/display/schemas";
 import { queueTicketListSchema } from "@/features/encounters/schemas";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
@@ -12,8 +12,11 @@ export default async function DisplayPage() {
   const selectedTenantId = (await cookies()).get("gestorpro_tenant")?.value;
   if (!selectedTenantId) redirect("/select-tenant");
 
-  const context = await resolveAuthorizationContext(selectedTenantId);
-  requireTenantOrUnitPermission(context, "display.read");
+  const auth = await loadWorkspaceAuth(selectedTenantId, "display.read", "tenantOrUnit");
+  if ("error" in auth) {
+    return <PageLoadError title="Chamadas persistidas" detail={auth.error} />;
+  }
+  const context = auth.context;
 
   const supabase = await createServerSupabaseClient();
   const [unitsResult, panelsResult, ticketsResult, callsResult] = await Promise.all([
@@ -43,12 +46,31 @@ export default async function DisplayPage() {
   ]);
 
   if (unitsResult.error || panelsResult.error || ticketsResult.error || callsResult.error) {
-    throw new Error("Não foi possível carregar o painel de chamadas.");
+    return (
+      <PageLoadError
+        title="Chamadas persistidas"
+        detail={describeSupabaseFailure(
+          [unitsResult, panelsResult, ticketsResult, callsResult],
+          "Não foi possível carregar o painel de chamadas.",
+        )}
+      />
+    );
   }
 
-  const panels = displayPanelListSchema.parse(panelsResult.data);
-  const tickets = queueTicketListSchema.parse(ticketsResult.data);
-  const calls = callEventListSchema.parse(callsResult.data);
+  const parsedPanels = displayPanelListSchema.safeParse(panelsResult.data);
+  const parsedTickets = queueTicketListSchema.safeParse(ticketsResult.data);
+  const parsedCalls = callEventListSchema.safeParse(callsResult.data);
+  if (!parsedPanels.success || !parsedTickets.success || !parsedCalls.success) {
+    return (
+      <PageLoadError
+        title="Chamadas persistidas"
+        detail="Dados inconsistentes retornados pelo Supabase (relação/embed). Atualize migrations ou contate suporte."
+      />
+    );
+  }
+  const panels = parsedPanels.data;
+  const tickets = parsedTickets.data;
+  const calls = parsedCalls.data;
 
   return (
     <div>

@@ -1,7 +1,7 @@
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
-import { requirePermission } from "@/core/auth/authorization";
-import { resolveAuthorizationContext } from "@/core/auth/session";
+import { PageLoadError, describeSupabaseFailure } from "@/components/ui/page-load-error";
+import { loadWorkspaceAuth } from "@/core/auth/load-workspace-auth";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 import { readEmbeddedRelation } from "@/lib/supabase/relations";
 import { PageHeader, Surface } from "@/components/ui/page-chrome";
@@ -15,8 +15,11 @@ export default async function FinancePage() {
   const selectedTenantId = (await cookies()).get("gestorpro_tenant")?.value;
   if (!selectedTenantId) redirect("/select-tenant");
 
-  const context = await resolveAuthorizationContext(selectedTenantId);
-  requirePermission(context, "finance.read");
+  const auth = await loadWorkspaceAuth(selectedTenantId, "finance.read");
+  if ("error" in auth) {
+    return <PageLoadError title="Contratos, faturamento e acesso da empresa" detail={auth.error} />;
+  }
+  const context = auth.context;
 
   const supabase = await createServerSupabaseClient();
   const [
@@ -80,7 +83,23 @@ export default async function FinancePage() {
     invoicesResult.error ||
     portalUsersResult.error
   ) {
-    throw new Error("Não foi possível carregar financeiro.");
+    return (
+      <PageLoadError
+        title="Contratos, faturamento e acesso da empresa"
+        detail={describeSupabaseFailure(
+          [
+            contractsResult,
+            priceTablesResult,
+            priceItemsResult,
+            snapshotsResult,
+            billingResult,
+            invoicesResult,
+            portalUsersResult,
+          ],
+          "Não foi possível carregar financeiro.",
+        )}
+      />
+    );
   }
 
   const contracts = contractsResult.data ?? [];

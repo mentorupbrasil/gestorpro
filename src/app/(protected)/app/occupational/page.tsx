@@ -1,7 +1,7 @@
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
-import { requirePermission } from "@/core/auth/authorization";
-import { resolveAuthorizationContext } from "@/core/auth/session";
+import { PageLoadError, describeSupabaseFailure } from "@/components/ui/page-load-error";
+import { loadWorkspaceAuth } from "@/core/auth/load-workspace-auth";
 import {
   companyListSchema,
   examCatalogListSchema,
@@ -25,8 +25,11 @@ export default async function OccupationalPage() {
   const selectedTenantId = (await cookies()).get("gestorpro_tenant")?.value;
   if (!selectedTenantId) redirect("/select-tenant");
 
-  const context = await resolveAuthorizationContext(selectedTenantId);
-  requirePermission(context, "occupational.read");
+  const auth = await loadWorkspaceAuth(selectedTenantId, "occupational.read");
+  if ("error" in auth) {
+    return <PageLoadError title="Empresas, trabalhadores e PCMSO" detail={auth.error} />;
+  }
+  const context = auth.context;
 
   const supabase = await createServerSupabaseClient();
   const [companiesResult, workersResult, pcmsoResult, catalogResult, protocolsResult] =
@@ -66,13 +69,38 @@ export default async function OccupationalPage() {
     catalogResult.error ||
     protocolsResult.error
   ) {
-    throw new Error("Não foi possível carregar o domínio ocupacional.");
+    return (
+      <PageLoadError
+        title="Empresas, trabalhadores e PCMSO"
+        detail={describeSupabaseFailure(
+          [companiesResult, workersResult, pcmsoResult, catalogResult, protocolsResult],
+          "Não foi possível carregar o domínio ocupacional.",
+        )}
+      />
+    );
   }
 
-  const companies = companyListSchema.parse(companiesResult.data);
-  const workers = workerListSchema.parse(workersResult.data);
-  const pcmsoVersions = pcmsoVersionListSchema.parse(pcmsoResult.data);
-  const examCatalog = examCatalogListSchema.parse(catalogResult.data);
+  const parsedCompanies = companyListSchema.safeParse(companiesResult.data);
+  const parsedWorkers = workerListSchema.safeParse(workersResult.data);
+  const parsedPcmsoVersions = pcmsoVersionListSchema.safeParse(pcmsoResult.data);
+  const parsedExamCatalog = examCatalogListSchema.safeParse(catalogResult.data);
+  if (
+    !parsedCompanies.success ||
+    !parsedWorkers.success ||
+    !parsedPcmsoVersions.success ||
+    !parsedExamCatalog.success
+  ) {
+    return (
+      <PageLoadError
+        title="Empresas, trabalhadores e PCMSO"
+        detail="Dados inconsistentes retornados pelo Supabase (relação/embed). Atualize migrations ou contate suporte."
+      />
+    );
+  }
+  const companies = parsedCompanies.data;
+  const workers = parsedWorkers.data;
+  const pcmsoVersions = parsedPcmsoVersions.data;
+  const examCatalog = parsedExamCatalog.data;
   const protocols = protocolsResult.data ?? [];
 
   return (

@@ -1,8 +1,9 @@
 import { cookies, headers } from "next/headers";
 import { redirect } from "next/navigation";
 import { z } from "zod";
-import { requireTenantOrUnitPermission } from "@/core/auth/authorization";
-import { resolveAuthorizationContext } from "@/core/auth/session";
+import { PageLoadError } from "@/components/ui/page-load-error";
+import { loadWorkspaceAuth } from "@/core/auth/load-workspace-auth";
+import { AppError } from "@/core/errors/app-error";
 import {
   loadConclusionWorkspace,
   loadConsultationWorkspace,
@@ -24,8 +25,11 @@ export default async function ClinicalPage({ searchParams }: ClinicalPageProps) 
   const selectedTenantId = (await cookies()).get("gestorpro_tenant")?.value;
   if (!selectedTenantId) redirect("/select-tenant");
 
-  const context = await resolveAuthorizationContext(selectedTenantId);
-  requireTenantOrUnitPermission(context, "clinical.read");
+  const auth = await loadWorkspaceAuth(selectedTenantId, "clinical.read", "tenantOrUnit");
+  if ("error" in auth) {
+    return <PageLoadError title="Triagem, consulta e conclusão médica" detail={auth.error} />;
+  }
+  const context = auth.context;
 
   const resolvedSearchParams = searchParams ? await searchParams : undefined;
   const selectedEncounterId = resolvedSearchParams?.encounter
@@ -38,15 +42,26 @@ export default async function ClinicalPage({ searchParams }: ClinicalPageProps) 
     ? z.uuid().safeParse(resolvedSearchParams.conclusion).data
     : undefined;
 
-  const [triageWorkspace, consultationWorkspace, conclusionWorkspace] = await Promise.all([
-    loadTriageWorkspace(selectedTenantId, selectedEncounterId),
-    loadConsultationWorkspace(
-      selectedTenantId,
-      selectedConsultationId,
-      getRequestId(await headers()),
-    ),
-    loadConclusionWorkspace(selectedTenantId, selectedConclusionId),
-  ]);
+  let triageWorkspace: Awaited<ReturnType<typeof loadTriageWorkspace>>;
+  let consultationWorkspace: Awaited<ReturnType<typeof loadConsultationWorkspace>>;
+  let conclusionWorkspace: Awaited<ReturnType<typeof loadConclusionWorkspace>>;
+  try {
+    [triageWorkspace, consultationWorkspace, conclusionWorkspace] = await Promise.all([
+      loadTriageWorkspace(selectedTenantId, selectedEncounterId),
+      loadConsultationWorkspace(
+        selectedTenantId,
+        selectedConsultationId,
+        getRequestId(await headers()),
+      ),
+      loadConclusionWorkspace(selectedTenantId, selectedConclusionId),
+    ]);
+  } catch (error) {
+    const detail =
+      error instanceof AppError || error instanceof Error
+        ? error.message
+        : "Não foi possível carregar o espaço clínico.";
+    return <PageLoadError title="Triagem, consulta e conclusão médica" detail={detail} />;
+  }
 
   const flowEncounterId =
     triageWorkspace.selectedEncounter?.encounterId ??

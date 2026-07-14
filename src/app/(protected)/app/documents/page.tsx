@@ -1,7 +1,7 @@
 import { cookies, headers } from "next/headers";
 import { redirect } from "next/navigation";
-import { requirePermission } from "@/core/auth/authorization";
-import { resolveAuthorizationContext } from "@/core/auth/session";
+import { PageLoadError, describeSupabaseFailure } from "@/components/ui/page-load-error";
+import { loadWorkspaceAuth } from "@/core/auth/load-workspace-auth";
 import { recordSensitiveRead } from "@/features/audit/sensitive-read";
 import { getRequestId } from "@/lib/http/request-id";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
@@ -12,8 +12,11 @@ export default async function DocumentsPage() {
   const selectedTenantId = (await cookies()).get("gestorpro_tenant")?.value;
   if (!selectedTenantId) redirect("/select-tenant");
 
-  const context = await resolveAuthorizationContext(selectedTenantId);
-  requirePermission(context, "documents.read");
+  const auth = await loadWorkspaceAuth(selectedTenantId, "documents.read");
+  if ("error" in auth) {
+    return <PageLoadError title="Templates, versões e entregas" detail={auth.error} />;
+  }
+  const context = auth.context;
   const requestId = getRequestId(await headers());
 
   const supabase = await createServerSupabaseClient();
@@ -65,7 +68,21 @@ export default async function DocumentsPage() {
     versionsResult.error ||
     deliveriesResult.error
   ) {
-    throw new Error("Não foi possível carregar documentos.");
+    return (
+      <PageLoadError
+        title="Templates, versões e entregas"
+        detail={describeSupabaseFailure(
+          [
+            templatesResult,
+            templateVersionsResult,
+            documentsResult,
+            versionsResult,
+            deliveriesResult,
+          ],
+          "Não foi possível carregar documentos.",
+        )}
+      />
+    );
   }
 
   await recordSensitiveRead({
@@ -107,7 +124,7 @@ export default async function DocumentsPage() {
           };
         })}
         versions={versions.map((item) => ({
-          contentHash: item.content_hash,
+          contentHash: item.content_hash ?? "",
           id: item.id,
           label: `doc ${item.generated_document_id.slice(0, 8)} · v${item.version}`,
         }))}

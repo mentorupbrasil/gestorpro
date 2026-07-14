@@ -1,7 +1,7 @@
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
-import { requireTenantOrUnitPermission } from "@/core/auth/authorization";
-import { resolveAuthorizationContext } from "@/core/auth/session";
+import { PageLoadError, describeSupabaseFailure } from "@/components/ui/page-load-error";
+import { loadWorkspaceAuth } from "@/core/auth/load-workspace-auth";
 import { LaboratoryForms } from "./laboratory-forms";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 import { readEmbeddedRelation } from "@/lib/supabase/relations";
@@ -11,8 +11,11 @@ export default async function LaboratoryPage() {
   const selectedTenantId = (await cookies()).get("gestorpro_tenant")?.value;
   if (!selectedTenantId) redirect("/select-tenant");
 
-  const context = await resolveAuthorizationContext(selectedTenantId);
-  requireTenantOrUnitPermission(context, "exams.read");
+  const auth = await loadWorkspaceAuth(selectedTenantId, "exams.read", "tenantOrUnit");
+  if ("error" in auth) {
+    return <PageLoadError title="Laboratório" detail={auth.error} />;
+  }
+  const context = auth.context;
 
   const supabase = await createServerSupabaseClient();
   const [ordersResult, samplesResult, resultsResult, laboratoriesResult] = await Promise.all([
@@ -47,7 +50,15 @@ export default async function LaboratoryPage() {
     resultsResult.error ||
     laboratoriesResult.error
   ) {
-    throw new Error("Não foi possível carregar laboratório.");
+    return (
+      <PageLoadError
+        title="Laboratório"
+        detail={describeSupabaseFailure(
+          [ordersResult, samplesResult, resultsResult, laboratoriesResult],
+          "Não foi possível carregar laboratório.",
+        )}
+      />
+    );
   }
 
   const orders = ordersResult.data ?? [];

@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { embeddedOneSchema } from "@/lib/supabase/relations";
 
 export const createScheduleResourceSchema = z.object({
   clinicUnitId: z.uuid(),
@@ -57,11 +58,11 @@ export const scheduleResourceListSchema = z.array(
 
 export const referralListSchema = z.array(
   z.object({
-    companies: z.object({ legal_name: z.string() }).nullable(),
+    companies: embeddedOneSchema(z.object({ legal_name: z.string() })),
     id: z.uuid(),
     occupational_exam_type: z.string(),
     status: z.string(),
-    workers: z.object({ full_name: z.string() }).nullable(),
+    workers: embeddedOneSchema(z.object({ full_name: z.string() })),
   }),
 );
 
@@ -69,7 +70,7 @@ export const appointmentListSchema = z.array(
   z.object({
     ends_at: z.string(),
     id: z.uuid(),
-    schedule_resources: z.object({ name: z.string() }).nullable(),
+    schedule_resources: embeddedOneSchema(z.object({ name: z.string() })),
     starts_at: z.string(),
     status: z.string(),
   }),

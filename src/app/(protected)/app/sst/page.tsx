@@ -1,7 +1,7 @@
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
-import { requirePermission } from "@/core/auth/authorization";
-import { resolveAuthorizationContext } from "@/core/auth/session";
+import { PageLoadError, describeSupabaseFailure } from "@/components/ui/page-load-error";
+import { loadWorkspaceAuth } from "@/core/auth/load-workspace-auth";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 import { readEmbeddedRelation } from "@/lib/supabase/relations";
 import { PageHeader, Surface } from "@/components/ui/page-chrome";
@@ -11,8 +11,11 @@ export default async function SstPage() {
   const selectedTenantId = (await cookies()).get("gestorpro_tenant")?.value;
   if (!selectedTenantId) redirect("/select-tenant");
 
-  const context = await resolveAuthorizationContext(selectedTenantId);
-  requirePermission(context, "sst.read");
+  const auth = await loadWorkspaceAuth(selectedTenantId, "sst.read");
+  if ("error" in auth) {
+    return <PageLoadError title="Incidentes, EPI e CIPA (scaffold)" detail={auth.error} />;
+  }
+  const context = auth.context;
 
   const supabase = await createServerSupabaseClient();
   const [companiesResult, workersResult, incidentsResult, epiResult, cipaResult] =
@@ -58,7 +61,15 @@ export default async function SstPage() {
     epiResult.error ||
     cipaResult.error
   ) {
-    throw new Error("Não foi possível carregar SST.");
+    return (
+      <PageLoadError
+        title="Incidentes, EPI e CIPA (scaffold)"
+        detail={describeSupabaseFailure(
+          [companiesResult, workersResult, incidentsResult, epiResult, cipaResult],
+          "Não foi possível carregar SST.",
+        )}
+      />
+    );
   }
 
   const companies = companiesResult.data ?? [];

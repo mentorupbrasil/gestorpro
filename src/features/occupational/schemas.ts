@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { embeddedOneSchema } from "@/lib/supabase/relations";
 
 export const occupationalExamTypeSchema = z.enum([
   "admission",
@@ -159,7 +160,7 @@ export const examCatalogListSchema = z.array(
 
 export const pcmsoVersionListSchema = z.array(
   z.object({
-    companies: z.object({ legal_name: z.string() }).nullable(),
+    companies: embeddedOneSchema(z.object({ legal_name: z.string() })),
     id: z.uuid(),
     status: z.enum(["draft", "approved", "expired"]),
     valid_from: z.string(),

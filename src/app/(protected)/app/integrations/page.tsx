@@ -1,7 +1,7 @@
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
-import { requirePermission } from "@/core/auth/authorization";
-import { resolveAuthorizationContext } from "@/core/auth/session";
+import { PageLoadError, describeSupabaseFailure } from "@/components/ui/page-load-error";
+import { loadWorkspaceAuth } from "@/core/auth/load-workspace-auth";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 import { PageHeader, Surface } from "@/components/ui/page-chrome";
 import { IntegrationsWorkspaceForms } from "./integrations-forms";
@@ -10,8 +10,11 @@ export default async function IntegrationsPage() {
   const selectedTenantId = (await cookies()).get("gestorpro_tenant")?.value;
   if (!selectedTenantId) redirect("/select-tenant");
 
-  const context = await resolveAuthorizationContext(selectedTenantId);
-  requirePermission(context, "integrations.read");
+  const auth = await loadWorkspaceAuth(selectedTenantId, "integrations.read");
+  if ("error" in auth) {
+    return <PageLoadError title="Webhooks, eSocial, mensagens e conector" detail={auth.error} />;
+  }
+  const context = auth.context;
 
   const supabase = await createServerSupabaseClient();
   const [
@@ -91,7 +94,25 @@ export default async function IntegrationsPage() {
     layoutsResult.error ||
     spoolResult.error
   ) {
-    throw new Error("Não foi possível carregar integrações.");
+    return (
+      <PageLoadError
+        title="Webhooks, eSocial, mensagens e conector"
+        detail={describeSupabaseFailure(
+          [
+            connectionsResult,
+            jobsResult,
+            esocialResult,
+            messagesResult,
+            equipmentResult,
+            deadLettersResult,
+            connectorsResult,
+            layoutsResult,
+            spoolResult,
+          ],
+          "Não foi possível carregar integrações.",
+        )}
+      />
+    );
   }
 
   const connections = connectionsResult.data ?? [];

@@ -1,5 +1,12 @@
 # Log de implementação
 
+## 2026-07-14 — páginas protegidas: falhas de carregamento visíveis
+
+- Páginas operacionais convertem falhas de autorização, consultas Supabase e Zod em `PageLoadError` (sem error boundary genérico).
+- Schemas passam a aceitar embeds PostgREST como objeto **ou** array (`embeddedOneSchema`); `display_name`/`content_hash` nulos deixam de derrubar a tela.
+- Clínica e portal capturam falhas de workspace/overview; teste unitário do embed.
+- Validação: `tsc --noEmit` + vitest `embedded-relation` / `platform-schemas` OK.
+
 ## 2026-07-14 — polimento de layout (shell)
 
 - Shell grafite recolhível (~240 px), topbar compacta (unidade/org, busca visual, alertas, perfil).

@@ -1,7 +1,7 @@
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
-import { requireTenantOrUnitPermission } from "@/core/auth/authorization";
-import { resolveAuthorizationContext } from "@/core/auth/session";
+import { PageLoadError, describeSupabaseFailure } from "@/components/ui/page-load-error";
+import { loadWorkspaceAuth } from "@/core/auth/load-workspace-auth";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 import { readEmbeddedRelation } from "@/lib/supabase/relations";
 import { PageHeader, Surface } from "@/components/ui/page-chrome";
@@ -11,8 +11,11 @@ export default async function SpirometryPage() {
   const selectedTenantId = (await cookies()).get("gestorpro_tenant")?.value;
   if (!selectedTenantId) redirect("/select-tenant");
 
-  const context = await resolveAuthorizationContext(selectedTenantId);
-  requireTenantOrUnitPermission(context, "exams.read");
+  const auth = await loadWorkspaceAuth(selectedTenantId, "exams.read", "tenantOrUnit");
+  if ("error" in auth) {
+    return <PageLoadError title="Espirometria" detail={auth.error} />;
+  }
+  const context = auth.context;
 
   const supabase = await createServerSupabaseClient();
   const [ordersResult, resultsResult, calibrationsResult, predictedSetsResult] = await Promise.all([
@@ -46,7 +49,15 @@ export default async function SpirometryPage() {
     calibrationsResult.error ||
     predictedSetsResult.error
   ) {
-    throw new Error("Não foi possível carregar espirometria.");
+    return (
+      <PageLoadError
+        title="Espirometria"
+        detail={describeSupabaseFailure(
+          [ordersResult, resultsResult, calibrationsResult, predictedSetsResult],
+          "Não foi possível carregar espirometria.",
+        )}
+      />
+    );
   }
 
   const orders = ordersResult.data ?? [];
