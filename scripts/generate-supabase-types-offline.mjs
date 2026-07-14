@@ -207,11 +207,7 @@ await fs.writeFile(fingerprintPath, `${fingerprint}\n`, { encoding: "utf8", mode
 
 const format = spawnSync(
   process.execPath,
-  [
-    path.resolve("node_modules/prettier/bin/prettier.cjs"),
-    "--write",
-    typePath,
-  ],
+  [path.resolve("node_modules/prettier/bin/prettier.cjs"), "--write", typePath],
   { encoding: "utf8", stdio: "inherit" },
 );
 if (format.status !== 0) {
