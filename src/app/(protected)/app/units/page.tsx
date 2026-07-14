@@ -26,7 +26,10 @@ export default async function UnitsPage() {
     return (
       <PageLoadError
         title="Unidades da clínica"
-        detail={describeSupabaseFailure([{ error }], "Não foi possível carregar as unidades autorizadas.")}
+        detail={describeSupabaseFailure(
+          [{ error }],
+          "Não foi possível carregar as unidades autorizadas.",
+        )}
       />
     );
   }

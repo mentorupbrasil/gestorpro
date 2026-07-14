@@ -2,31 +2,20 @@
 
 ## Produção / merge
 
-- **NO-GO** permanente até GO humano.
-- Ver `docs/status/HUMAN_ACTIONS.md` (privado, token, Vercel, proteção da `main`).
+- **NO-GO** até GO humano (`HUMAN_ACTIONS.md`).
+- Push direto na `main` continua proibido (branch protection humana).
 
-## CI remoto
+## Aberto
 
-- PR #11 (commit `40db238`): **quality, review, Vercel, CodeQL** passaram.
-- Causa do `types:supabase:check`: fingerprint das migrations atualizado com typegen offline + Prettier no arquivo gerado.
-- Scripts de typegen agora rodam Prettier após gerar (`f74e295`) para não reeditar `format:check`.
-- CI workflow ignora push direto na `main` (`branches-ignore: [main]`) — esperado até branch protection humana.
+- E2E autenticado completo do percurso ocupacional (empresa → ASO → faturamento)
+- Painel público de chamadas com auth de dispositivo / heartbeat / voz
+- P2 exames (lab/ECG etc. estações completas) e P3 ASO assinado + portal IDOR ampliado
+- CI remoto desta branch ainda sem evidência até abrir/atualizar PR
 
-## Auth unit-scoped
+## Fechado nesta linha (DB + código)
 
-- Clínico + exames + check-in + display: gate app corrige unit-only (código nesta unidade).
-- Residual: policies RLS de exames/listagens ainda tipicamente `has_tenant_permission` — unit-only pode ver lista vazia até ondas RLS.
-
-## P0.4 / P0.5 / P0.6
-
-- `010`–`027` aplicadas (dono) — portal IDOR, preço server-side, documentos path/PDF pending→rendered.
-- Dívida restante (polimento): template ASO real; PCMSO draft→approve humanizado; seed/E2E amplo.
-- Fase N / produção: **NO-GO**.
-
-## Já resolvido (não reabrir)
-
-- P0.1–P0.3 operacionais MFA
-- Typegen oficial + fingerprint LF-safe (regenerar após novas migrations se necessário)
-- FKs ondas 1–3
-- SST write-rpc-only (`023`)
-- DML residual de estrutura/PCMSO no app (`024`, após apply)
+- Allowlist RPC (`028`)
+- Check-in transacional (`029`)
+- Papéis sem clínico automático no `tenant_admin` (`030`)
+- Agenda AAL2/unidade/referral (`031`)
+- Transição de etapa + call_event + display RPC (`032`)

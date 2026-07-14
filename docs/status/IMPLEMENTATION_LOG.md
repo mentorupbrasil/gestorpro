@@ -1,5 +1,21 @@
 # Log de implementação
 
+## 2026-07-14 — P1 transição + call_event + recepção + CI
+
+- `032`: `transition_encounter_step`, `upsert_display_panel`, `create_call_event` (supersede, voz pública sem CPF, exclusão de sala).
+- Recepção operacional (tabela + busca + drawer); clínicas em `/triage|/consultation|/conclusion`.
+- CI: PR + push `main` + `workflow_dispatch` + scanner de migrations destrutivas.
+- Apply DB `028`–`032` + suite local 137 testes; typegen offline atualizado.
+
+## 2026-07-14 — P0 segurança RPC + check-in + papéis + timezone
+
+- `004` neutralizada (grant indiscriminado removido); allowlist em `028`.
+- `029` reescreve `check_in_appointment` (AAL2, chave estável, PCMSO/protocolo/vínculo, snapshot v2, etapas específicas, só ticket de recepção).
+- `030` remove clínico do `tenant_admin` e seed de papéis operacionais.
+- `031` endurece agenda (AAL2, unidade, referral obrigatório).
+- App: timezone da unidade, menu filtrado por permissão, idempotência estável no check-in.
+- Testes unitários P0: 10 passed; apply DB / negativos SQL / E2E: pendentes.
+
 ## 2026-07-14 — fix PGRST201 exam_catalog embed
 
 - Queries `exam_orders → exam_catalog` (e afins) usam FK composta (`exam_orders_exam_catalog_tenant_fk`) para eliminar ambiguidade com a FK legada.

@@ -111,7 +111,11 @@ export default async function CompanyPortalPage({ searchParams }: PortalPageProp
       return (
         <PageLoadError
           title="Visão da empresa"
-          detail={error instanceof Error ? error.message : "Você não possui permissão para acessar o portal."}
+          detail={
+            error instanceof Error
+              ? error.message
+              : "Você não possui permissão para acessar o portal."
+          }
         />
       );
     }
@@ -176,7 +180,9 @@ export default async function CompanyPortalPage({ searchParams }: PortalPageProp
       {overviewError ? (
         <div role="alert">
           <Surface className="mt-4 border-red-200 bg-red-50 p-4">
-            <p className="text-sm font-semibold text-red-900">Não foi possível carregar a visão da empresa</p>
+            <p className="text-sm font-semibold text-red-900">
+              Não foi possível carregar a visão da empresa
+            </p>
             <p className="mt-1 text-sm text-red-800">{overviewError}</p>
           </Surface>
         </div>

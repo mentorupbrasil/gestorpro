@@ -1,5 +1,7 @@
 # Próximas ações
 
-1. Passada residual: inputs/botões secundários em formulários densos (clínica fina, selects sem `gp-input` remanescentes)
-2. Template ASO real / E2E tooling (sem Demo na UI)
-3. Sem merge/`main`/produção — **NO-GO**
+1. Abrir/atualizar PR da branch `feat/p0-security-rpc-checkin` e esperar checks CI
+2. Seed + E2E autenticado do fluxo ocupacional completo
+3. Painel público (device auth, Realtime privado, voz pt-BR)
+4. Assinatura ASO AAL2 + encerramento orquestrado
+5. Sem merge/`main`/produção — **NO-GO**

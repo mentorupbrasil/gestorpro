@@ -9,7 +9,12 @@ import {
   createReferral,
   createScheduleResource,
 } from "@/features/scheduling/service";
+import {
+  assertValidAppointmentWindow,
+  unitLocalDateTimeToUtcIso,
+} from "@/lib/datetime/unit-timezone";
 import { getRequestId } from "@/lib/http/request-id";
+import { createServerSupabaseClient } from "@/lib/supabase/server";
 
 export type SchedulingFormState = { error?: string; success?: string };
 
@@ -127,16 +132,38 @@ export async function createAppointmentAction(
 
   const requestId = getRequestId(await headers());
   try {
+    const supabase = await createServerSupabaseClient();
+    const { data: unit, error: unitError } = await supabase
+      .from("clinic_units")
+      .select("timezone")
+      .eq("id", form.data.clinicUnitId)
+      .eq("tenant_id", selectedTenantId)
+      .maybeSingle();
+
+    if (unitError || !unit?.timezone) {
+      return { error: "Unidade sem timezone configurado." };
+    }
+
+    const startsAt = unitLocalDateTimeToUtcIso(form.data.startsAt, unit.timezone);
+    const endsAt = unitLocalDateTimeToUtcIso(form.data.endsAt, unit.timezone);
+    assertValidAppointmentWindow(startsAt, endsAt);
+
     await createAppointment(
       {
         ...form.data,
-        endsAt: new Date(form.data.endsAt).toISOString(),
-        startsAt: new Date(form.data.startsAt).toISOString(),
+        endsAt,
+        startsAt,
         tenantId: selectedTenantId,
       },
       requestId,
     );
   } catch (error) {
+    if (
+      error instanceof Error &&
+      /appointment end must be after start|invalid local/i.test(error.message)
+    ) {
+      return { error: "Revise início/fim no horário da unidade." };
+    }
     return { error: publicError(error, "Não foi possível agendar; verifique conflitos.") };
   }
 

@@ -1,8 +1,10 @@
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
+import { resolveAuthorizationContext } from "@/core/auth/session";
 import { hasSupabaseAuthCookie } from "@/lib/supabase/auth-cookie";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 import { WorkspaceShell } from "./_components/workspace-shell";
+import { filterWorkspaceNavigation, workspaceNavigation } from "./_components/workspace-nav";
 
 export default async function AppLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   const cookieStore = await cookies();
@@ -12,7 +14,7 @@ export default async function AppLayout({ children }: Readonly<{ children: React
   if (!selectedTenantId) redirect("/select-tenant");
 
   const supabase = await createServerSupabaseClient();
-  const [{ data: userData }, { data: tenant }, { data: units }] = await Promise.all([
+  const [{ data: userData }, { data: tenant }, { data: units }, authContext] = await Promise.all([
     supabase.auth.getUser(),
     supabase
       .from("tenants")
@@ -26,6 +28,7 @@ export default async function AppLayout({ children }: Readonly<{ children: React
       .eq("status", "active")
       .order("name")
       .limit(1),
+    resolveAuthorizationContext(selectedTenantId).catch(() => null),
   ]);
 
   if (!userData.user) redirect("/sign-in");
@@ -36,9 +39,18 @@ export default async function AppLayout({ children }: Readonly<{ children: React
     userData.user.email ||
     "Usuário";
   const unitLabel = units?.[0]?.name?.trim() || "Sem unidade ativa";
+  const navigation = filterWorkspaceNavigation(
+    workspaceNavigation,
+    authContext?.permissions ?? new Set(),
+  );
 
   return (
-    <WorkspaceShell tenantLabel={tenantLabel} unitLabel={unitLabel} userLabel={userLabel}>
+    <WorkspaceShell
+      navigation={navigation}
+      tenantLabel={tenantLabel}
+      unitLabel={unitLabel}
+      userLabel={userLabel}
+    >
       {children}
     </WorkspaceShell>
   );

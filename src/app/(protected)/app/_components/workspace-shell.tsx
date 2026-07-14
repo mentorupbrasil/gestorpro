@@ -4,7 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useState, type ReactNode } from "react";
 import { signOut } from "../actions";
-import { isExamGroup, workspaceNavigation } from "./workspace-nav";
+import { isExamGroup, workspaceNavigation, type NavGroup } from "./workspace-nav";
 
 const SIDEBAR_KEY = "gestorpro.sidebar.collapsed";
 
@@ -27,11 +27,13 @@ export function WorkspaceShell({
   tenantLabel,
   userLabel,
   unitLabel,
+  navigation = workspaceNavigation,
 }: Readonly<{
   children: ReactNode;
   tenantLabel: string;
   userLabel: string;
   unitLabel: string;
+  navigation?: NavGroup[];
 }>) {
   const pathname = usePathname();
   const [collapsed, setCollapsed] = useState(readCollapsedPreference);
@@ -41,6 +43,7 @@ export function WorkspaceShell({
   const examsActive = pathname.startsWith("/app/exams");
   const examsOpen = examsActive || examsPinned;
   const sidebarWidth = collapsed ? "w-[72px]" : "w-[240px]";
+  const visibleNavigation = navigation;
 
   function toggleCollapsed() {
     setCollapsed((current) => {
@@ -103,7 +106,7 @@ export function WorkspaceShell({
           </div>
 
           <nav className="flex-1 overflow-y-auto px-2 py-3" aria-label="Módulos do sistema">
-            {workspaceNavigation.map((group) => (
+            {visibleNavigation.map((group) => (
               <section className="mb-4" key={group.label}>
                 {!collapsed ? (
                   <h2 className="px-2 pb-1 text-[11px] font-semibold uppercase tracking-[0.12em] text-gp-sidebar-muted">

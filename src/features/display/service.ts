@@ -15,7 +15,7 @@ import {
   type CreateDisplayPanelInput,
 } from "./schemas";
 
-export async function createDisplayPanel(input: CreateDisplayPanelInput) {
+export async function createDisplayPanel(input: CreateDisplayPanelInput, requestId: string) {
   const parsed = createDisplayPanelSchema.parse(input);
   const context = await resolveAuthorizationContext(parsed.tenantId);
   requireTenantOrUnitPermission(context, "display.manage");
@@ -24,30 +24,23 @@ export async function createDisplayPanel(input: CreateDisplayPanelInput) {
   const supabase = await createServerSupabaseClient();
   await requirePermissionOnClinicUnitRow(supabase, context, parsed.clinicUnitId, "display.manage");
 
-  const { data, error } = await supabase
-    .from("display_panels")
-    .upsert(
-      {
-        channel_name: parsed.channelName,
-        clinic_unit_id: parsed.clinicUnitId,
-        code: parsed.code,
-        name: parsed.name,
-        status: "active",
-        tenant_id: context.tenantId,
-      },
-      { onConflict: "tenant_id,clinic_unit_id,code" },
-    )
-    .select("id")
-    .single();
+  const { data, error } = await supabase.rpc("upsert_display_panel", {
+    audit_request_id: requestId,
+    channel_name_value: parsed.channelName,
+    code_value: parsed.code,
+    name_value: parsed.name,
+    target_clinic_unit_id: parsed.clinicUnitId,
+    target_tenant_id: context.tenantId,
+  });
 
-  if (error || !data?.id) {
+  if (error || typeof data !== "string") {
     throw new AppError("INTERNAL_ERROR", "Não foi possível criar o painel.", {
       cause: error,
       status: 500,
     });
   }
 
-  return data.id as string;
+  return data;
 }
 
 export async function createCallEvent(input: CreateCallEventInput, requestId: string) {
@@ -68,6 +61,13 @@ export async function createCallEvent(input: CreateCallEventInput, requestId: st
   });
 
   if (error || typeof data !== "string") {
+    const message = error?.message ?? "";
+    if (/already being called/i.test(message)) {
+      throw new AppError("VALIDATION_FAILED", "Paciente já está sendo chamado por outra sala.", {
+        cause: error,
+        status: 409,
+      });
+    }
     throw new AppError("INTERNAL_ERROR", "Não foi possível criar a chamada.", {
       cause: error,
       status: 500,

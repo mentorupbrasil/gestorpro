@@ -45,7 +45,10 @@ export async function createDisplayPanelAction(
   if (!form.success) return { error: "Revise unidade, código, nome e canal." };
 
   try {
-    await createDisplayPanel({ ...form.data, tenantId: selectedTenantId });
+    await createDisplayPanel(
+      { ...form.data, tenantId: selectedTenantId },
+      getRequestId(await headers()),
+    );
   } catch (error) {
     return { error: publicError(error, "Não foi possível criar o painel.") };
   }

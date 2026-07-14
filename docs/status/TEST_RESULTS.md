@@ -1,5 +1,21 @@
 # Resultados de testes e verificações
 
+## 2026-07-14 — P0+P1 apply DB + suite local
+
+- Branch: `feat/p0-security-rpc-checkin`
+- Migrations `028`–`032` **aplicadas** no Postgres de teste
+- `validate-rls-bypass-negatives.mjs`: **passed** (AAL1, tenant, key, outsider, append_audit_log, blocked)
+- `pnpm test`: **137 passed** (34 files)
+- `pnpm typecheck` / `lint` / `format:check` / `types:supabase:check` / scanner destrutivo: **passed**
+- Typegen offline regenerado (132 tables / 81 functions)
+- E2E autenticado ponta a ponta ocupacional: **ainda pendente**
+
+## 2026-07-14 — P0 security/check-in/roles/timezone (código)
+
+- Branch: `feat/p0-security-rpc-checkin`
+- `vitest` `tests/unit/p0-security-checkin.test.ts`: **10 passed** (allowlist, check-in, roles, timezone Fortaleza/UTC/SP, menu)
+- `pnpm typecheck`: **passed**
+
 ## 2026-07-13 — P0.5 proteção de papéis
 
 - `vitest` `tests/unit/platform-schemas.test.ts`: schemas de assign/revoke OK.

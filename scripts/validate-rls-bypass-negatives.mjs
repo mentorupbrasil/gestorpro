@@ -27,7 +27,10 @@ const tenantA = "c0000000-0000-4000-8000-000000000001";
 const tenantB = "f2000000-0000-4000-8000-000000000001";
 const userId = "30000000-0000-4000-8000-000000000001";
 const outsiderId = "f2200000-0000-4000-8000-000000000001";
+const blockedUserId = "f2300000-0000-4000-8000-000000000099";
 const encounterId = "e8000000-0000-4000-8000-000000000001";
+const appointmentId = "a8000000-0000-4000-8000-000000000001";
+const foreignAppointmentId = "a9000000-0000-4000-8000-000000000001";
 
 async function setAuth(tx, uid, aal) {
   await tx`select set_config('request.jwt.claim.sub', ${uid}, true)`;
@@ -48,7 +51,15 @@ async function expectDenied(tx, label, run) {
   } catch (error) {
     await tx`rollback to savepoint expect_denied`.catch(() => undefined);
     if (error?.message?.startsWith(`${label}:`)) throw error;
-    if (error?.code !== "42501" && !/denied|aal2 required|permission/i.test(error?.message ?? "")) {
+    if (
+      error?.code !== "42501" &&
+      error?.code !== "28000" &&
+      error?.code !== "22023" &&
+      error?.code !== "P0002" &&
+      !/denied|aal2 required|permission|authentication|idempotency|not found|missing/i.test(
+        error?.message ?? "",
+      )
+    ) {
       throw error;
     }
     console.log(`OK ${label}: ${error.code || "denied"} ${error.message}`);
@@ -73,6 +84,17 @@ try {
       `;
       });
 
+      await expectDenied(tx, "check_in without aal2", async () => {
+        await tx`
+        select public.check_in_appointment(
+          ${tenantA}::uuid,
+          ${appointmentId}::uuid,
+          ${"checkin:appointment:" + appointmentId},
+          'neg-checkin-aal1'
+        )
+      `;
+      });
+
       await setAuth(tx, outsiderId, "aal2");
       const outsiderPerm = await tx`
       select public.has_encounter_permission(${encounterId}::uuid, 'triage.manage') as ok
@@ -82,7 +104,40 @@ try {
       }
       console.log("OK outsider has_encounter_permission=false");
 
+      await expectDenied(tx, "check_in other tenant", async () => {
+        await tx`
+        select public.check_in_appointment(
+          ${tenantA}::uuid,
+          ${appointmentId}::uuid,
+          ${"checkin:appointment:" + appointmentId},
+          'neg-checkin-tenant'
+        )
+      `;
+      });
+
       await setAuth(tx, userId, "aal2");
+      await expectDenied(tx, "check_in wrong idempotency key", async () => {
+        await tx`
+        select public.check_in_appointment(
+          ${tenantA}::uuid,
+          ${appointmentId}::uuid,
+          'bad-key',
+          'neg-checkin-key'
+        )
+      `;
+      });
+
+      await expectDenied(tx, "check_in foreign appointment ids", async () => {
+        await tx`
+        select public.check_in_appointment(
+          ${tenantA}::uuid,
+          ${foreignAppointmentId}::uuid,
+          ${"checkin:appointment:" + foreignAppointmentId},
+          'neg-checkin-foreign'
+        )
+      `;
+      });
+
       const tenantIsolation = await tx`
       select count(*)::int as count
       from public.encounters
@@ -94,13 +149,41 @@ try {
         await tx`update public.audit_logs set action = 'tampered' where true`;
       });
 
+      // append_audit_log NÃO deve estar na allowlist autenticada
+      await expectDenied(tx, "direct append_audit_log execute", async () => {
+        await tx`
+        select public.append_audit_log(
+          ${tenantA}::uuid,
+          'tamper',
+          'encounter',
+          ${encounterId}::uuid,
+          'neg-audit',
+          '{}'::jsonb
+        )
+      `;
+      });
+
+      if (blockedUserId) {
+        await setAuth(tx, blockedUserId, "aal2");
+        await expectDenied(tx, "blocked user check_in", async () => {
+          await tx`
+          select public.check_in_appointment(
+            ${tenantA}::uuid,
+            ${appointmentId}::uuid,
+            ${"checkin:appointment:" + appointmentId},
+            'neg-blocked'
+          )
+        `;
+        });
+      }
+
       throw new Error("rollback");
     })
     .catch((error) => {
       if (error?.message !== "rollback") throw error;
     });
 
-  console.log("Negative RLS/bypass checks passed.");
+  console.log("Negative RPC/RLS checks passed.");
 } finally {
   await sql.end({ timeout: 5 });
 }

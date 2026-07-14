@@ -5188,6 +5188,14 @@ export type Database = {
         };
         Returns: Json;
       };
+      ensure_queue_for_step: {
+        Args: {
+          step_type_value: string;
+          target_clinic_unit_id: string;
+          target_tenant_id: string;
+        };
+        Returns: string;
+      };
       finalize_document_version_render: {
         Args: {
           audit_request_id: string;
@@ -5320,6 +5328,12 @@ export type Database = {
           target_tenant_id: string;
         };
         Returns: string;
+      };
+      map_exam_result_type_to_step: {
+        Args: {
+          result_type_value: string;
+        };
+        Returns: Json;
       };
       mark_integration_attempt: {
         Args: {
@@ -5647,6 +5661,18 @@ export type Database = {
         };
         Returns: string;
       };
+      transition_encounter_step: {
+        Args: {
+          audit_request_id: string;
+          expected_version: number;
+          idempotency_key_value: string;
+          justification_text: string;
+          target_action: string;
+          target_encounter_step_id: string;
+          target_tenant_id: string;
+        };
+        Returns: string;
+      };
       upsert_company_document_release_rule: {
         Args: {
           audit_request_id: string;
@@ -5666,6 +5692,17 @@ export type Database = {
           target_company_id: string;
           target_tenant_id: string;
           target_user_id: string;
+        };
+        Returns: string;
+      };
+      upsert_display_panel: {
+        Args: {
+          audit_request_id: string;
+          channel_name_value: string;
+          code_value: string;
+          name_value: string;
+          target_clinic_unit_id: string;
+          target_tenant_id: string;
         };
         Returns: string;
       };

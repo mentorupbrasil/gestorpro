@@ -27,6 +27,7 @@
     "validate:supabase:triage": "node scripts/validate-triage-supabase.mjs",
     "validate:supabase:composite-fk": "node scripts/validate-composite-fk-preflight.mjs",
     "validate:supabase:composite-fk:negatives": "node scripts/validate-composite-fk-negatives.mjs",
+    "validate:supabase:rpc-negatives": "node scripts/validate-rls-bypass-negatives.mjs",
     "migrate:p0-4:composite-fk": "node scripts/apply-p0-4-composite-fks.mjs"
   },
   "dependencies": {
