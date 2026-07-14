@@ -19,8 +19,8 @@
 
 ## P0.4 / P0.5 / P0.6
 
-- `010`–`026` aplicadas. `027` documentos path/PDF pending no repo — **apply pendente**.
-- Dívida restante: template ASO real (não stub); PCMSO draft→approve humanizado; polimento.
+- `010`–`027` aplicadas (dono) — portal IDOR, preço server-side, documentos path/PDF pending→rendered.
+- Dívida restante (polimento): template ASO real; PCMSO draft→approve humanizado; seed/E2E amplo.
 - Fase N / produção: **NO-GO**.
 
 ## Já resolvido (não reabrir)

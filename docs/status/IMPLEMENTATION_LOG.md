@@ -4,7 +4,7 @@
 
 - Migration `202607140027_stabilization_document_opaque_path_pending_render.sql`: bucket `clinical-private`; create com path opaco + `pending`; `finalize_document_version_render`; imutabilidade com exceção estreita.
 - App: remove `storagePath` do cliente; sobe stub PDF sem PHI via service role; só então finaliza `rendered`.
-- Apply: pendente do dono.
+- Apply: **feita pelo dono** (2026-07-14).
 
 ## 2026-07-14 — preço server-side (`026`)
 
