@@ -8106,6 +8106,14 @@ export type Database = {
         Args: { permission_code: string; target_tenant_id: string };
         Returns: boolean;
       };
+      has_tenant_or_any_unit_permission: {
+        Args: {
+          permission_code: string;
+          target_tenant_id: string;
+        };
+        Returns: boolean;
+      };
+
       has_unit_permission: {
         Args: { permission_code: string; target_unit_id: string };
         Returns: boolean;
