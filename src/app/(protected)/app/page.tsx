@@ -54,6 +54,12 @@ const modules = [
     status: "console inicial",
   },
   {
+    description: "Visão sanitizada da empresa: status, documentos liberados e faturas.",
+    href: "/app/portal",
+    label: "Portal empresarial",
+    status: "checkpoint K",
+  },
+  {
     description: "Webhooks, eSocial, mensagens, equipamentos e conector local.",
     href: "/app/integrations",
     label: "Integrações",

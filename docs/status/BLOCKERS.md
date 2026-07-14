@@ -17,9 +17,8 @@
 
 ## P0.4 / P0.5 / P0.6
 
-- `010`–`018` aplicadas (dono).
-- `019` (Fase J finance) no repo — apply pendente.
-- `012` (onda 4) no repo; apply a confirmar pelo dono.
+- `010`–`019` aplicadas (dono).
+- `020` (Fase K portal) no repo — apply pendente.
 
 ## Já resolvido (não reabrir)
 

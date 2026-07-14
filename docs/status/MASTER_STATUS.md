@@ -21,7 +21,7 @@ Atualizado em: 2026-07-13
 | 6 — Triagem e consulta       | CHECKPOINT_PUBLISHED  | Fase G `017` aplicada                             |
 | 7 — Exames complementares    | CHECKPOINT_PUBLISHED  | Fase H wire diagnóstico+lab                       |
 | 8 — Documentos               | CHECKPOINT_PUBLISHED  | Fase I `018` aplicada                             |
-| 9 — Financeiro e portal      | CHECKPOINT_IN_PROGRESS | Fase J: `019` snapshot/billing/pay (apply dono)  |
+| 9 — Financeiro e portal      | CHECKPOINT_IN_PROGRESS | J `019` + K `020` portal/matriz (apply dono)     |
 | 10 — Integrações             | CHECKPOINT_PUBLISHED  | eSocial oficial consultado; sem envio real        |
 | 11 — Produção e piloto       | CHECKPOINT_PUBLISHED  | relatório NO-GO; sem GO de produção               |
 

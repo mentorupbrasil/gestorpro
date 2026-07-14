@@ -36,6 +36,7 @@ const navigationGroups = [
     items: [
       { href: "/app/documents", label: "Documentos" },
       { href: "/app/finance", label: "Financeiro" },
+      { href: "/app/portal", label: "Portal empresa" },
       { href: "/app/integrations", label: "Integrações" },
     ],
     label: "Fechamento",
