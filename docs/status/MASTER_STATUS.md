@@ -16,11 +16,11 @@ Atualizado em: 2026-07-13
 | 1 — Plataforma e segurança   | REAUDIT_IN_PROGRESS   | P0.5 no repo; validação DB pendente               |
 | 2 — Domínio ocupacional      | CHECKPOINT_PUBLISHED  | revisão final posterior solicitada                |
 | 3 — Encaminhamentos e agenda | CHECKPOINT_PUBLISHED  | revisão final posterior solicitada                |
-| 4 — Check-in, etapas e filas | CHECKPOINT_IN_PROGRESS | Fase F: `016` check-in protocolo (apply dono)     |
+| 4 — Check-in, etapas e filas | CHECKPOINT_PUBLISHED  | Fase F `016` aplicada/commitada                   |
 | 5 — Painel de chamadas       | CHECKPOINT_PUBLISHED  | revisão final posterior solicitada                |
-| 6 — Triagem e consulta       | CHECKPOINT_PUBLISHED  | P0.1–P0.3 operacionais OK                         |
-| 7 — Exames complementares    | CHECKPOINT_PUBLISHED  | validação profissional futura                     |
-| 8 — Documentos               | CHECKPOINT_PUBLISHED  | modelos/assinatura dependem de humanos            |
+| 6 — Triagem e consulta       | CHECKPOINT_IN_PROGRESS | Fase G: `017` alertas/adendo/pausa (apply dono)  |
+| 7 — Exames complementares    | CHECKPOINT_IN_PROGRESS | Fase H: wire diagnóstico+lab UI                   |
+| 8 — Documentos               | CHECKPOINT_IN_PROGRESS | Fase I: `018` + generate/sign UI (apply dono)     |
 | 9 — Financeiro e portal      | CHECKPOINT_PUBLISHED  | validação contábil/jurídica futura                |
 | 10 — Integrações             | CHECKPOINT_PUBLISHED  | eSocial oficial consultado; sem envio real        |
 | 11 — Produção e piloto       | CHECKPOINT_PUBLISHED  | relatório NO-GO; sem GO de produção               |

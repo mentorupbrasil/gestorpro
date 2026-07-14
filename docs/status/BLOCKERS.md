@@ -17,8 +17,8 @@
 
 ## P0.4 / P0.5 / P0.6
 
-- `010`/`011`/`013`/`014`/`015` aplicadas (dono).
-- `016` (Fase F check-in) no repo — apply pendente.
+- `010`/`011`/`013`/`014`/`015`/`016` aplicadas (dono).
+- `017` (Fase G) + `018` (Fase I) no repo — apply pendente.
 - `012` (onda 4) no repo; apply a confirmar pelo dono.
 
 ## Já resolvido (não reabrir)

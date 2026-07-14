@@ -4,6 +4,8 @@ import { requireTenantOrUnitPermission } from "@/core/auth/authorization";
 import { resolveAuthorizationContext } from "@/core/auth/session";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 
+import { DiagnosticExamForm } from "./diagnostic-form";
+
 export default async function DiagnosticExamsPage() {
   const selectedTenantId = (await cookies()).get("gestorpro_tenant")?.value;
   if (!selectedTenantId) redirect("/select-tenant");
@@ -90,6 +92,8 @@ export default async function DiagnosticExamsPage() {
             </table>
           </div>
         )}
+
+        <DiagnosticExamForm />
       </section>
     </main>
   );

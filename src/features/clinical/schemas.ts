@@ -338,3 +338,46 @@ export const triageSummarySchema = z.object({
   payload: z.record(z.string(), z.unknown()),
   status: z.string(),
 });
+
+export const createClinicalAlertSchema = z.object({
+  encounterId: z.string().uuid(),
+  message: z.string().trim().min(3).max(1000),
+  severity: z.enum(["info", "attention", "urgent"]),
+  sourceType: z.enum(["triage", "exam", "manual"]).default("manual"),
+  tenantId: z.string().uuid(),
+});
+
+export type CreateClinicalAlertInput = z.infer<typeof createClinicalAlertSchema>;
+
+export const acknowledgeClinicalAlertSchema = z.object({
+  alertId: z.string().uuid(),
+  note: z.string().trim().max(500).optional().default(""),
+  tenantId: z.string().uuid(),
+});
+
+export type AcknowledgeClinicalAlertInput = z.infer<typeof acknowledgeClinicalAlertSchema>;
+
+export const createConsultationAddendumSchema = z.object({
+  consultationId: z.string().uuid(),
+  note: z.string().trim().min(3).max(5000),
+  reason: z.string().trim().min(3).max(500),
+  tenantId: z.string().uuid(),
+});
+
+export type CreateConsultationAddendumInput = z.infer<typeof createConsultationAddendumSchema>;
+
+export const pauseEncounterFlowSchema = z.object({
+  encounterId: z.string().uuid(),
+  reason: z.string().trim().min(3).max(500),
+  tenantId: z.string().uuid(),
+});
+
+export type PauseEncounterFlowInput = z.infer<typeof pauseEncounterFlowSchema>;
+
+export const resolveEncounterFlowPauseSchema = z.object({
+  pauseId: z.string().uuid(),
+  resolvedNote: z.string().trim().max(500).optional().default(""),
+  tenantId: z.string().uuid(),
+});
+
+export type ResolveEncounterFlowPauseInput = z.infer<typeof resolveEncounterFlowPauseSchema>;

@@ -9,6 +9,8 @@ import {
   loadTriageWorkspace,
 } from "@/features/clinical/service";
 import { getRequestId } from "@/lib/http/request-id";
+import { createServerSupabaseClient } from "@/lib/supabase/server";
+import { ClinicalFlowPanel } from "./clinical-flow-panel";
 import { ConclusionStation } from "./conclusion-station";
 import { ConsultationStation } from "./consultation-station";
 import { TriageStation } from "./triage-station";
@@ -44,6 +46,41 @@ export default async function ClinicalPage({ searchParams }: ClinicalPageProps) 
     ),
     loadConclusionWorkspace(selectedTenantId, selectedConclusionId),
   ]);
+
+  const flowEncounterId =
+    triageWorkspace.selectedEncounter?.encounterId ??
+    consultationWorkspace.selectedEncounter?.encounterId ??
+    conclusionWorkspace.selectedEncounter?.encounterId ??
+    null;
+  const flowConsultationId =
+    consultationWorkspace.selectedRecord?.consultationId ??
+    consultationWorkspace.selectedEncounter?.consultationId ??
+    null;
+
+  let alerts: { id: string; message: string; severity: string; status: string }[] = [];
+  let pauses: { id: string; reason: string; status: string }[] = [];
+
+  if (flowEncounterId) {
+    const supabase = await createServerSupabaseClient();
+    const [alertsResult, pausesResult] = await Promise.all([
+      supabase
+        .from("clinical_alerts")
+        .select("id, message, severity, status")
+        .eq("tenant_id", context.tenantId)
+        .eq("encounter_id", flowEncounterId)
+        .order("created_at", { ascending: false })
+        .limit(20),
+      supabase
+        .from("encounter_flow_pauses")
+        .select("id, reason, status")
+        .eq("tenant_id", context.tenantId)
+        .eq("encounter_id", flowEncounterId)
+        .order("created_at", { ascending: false })
+        .limit(10),
+    ]);
+    alerts = alertsResult.data ?? [];
+    pauses = pausesResult.data ?? [];
+  }
 
   return (
     <main className="mx-auto max-w-7xl px-6 py-10">
@@ -81,6 +118,13 @@ export default async function ClinicalPage({ searchParams }: ClinicalPageProps) 
         queue={conclusionWorkspace.queue}
         selectedEncounter={conclusionWorkspace.selectedEncounter}
         selectedRecord={conclusionWorkspace.selectedRecord}
+      />
+
+      <ClinicalFlowPanel
+        alerts={alerts}
+        consultationId={flowConsultationId}
+        encounterId={flowEncounterId}
+        pauses={pauses}
       />
     </main>
   );

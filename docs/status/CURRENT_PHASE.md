@@ -1,8 +1,11 @@
 # Fase atual
 
-- Fase atual: **Fase F checkpoint** — check-in → etapas/fila a partir do protocolo do encaminhamento
-- Entrega: RPC `check_in_appointment` reforçada (`202607140016`) — AAL2, `has_unit_permission`, etapa `exam` + `document`, filas recepção/triagem, snapshot com `examPreview`
-- Dono: aplicar `supabase/migrations/202607140016_fase_f_checkin_protocol_flow.sql`
+- Fase atual: **Checkpoints G + H + I** (código pronto; SQL pendente apply)
+- Entregas:
+  - **G** `202607140017` — alertas, adendo, pausa/retomada + painel em `/app/clinical`
+  - **H** — wire UI diagnóstico + laboratório → RPCs existentes
+  - **I** `202607140018` — AAL2/escopo em create/sign + forms em `/app/documents`
+- Dono: aplicar `017` e `018` no Supabase, depois commit
 - Produção: **NO-GO**
 - Branch: `feat/p0-2-consulta-operacional`
 - Atualizado em: 2026-07-13

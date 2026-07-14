@@ -1,6 +1,6 @@
 import "server-only";
 
-import { requireAal2, requireTenantOrUnitPermission, requireUnitPermission } from "@/core/auth/authorization";
+import { requireAal2, requireTenantOrUnitPermission, requireUnitPermission, hasTenantOrUnitPermission } from "@/core/auth/authorization";
 import { resolveAuthorizationContext } from "@/core/auth/session";
 import { AppError } from "@/core/errors/app-error";
 import { recordSensitiveRead } from "@/features/audit/sensitive-read";
@@ -24,6 +24,16 @@ import {
   type CreateMedicalConclusionInput,
   type SaveMedicalConsultationInput,
   type SaveTriageRecordInput,
+  createClinicalAlertSchema,
+  acknowledgeClinicalAlertSchema,
+  createConsultationAddendumSchema,
+  pauseEncounterFlowSchema,
+  resolveEncounterFlowPauseSchema,
+  type CreateClinicalAlertInput,
+  type AcknowledgeClinicalAlertInput,
+  type CreateConsultationAddendumInput,
+  type PauseEncounterFlowInput,
+  type ResolveEncounterFlowPauseInput,
 } from "./schemas";
 import { buildConclusionBlockers, countPendingRequiredExams } from "./conclusion-payload";
 import {
@@ -1214,6 +1224,149 @@ export async function createMedicalConclusion(
       });
     }
     throw new AppError("INTERNAL_ERROR", "Não foi possível preparar a conclusão médica.", {
+      cause: error,
+      status: 500,
+    });
+  }
+
+  return data;
+}
+
+function requireClinicalFlowPermission(context: Parameters<typeof hasTenantOrUnitPermission>[0]) {
+  if (
+    !hasTenantOrUnitPermission(context, "triage.manage") &&
+    !hasTenantOrUnitPermission(context, "consultations.manage")
+  ) {
+    throw new AppError("PERMISSION_DENIED", "Sem permissão clínica para esta operação.", {
+      status: 403,
+    });
+  }
+}
+
+export async function createClinicalAlert(input: CreateClinicalAlertInput, requestId: string) {
+  const parsed = createClinicalAlertSchema.parse(input);
+  const context = await resolveAuthorizationContext(parsed.tenantId);
+  requireClinicalFlowPermission(context);
+  requireAal2(context);
+
+  const supabase = await createServerSupabaseClient();
+  const { data, error } = await supabase.rpc("create_clinical_alert", {
+    audit_request_id: requestId,
+    message_value: parsed.message,
+    severity_value: parsed.severity,
+    source_type_value: parsed.sourceType,
+    target_encounter_id: parsed.encounterId,
+    target_tenant_id: context.tenantId,
+  });
+
+  if (error || typeof data !== "string") {
+    throw new AppError("INTERNAL_ERROR", "Não foi possível criar alerta clínico.", {
+      cause: error,
+      status: 500,
+    });
+  }
+
+  return data;
+}
+
+export async function acknowledgeClinicalAlert(
+  input: AcknowledgeClinicalAlertInput,
+  requestId: string,
+) {
+  const parsed = acknowledgeClinicalAlertSchema.parse(input);
+  const context = await resolveAuthorizationContext(parsed.tenantId);
+  requireClinicalFlowPermission(context);
+  requireAal2(context);
+
+  const supabase = await createServerSupabaseClient();
+  const { data, error } = await supabase.rpc("acknowledge_clinical_alert", {
+    audit_request_id: requestId,
+    note_value: parsed.note,
+    target_alert_id: parsed.alertId,
+    target_tenant_id: context.tenantId,
+  });
+
+  if (error || typeof data !== "string") {
+    throw new AppError("INTERNAL_ERROR", "Não foi possível reconhecer alerta.", {
+      cause: error,
+      status: 500,
+    });
+  }
+
+  return data;
+}
+
+export async function createConsultationAddendum(
+  input: CreateConsultationAddendumInput,
+  requestId: string,
+) {
+  const parsed = createConsultationAddendumSchema.parse(input);
+  const context = await resolveAuthorizationContext(parsed.tenantId);
+  requireTenantOrUnitPermission(context, "consultations.manage");
+  requireAal2(context);
+
+  const supabase = await createServerSupabaseClient();
+  const { data, error } = await supabase.rpc("create_consultation_addendum", {
+    audit_request_id: requestId,
+    note_value: parsed.note,
+    reason_value: parsed.reason,
+    target_consultation_id: parsed.consultationId,
+    target_tenant_id: context.tenantId,
+  });
+
+  if (error || typeof data !== "string") {
+    throw new AppError("INTERNAL_ERROR", "Não foi possível registrar adendo.", {
+      cause: error,
+      status: 500,
+    });
+  }
+
+  return data;
+}
+
+export async function pauseEncounterFlow(input: PauseEncounterFlowInput, requestId: string) {
+  const parsed = pauseEncounterFlowSchema.parse(input);
+  const context = await resolveAuthorizationContext(parsed.tenantId);
+  requireClinicalFlowPermission(context);
+  requireAal2(context);
+
+  const supabase = await createServerSupabaseClient();
+  const { data, error } = await supabase.rpc("pause_encounter_flow", {
+    audit_request_id: requestId,
+    reason_value: parsed.reason,
+    target_encounter_id: parsed.encounterId,
+    target_tenant_id: context.tenantId,
+  });
+
+  if (error || typeof data !== "string") {
+    throw new AppError("INTERNAL_ERROR", "Não foi possível pausar o fluxo.", {
+      cause: error,
+      status: 500,
+    });
+  }
+
+  return data;
+}
+
+export async function resolveEncounterFlowPause(
+  input: ResolveEncounterFlowPauseInput,
+  requestId: string,
+) {
+  const parsed = resolveEncounterFlowPauseSchema.parse(input);
+  const context = await resolveAuthorizationContext(parsed.tenantId);
+  requireClinicalFlowPermission(context);
+  requireAal2(context);
+
+  const supabase = await createServerSupabaseClient();
+  const { data, error } = await supabase.rpc("resolve_encounter_flow_pause", {
+    audit_request_id: requestId,
+    resolved_note_value: parsed.resolvedNote,
+    target_pause_id: parsed.pauseId,
+    target_tenant_id: context.tenantId,
+  });
+
+  if (error || typeof data !== "string") {
+    throw new AppError("INTERNAL_ERROR", "Não foi possível retomar o fluxo.", {
       cause: error,
       status: 500,
     });

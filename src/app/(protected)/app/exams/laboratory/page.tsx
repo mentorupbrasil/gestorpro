@@ -2,6 +2,7 @@ import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { requireTenantOrUnitPermission } from "@/core/auth/authorization";
 import { resolveAuthorizationContext } from "@/core/auth/session";
+import { LaboratoryForms } from "./laboratory-forms";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 import { readEmbeddedRelation } from "@/lib/supabase/relations";
 
@@ -99,6 +100,8 @@ export default async function LaboratoryPage() {
           ))}
         </Panel>
       </section>
+
+      <LaboratoryForms />
     </main>
   );
 }

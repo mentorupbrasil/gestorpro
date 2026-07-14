@@ -5,6 +5,7 @@ import { resolveAuthorizationContext } from "@/core/auth/session";
 import { recordSensitiveRead } from "@/features/audit/sensitive-read";
 import { getRequestId } from "@/lib/http/request-id";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
+import { DocumentsWorkspaceForms } from "./documents-forms";
 
 export default async function DocumentsPage() {
   const selectedTenantId = (await cookies()).get("gestorpro_tenant")?.value;
@@ -15,12 +16,20 @@ export default async function DocumentsPage() {
   const requestId = getRequestId(await headers());
 
   const supabase = await createServerSupabaseClient();
-  const [templatesResult, documentsResult, versionsResult, deliveriesResult] = await Promise.all([
+  const [templatesResult, templateVersionsResult, documentsResult, versionsResult, deliveriesResult] =
+    await Promise.all([
     supabase
       .from("document_templates")
       .select("id, code, name, document_type, status")
       .eq("tenant_id", context.tenantId)
       .order("code"),
+    supabase
+      .from("document_template_versions")
+      .select("id, version, status, document_templates(code, name)")
+      .eq("tenant_id", context.tenantId)
+      .eq("status", "approved")
+      .order("created_at", { ascending: false })
+      .limit(40),
     supabase
       .from("generated_documents")
       .select("id, document_type, status, current_version, created_at")
@@ -29,7 +38,7 @@ export default async function DocumentsPage() {
       .limit(30),
     supabase
       .from("document_versions")
-      .select("id, generated_document_id, version, render_status, storage_bucket, created_at")
+      .select("id, generated_document_id, version, render_status, storage_bucket, content_hash, created_at")
       .eq("tenant_id", context.tenantId)
       .order("created_at", { ascending: false })
       .limit(30),
@@ -43,6 +52,7 @@ export default async function DocumentsPage() {
 
   if (
     templatesResult.error ||
+    templateVersionsResult.error ||
     documentsResult.error ||
     versionsResult.error ||
     deliveriesResult.error
@@ -58,6 +68,7 @@ export default async function DocumentsPage() {
   });
 
   const templates = templatesResult.data ?? [];
+  const templateVersions = templateVersionsResult.data ?? [];
   const documents = documentsResult.data ?? [];
   const versions = versionsResult.data ?? [];
   const deliveries = deliveriesResult.data ?? [];
@@ -81,6 +92,23 @@ export default async function DocumentsPage() {
         <Stat label="Versões" value={versions.length} />
         <Stat label="Entregas" value={deliveries.length} />
       </section>
+
+      <DocumentsWorkspaceForms
+        templateVersions={templateVersions.map((item) => {
+          const template = Array.isArray(item.document_templates)
+            ? item.document_templates[0]
+            : item.document_templates;
+          return {
+            id: item.id,
+            label: `${template?.code ?? "TPL"} · v${item.version}`,
+          };
+        })}
+        versions={versions.map((item) => ({
+          contentHash: item.content_hash,
+          id: item.id,
+          label: `doc ${item.generated_document_id.slice(0, 8)} · v${item.version}`,
+        }))}
+      />
 
       <section className="mt-5 rounded-3xl border border-white/70 bg-white/90 p-5 shadow-sm">
         <h2 className="text-lg font-semibold">Documentos recentes</h2>

@@ -1,0 +1,120 @@
+"use client";
+
+import { useActionState, useMemo, useState } from "react";
+import {
+  createDocumentVersionAction,
+  signDocumentVersionAction,
+  type DocumentsFormState,
+} from "./actions";
+
+type TemplateVersionOption = {
+  id: string;
+  label: string;
+};
+
+type VersionOption = {
+  contentHash: string;
+  id: string;
+  label: string;
+};
+
+export function DocumentsWorkspaceForms({
+  templateVersions,
+  versions,
+}: {
+  templateVersions: TemplateVersionOption[];
+  versions: VersionOption[];
+}) {
+  const [selectedVersionId, setSelectedVersionId] = useState(versions[0]?.id ?? "");
+  const selectedHash = useMemo(
+    () => versions.find((item) => item.id === selectedVersionId)?.contentHash ?? "",
+    [selectedVersionId, versions],
+  );
+  const [storagePath] = useState(() => `checkpoint/${crypto.randomUUID()}.bin`);
+  const [idempotencyKey] = useState(() => `doc-${crypto.randomUUID()}`);
+  const [createState, createAction, createPending] = useActionState(
+    createDocumentVersionAction,
+    {} as DocumentsFormState,
+  );
+  const [signState, signAction, signPending] = useActionState(
+    signDocumentVersionAction,
+    {} as DocumentsFormState,
+  );
+
+  return (
+    <div className="mt-6 grid gap-4 lg:grid-cols-2">
+      <form action={createAction} className="space-y-3 rounded-2xl border border-slate-200 bg-white/90 p-4">
+        <h3 className="font-semibold">Gerar versão</h3>
+        <select className="w-full rounded border px-3 py-2 text-sm" name="templateVersionId" required>
+          <option value="">Template version…</option>
+          {templateVersions.map((item) => (
+            <option key={item.id} value={item.id}>
+              {item.label}
+            </option>
+          ))}
+        </select>
+        <input
+          className="w-full rounded border px-3 py-2 text-sm font-mono"
+          name="encounterId"
+          placeholder="encounter_id"
+          required
+        />
+        <select
+          className="w-full rounded border px-3 py-2 text-sm"
+          defaultValue="generic"
+          name="documentType"
+        >
+          <option value="generic">generic</option>
+          <option value="triage_form">triage_form</option>
+          <option value="exam_report">exam_report</option>
+          <option value="aso">aso</option>
+        </select>
+        <input name="storagePath" type="hidden" value={storagePath} />
+        <input name="idempotencyKey" type="hidden" value={idempotencyKey} />
+        <label className="flex items-center gap-2 text-sm">
+          <input name="hasMedicalConclusion" type="checkbox" /> Conclusão médica existente (ASO)
+        </label>
+        <button
+          className="rounded bg-emerald-800 px-3 py-2 text-sm font-medium text-white disabled:opacity-60"
+          disabled={createPending || templateVersions.length === 0}
+          type="submit"
+        >
+          Gerar documento
+        </button>
+        {createState.error ? <p className="text-sm text-red-700">{createState.error}</p> : null}
+        {createState.success ? (
+          <p className="text-sm text-emerald-700">{createState.success}</p>
+        ) : null}
+      </form>
+
+      <form action={signAction} className="space-y-3 rounded-2xl border border-slate-200 bg-white/90 p-4">
+        <h3 className="font-semibold">Assinar versão</h3>
+        <select
+          className="w-full rounded border px-3 py-2 text-sm"
+          name="documentVersionId"
+          onChange={(event) => setSelectedVersionId(event.target.value)}
+          required
+          value={selectedVersionId}
+        >
+          <option value="">Versão…</option>
+          {versions.map((item) => (
+            <option key={item.id} value={item.id}>
+              {item.label}
+            </option>
+          ))}
+        </select>
+        <input name="contentHash" type="hidden" value={selectedHash} />
+        <p className="truncate font-mono text-xs text-slate-500">{selectedHash || "hash…"}</p>
+        <button
+          className="rounded bg-slate-800 px-3 py-2 text-sm font-medium text-white disabled:opacity-60"
+          disabled={signPending || versions.length === 0 || !selectedHash}
+          type="submit"
+        >
+          Assinar (AAL2)
+        </button>
+        {signState.error ? <p className="text-sm text-red-700">{signState.error}</p> : null}
+        {signState.success ? <p className="text-sm text-emerald-700">{signState.success}</p> : null}
+      </form>
+    </div>
+  );
+}
