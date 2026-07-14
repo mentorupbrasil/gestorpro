@@ -16,8 +16,13 @@ export default async function DocumentsPage() {
   const requestId = getRequestId(await headers());
 
   const supabase = await createServerSupabaseClient();
-  const [templatesResult, templateVersionsResult, documentsResult, versionsResult, deliveriesResult] =
-    await Promise.all([
+  const [
+    templatesResult,
+    templateVersionsResult,
+    documentsResult,
+    versionsResult,
+    deliveriesResult,
+  ] = await Promise.all([
     supabase
       .from("document_templates")
       .select("id, code, name, document_type, status")
@@ -38,7 +43,9 @@ export default async function DocumentsPage() {
       .limit(30),
     supabase
       .from("document_versions")
-      .select("id, generated_document_id, version, render_status, storage_bucket, content_hash, created_at")
+      .select(
+        "id, generated_document_id, version, render_status, storage_bucket, content_hash, created_at",
+      )
       .eq("tenant_id", context.tenantId)
       .order("created_at", { ascending: false })
       .limit(30),

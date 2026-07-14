@@ -1,9 +1,6 @@
 import "server-only";
 
-import {
-  requireUnitPermission,
-  type AuthorizationContext,
-} from "@/core/auth/authorization";
+import { requireUnitPermission, type AuthorizationContext } from "@/core/auth/authorization";
 import type { Permission } from "@/core/auth/permissions";
 import { AppError } from "@/core/errors/app-error";
 import { readEmbeddedRelation } from "@/lib/supabase/relations";
@@ -77,8 +74,11 @@ export async function requirePermissionOnExamResult(
   }
 
   const order = readEmbeddedRelation(
-    (data as { exam_orders?: { encounters?: { clinic_unit_id: string } | { clinic_unit_id: string }[] } })
-      .exam_orders,
+    (
+      data as {
+        exam_orders?: { encounters?: { clinic_unit_id: string } | { clinic_unit_id: string }[] };
+      }
+    ).exam_orders,
   );
   requireResolvedUnit(
     context,
@@ -157,7 +157,9 @@ export async function requirePermissionOnLaboratorySample(
   const order = readEmbeddedRelation(
     (
       data as {
-        laboratory_orders?: { encounters?: { clinic_unit_id: string } | { clinic_unit_id: string }[] };
+        laboratory_orders?: {
+          encounters?: { clinic_unit_id: string } | { clinic_unit_id: string }[];
+        };
       }
     ).laboratory_orders,
   );
@@ -192,7 +194,9 @@ export async function requirePermissionOnLaboratoryOrderItem(
   const order = readEmbeddedRelation(
     (
       data as {
-        laboratory_orders?: { encounters?: { clinic_unit_id: string } | { clinic_unit_id: string }[] };
+        laboratory_orders?: {
+          encounters?: { clinic_unit_id: string } | { clinic_unit_id: string }[];
+        };
       }
     ).laboratory_orders,
   );

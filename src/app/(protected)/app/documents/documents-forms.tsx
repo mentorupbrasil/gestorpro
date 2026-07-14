@@ -43,9 +43,16 @@ export function DocumentsWorkspaceForms({
 
   return (
     <div className="mt-6 grid gap-4 lg:grid-cols-2">
-      <form action={createAction} className="space-y-3 rounded-2xl border border-slate-200 bg-white/90 p-4">
+      <form
+        action={createAction}
+        className="space-y-3 rounded-2xl border border-slate-200 bg-white/90 p-4"
+      >
         <h3 className="font-semibold">Gerar versão</h3>
-        <select className="w-full rounded border px-3 py-2 text-sm" name="templateVersionId" required>
+        <select
+          className="w-full rounded border px-3 py-2 text-sm"
+          name="templateVersionId"
+          required
+        >
           <option value="">Template version…</option>
           {templateVersions.map((item) => (
             <option key={item.id} value={item.id}>
@@ -87,7 +94,10 @@ export function DocumentsWorkspaceForms({
         ) : null}
       </form>
 
-      <form action={signAction} className="space-y-3 rounded-2xl border border-slate-200 bg-white/90 p-4">
+      <form
+        action={signAction}
+        className="space-y-3 rounded-2xl border border-slate-200 bg-white/90 p-4"
+      >
         <h3 className="font-semibold">Assinar versão</h3>
         <select
           className="w-full rounded border px-3 py-2 text-sm"

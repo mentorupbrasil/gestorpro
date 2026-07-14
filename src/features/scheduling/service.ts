@@ -1,6 +1,11 @@
 import "server-only";
 
-import { requireAal2, requirePermission, requireTenantOrUnitPermission, requireUnitPermission } from "@/core/auth/authorization";
+import {
+  requireAal2,
+  requirePermission,
+  requireTenantOrUnitPermission,
+  requireUnitPermission,
+} from "@/core/auth/authorization";
 import { resolveAuthorizationContext } from "@/core/auth/session";
 import { AppError } from "@/core/errors/app-error";
 import { simulateRequiredExams } from "@/features/occupational/service";

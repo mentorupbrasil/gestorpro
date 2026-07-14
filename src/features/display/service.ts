@@ -22,12 +22,7 @@ export async function createDisplayPanel(input: CreateDisplayPanelInput) {
   requireAal2(context);
 
   const supabase = await createServerSupabaseClient();
-  await requirePermissionOnClinicUnitRow(
-    supabase,
-    context,
-    parsed.clinicUnitId,
-    "display.manage",
-  );
+  await requirePermissionOnClinicUnitRow(supabase, context, parsed.clinicUnitId, "display.manage");
 
   const { data, error } = await supabase
     .from("display_panels")
@@ -62,12 +57,7 @@ export async function createCallEvent(input: CreateCallEventInput, requestId: st
   requireAal2(context);
 
   const supabase = await createServerSupabaseClient();
-  await requirePermissionOnQueueTicket(
-    supabase,
-    context,
-    parsed.queueTicketId,
-    "display.manage",
-  );
+  await requirePermissionOnQueueTicket(supabase, context, parsed.queueTicketId, "display.manage");
 
   const { data, error } = await supabase.rpc("create_call_event", {
     audit_request_id: requestId,

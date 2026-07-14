@@ -18,12 +18,20 @@ export function DiagnosticExamForm() {
         placeholder="exam_order_id (uuid)"
         required
       />
-      <select className="w-full rounded border px-3 py-2 text-sm" defaultValue="ecg" name="modality">
+      <select
+        className="w-full rounded border px-3 py-2 text-sm"
+        defaultValue="ecg"
+        name="modality"
+      >
         <option value="ecg">ECG</option>
         <option value="eeg">EEG</option>
         <option value="radiology">Radiologia</option>
       </select>
-      <select className="w-full rounded border px-3 py-2 text-sm" defaultValue="reported" name="status">
+      <select
+        className="w-full rounded border px-3 py-2 text-sm"
+        defaultValue="reported"
+        name="status"
+      >
         <option value="prepared">prepared</option>
         <option value="executed">executed</option>
         <option value="reported">reported</option>

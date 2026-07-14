@@ -20,7 +20,11 @@ export type CreateSstIncidentInput = z.infer<typeof createSstIncidentSchema>;
 
 export const createSstEpiIssueSchema = z.object({
   companyId: z.string().uuid(),
-  dueReturnOn: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).optional().nullable(),
+  dueReturnOn: z
+    .string()
+    .regex(/^\d{4}-\d{2}-\d{2}$/)
+    .optional()
+    .nullable(),
   epiCode: z.string().trim().min(1).max(32),
   epiName: z.string().trim().min(1).max(200),
   issuedAt: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
@@ -33,7 +37,11 @@ export type CreateSstEpiIssueInput = z.infer<typeof createSstEpiIssueSchema>;
 
 export const createSstCipaMembershipSchema = z.object({
   companyId: z.string().uuid(),
-  mandateEndsOn: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).optional().nullable(),
+  mandateEndsOn: z
+    .string()
+    .regex(/^\d{4}-\d{2}-\d{2}$/)
+    .optional()
+    .nullable(),
   mandateStartsOn: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
   roleLabel: z.string().trim().min(2).max(120),
   tenantId: z.string().uuid(),

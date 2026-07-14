@@ -47,7 +47,10 @@ export function FinanceWorkspaceForms({
 
   return (
     <section className="mt-5 grid gap-4 lg:grid-cols-2">
-      <form action={snapshotAction} className="space-y-3 rounded-3xl border bg-white/90 p-5 shadow-sm">
+      <form
+        action={snapshotAction}
+        className="space-y-3 rounded-3xl border bg-white/90 p-5 shadow-sm"
+      >
         <h2 className="text-lg font-semibold">1. Snapshot de preço</h2>
         <input
           className="w-full rounded border px-3 py-2 text-sm font-mono"
@@ -101,7 +104,10 @@ export function FinanceWorkspaceForms({
         ) : null}
       </form>
 
-      <form action={billingAction} className="space-y-3 rounded-3xl border bg-white/90 p-5 shadow-sm">
+      <form
+        action={billingAction}
+        className="space-y-3 rounded-3xl border bg-white/90 p-5 shadow-sm"
+      >
         <h2 className="text-lg font-semibold">2. Gerar faturamento</h2>
         <select className="w-full rounded border px-3 py-2 text-sm" name="snapshotId" required>
           <option value="">Snapshot…</option>
@@ -124,7 +130,10 @@ export function FinanceWorkspaceForms({
         ) : null}
       </form>
 
-      <form action={invoiceAction} className="space-y-3 rounded-3xl border bg-white/90 p-5 shadow-sm">
+      <form
+        action={invoiceAction}
+        className="space-y-3 rounded-3xl border bg-white/90 p-5 shadow-sm"
+      >
         <h2 className="text-lg font-semibold">3. Emitir fatura</h2>
         <select className="w-full rounded border px-3 py-2 text-sm" name="billingPayload" required>
           <option value="">Item pending/ready…</option>
@@ -134,7 +143,13 @@ export function FinanceWorkspaceForms({
             </option>
           ))}
         </select>
-        <input className="w-full rounded border px-3 py-2 text-sm" defaultValue={dueOn} name="dueOn" required type="date" />
+        <input
+          className="w-full rounded border px-3 py-2 text-sm"
+          defaultValue={dueOn}
+          name="dueOn"
+          required
+          type="date"
+        />
         <button
           className="rounded bg-emerald-800 px-3 py-2 text-sm font-medium text-white disabled:opacity-60"
           disabled={invoicePending || billingOptions.length === 0}
@@ -148,7 +163,10 @@ export function FinanceWorkspaceForms({
         ) : null}
       </form>
 
-      <form action={paymentAction} className="space-y-3 rounded-3xl border bg-white/90 p-5 shadow-sm">
+      <form
+        action={paymentAction}
+        className="space-y-3 rounded-3xl border bg-white/90 p-5 shadow-sm"
+      >
         <h2 className="text-lg font-semibold">4. Registrar pagamento</h2>
         <select className="w-full rounded border px-3 py-2 text-sm" name="invoiceId" required>
           <option value="">Fatura…</option>
@@ -172,7 +190,11 @@ export function FinanceWorkspaceForms({
           name="method"
           required
         />
-        <input className="w-full rounded border px-3 py-2 text-sm" name="reference" placeholder="referência (opcional)" />
+        <input
+          className="w-full rounded border px-3 py-2 text-sm"
+          name="reference"
+          placeholder="referência (opcional)"
+        />
         <button
           className="rounded bg-slate-800 px-3 py-2 text-sm font-medium text-white disabled:opacity-60"
           disabled={paymentPending || invoiceOptions.length === 0}

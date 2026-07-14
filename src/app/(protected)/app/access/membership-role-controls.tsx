@@ -45,7 +45,8 @@ export function MembershipRoleControls({
   );
 
   const availableRoles = roles.filter((role) => !assignedRoleIds.includes(role.id));
-  const feedback = assignState.error ?? assignState.success ?? revokeState.error ?? revokeState.success;
+  const feedback =
+    assignState.error ?? assignState.success ?? revokeState.error ?? revokeState.success;
   const feedbackIsError = Boolean(assignState.error || revokeState.error);
 
   if (isSelf || !canManageRoles) {
@@ -120,7 +121,9 @@ export function MembershipRoleControls({
 
       {feedback ? (
         <span
-          className={feedbackIsError ? "block text-xs text-red-700" : "block text-xs text-emerald-800"}
+          className={
+            feedbackIsError ? "block text-xs text-red-700" : "block text-xs text-emerald-800"
+          }
           role={feedbackIsError ? "alert" : "status"}
         >
           {feedback}

@@ -53,9 +53,9 @@ export default async function CheckInPage() {
         </p>
         <h1 className="mt-1 text-2xl font-semibold">Check-in transacional</h1>
         <p className="mt-2 max-w-3xl text-sm text-slate-600">
-          O check-in cria atendimento, snapshot com preview do protocolo, etapas (recepção →
-          triagem → exame → consulta → documento), pedidos a partir do encaminhamento, filas,
-          auditoria e outbox em uma única transação (AAL2).
+          O check-in cria atendimento, snapshot com preview do protocolo, etapas (recepção → triagem
+          → exame → consulta → documento), pedidos a partir do encaminhamento, filas, auditoria e
+          outbox em uma única transação (AAL2).
         </p>
       </header>
 

@@ -2,10 +2,7 @@ import { cookies } from "next/headers";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { z } from "zod";
-import {
-  hasTenantOrUnitPermission,
-  requirePermission,
-} from "@/core/auth/authorization";
+import { hasTenantOrUnitPermission, requirePermission } from "@/core/auth/authorization";
 import { resolveAuthorizationContext } from "@/core/auth/session";
 import { loadCompanyPortalOverview } from "@/features/portal/service";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
@@ -82,9 +79,7 @@ export default async function CompanyPortalPage({ searchParams }: PortalPageProp
       ? requestedCompany
       : selectableCompanies[0]?.id;
 
-  const overview = companyId
-    ? await loadCompanyPortalOverview(selectedTenantId, companyId)
-    : null;
+  const overview = companyId ? await loadCompanyPortalOverview(selectedTenantId, companyId) : null;
 
   return (
     <main className="mx-auto max-w-7xl px-2 py-4 sm:px-4">
@@ -133,9 +128,7 @@ export default async function CompanyPortalPage({ searchParams }: PortalPageProp
                 <li className="py-2 text-sm" key={item.id}>
                   <span className="font-medium">{item.statusLabel}</span>
                   <span className="ml-2 text-slate-500">
-                    {item.checkedInAt
-                      ? new Date(item.checkedInAt).toLocaleString("pt-BR")
-                      : "—"}
+                    {item.checkedInAt ? new Date(item.checkedInAt).toLocaleString("pt-BR") : "—"}
                   </span>
                 </li>
               ))
@@ -189,10 +182,7 @@ export default async function CompanyPortalPage({ searchParams }: PortalPageProp
   );
 }
 
-function Panel({
-  children,
-  title,
-}: Readonly<{ children: React.ReactNode; title: string }>) {
+function Panel({ children, title }: Readonly<{ children: React.ReactNode; title: string }>) {
   return (
     <div className="rounded-3xl border border-white/70 bg-white/90 p-5 shadow-sm">
       <h2 className="text-lg font-semibold">{title}</h2>

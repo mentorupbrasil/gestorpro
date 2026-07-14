@@ -7,7 +7,6 @@
 - Fingerprint `src/lib/supabase/database.generated.sha256` regenerado após a migration.
 - Tipos RPC `assign_membership_role` / `revoke_membership_role` adicionados em `database.generated.ts`.
 
-
 ## 2026-07-13 — Validação manual MFA P0.1–P0.3 + RLS negativos
 
 - MFA/TOTP enrollment no usuário demo (`/app/security`): sessão `aal2`.
@@ -36,7 +35,6 @@
 
 - CI `feat/p0-2-consulta-operacional`: success após normalização LF do fingerprint.
 - PR draft: https://github.com/mentorupbrasil/gestorpro/pull/11 (sem merge produção).
-
 
 - Preflight: 0 mismatches de tenant nos vínculos clínicos.
 - Dry-run + apply: `202607140007_p0_4_composite_tenant_fks_clinical.sql`.

@@ -53,7 +53,11 @@ export function ProtocolWorkspace({
         <p className="text-sm text-slate-600">Cria itens e ativa protocolo na versão PCMSO.</p>
         <label className="grid gap-1 text-sm font-medium">
           Versão PCMSO
-          <select className="rounded border border-slate-300 px-3 py-2" name="pcmsoVersionId" required>
+          <select
+            className="rounded border border-slate-300 px-3 py-2"
+            name="pcmsoVersionId"
+            required
+          >
             <option value="">Selecione</option>
             {pcmsoVersions.map((item) => (
               <option key={item.id} value={item.id}>
@@ -120,7 +124,9 @@ export function ProtocolWorkspace({
 
       <form action={simulateAction} className="grid gap-3">
         <h2 className="text-lg font-semibold">Simular exames</h2>
-        <p className="text-sm text-slate-600">Motor `calculateRequiredExams` com protocolo vigente.</p>
+        <p className="text-sm text-slate-600">
+          Motor `calculateRequiredExams` com protocolo vigente.
+        </p>
         <label className="grid gap-1 text-sm font-medium">
           Tipo
           <select
@@ -181,7 +187,9 @@ export function ProtocolWorkspace({
 
       <form action={overrideAction} className="grid gap-3">
         <h2 className="text-lg font-semibold">Override manual</h2>
-        <p className="text-sm text-slate-600">Add/remove auditado com justificativa (≥10). Sem aptidão.</p>
+        <p className="text-sm text-slate-600">
+          Add/remove auditado com justificativa (≥10). Sem aptidão.
+        </p>
         <label className="grid gap-1 text-sm font-medium">
           Ação
           <select className="rounded border border-slate-300 px-3 py-2" name="action" required>
@@ -191,7 +199,11 @@ export function ProtocolWorkspace({
         </label>
         <label className="grid gap-1 text-sm font-medium">
           Exame
-          <select className="rounded border border-slate-300 px-3 py-2" name="examCatalogId" required>
+          <select
+            className="rounded border border-slate-300 px-3 py-2"
+            name="examCatalogId"
+            required
+          >
             <option value="">Selecione</option>
             {catalogs.map((item) => (
               <option key={item.id} value={item.id}>

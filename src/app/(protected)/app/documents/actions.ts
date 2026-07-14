@@ -4,10 +4,7 @@ import { revalidatePath } from "next/cache";
 import { cookies, headers } from "next/headers";
 import { z } from "zod";
 import { AppError } from "@/core/errors/app-error";
-import {
-  createGeneratedDocumentVersion,
-  signDocumentVersion,
-} from "@/features/documents/service";
+import { createGeneratedDocumentVersion, signDocumentVersion } from "@/features/documents/service";
 import { getRequestId } from "@/lib/http/request-id";
 
 export type DocumentsFormState = { error?: string; success?: string };

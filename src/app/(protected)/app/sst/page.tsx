@@ -138,10 +138,7 @@ export default async function SstPage() {
   );
 }
 
-function Panel({
-  children,
-  title,
-}: Readonly<{ children: React.ReactNode; title: string }>) {
+function Panel({ children, title }: Readonly<{ children: React.ReactNode; title: string }>) {
   return (
     <div className="rounded-3xl border border-white/70 bg-white/90 p-5 shadow-sm">
       <h2 className="text-lg font-semibold">{title}</h2>

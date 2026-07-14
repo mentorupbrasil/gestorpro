@@ -74,7 +74,10 @@ export function IntegrationsWorkspaceForms({
         {jobState.success ? <p className="text-sm text-emerald-700">{jobState.success}</p> : null}
       </form>
 
-      <form action={esocialAction} className="space-y-3 rounded-3xl border bg-white/90 p-5 shadow-sm">
+      <form
+        action={esocialAction}
+        className="space-y-3 rounded-3xl border bg-white/90 p-5 shadow-sm"
+      >
         <h2 className="text-lg font-semibold">eSocial sandbox</h2>
         <select className="w-full rounded border px-3 py-2 text-sm" name="layoutVersionId" required>
           <option value="">Layout…</option>

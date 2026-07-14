@@ -30,33 +30,33 @@ export default async function OccupationalPage() {
   const supabase = await createServerSupabaseClient();
   const [companiesResult, workersResult, pcmsoResult, catalogResult, protocolsResult] =
     await Promise.all([
-    supabase
-      .from("companies")
-      .select("id, legal_name, trade_name, tax_id_normalized, status")
-      .eq("tenant_id", context.tenantId)
-      .order("legal_name"),
-    supabase
-      .from("workers")
-      .select("id, full_name, status")
-      .eq("tenant_id", context.tenantId)
-      .order("full_name"),
-    supabase
-      .from("pcmso_versions")
-      .select("id, version_number, valid_from, valid_until, status, companies(legal_name)")
-      .eq("tenant_id", context.tenantId)
-      .order("valid_from", { ascending: false }),
-    supabase
-      .from("exam_catalog")
-      .select("id, code, name, result_type, active")
-      .eq("tenant_id", context.tenantId)
-      .order("code"),
-    supabase
-      .from("exam_protocols")
-      .select("id, occupational_exam_type, status, pcmso_version_id")
-      .eq("tenant_id", context.tenantId)
-      .order("created_at", { ascending: false })
-      .limit(50),
-  ]);
+      supabase
+        .from("companies")
+        .select("id, legal_name, trade_name, tax_id_normalized, status")
+        .eq("tenant_id", context.tenantId)
+        .order("legal_name"),
+      supabase
+        .from("workers")
+        .select("id, full_name, status")
+        .eq("tenant_id", context.tenantId)
+        .order("full_name"),
+      supabase
+        .from("pcmso_versions")
+        .select("id, version_number, valid_from, valid_until, status, companies(legal_name)")
+        .eq("tenant_id", context.tenantId)
+        .order("valid_from", { ascending: false }),
+      supabase
+        .from("exam_catalog")
+        .select("id, code, name, result_type, active")
+        .eq("tenant_id", context.tenantId)
+        .order("code"),
+      supabase
+        .from("exam_protocols")
+        .select("id, occupational_exam_type, status, pcmso_version_id")
+        .eq("tenant_id", context.tenantId)
+        .order("created_at", { ascending: false })
+        .limit(50),
+    ]);
 
   if (
     companiesResult.error ||

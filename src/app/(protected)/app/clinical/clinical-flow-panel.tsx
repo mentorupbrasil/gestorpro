@@ -89,7 +89,11 @@ export function ClinicalFlowPanel({
         <form action={createAlert} className="space-y-3 rounded-xl border border-slate-100 p-4">
           <h3 className="font-medium">Novo alerta</h3>
           <input name="encounterId" type="hidden" value={encounterId} />
-          <select className="w-full rounded border px-3 py-2 text-sm" defaultValue="attention" name="severity">
+          <select
+            className="w-full rounded border px-3 py-2 text-sm"
+            defaultValue="attention"
+            name="severity"
+          >
             <option value="info">info</option>
             <option value="attention">attention</option>
             <option value="urgent">urgent</option>

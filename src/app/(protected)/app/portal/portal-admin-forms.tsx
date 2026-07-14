@@ -1,19 +1,11 @@
 "use client";
 
 import { useActionState } from "react";
-import {
-  upsertPortalUserAction,
-  upsertReleaseRuleAction,
-  type PortalFormState,
-} from "./actions";
+import { upsertPortalUserAction, upsertReleaseRuleAction, type PortalFormState } from "./actions";
 
 type Option = { id: string; label: string };
 
-export function PortalAdminForms({
-  companyOptions,
-}: {
-  companyOptions: Option[];
-}) {
+export function PortalAdminForms({ companyOptions }: { companyOptions: Option[] }) {
   const [userState, userAction, userPending] = useActionState(
     upsertPortalUserAction,
     {} as PortalFormState,
@@ -41,7 +33,11 @@ export function PortalAdminForms({
           placeholder="user_id (uuid)"
           required
         />
-        <select className="w-full rounded border px-3 py-2 text-sm" defaultValue="active" name="status">
+        <select
+          className="w-full rounded border px-3 py-2 text-sm"
+          defaultValue="active"
+          name="status"
+        >
           <option value="active">active</option>
           <option value="suspended">suspended</option>
           <option value="revoked">revoked</option>
@@ -67,7 +63,11 @@ export function PortalAdminForms({
             </option>
           ))}
         </select>
-        <select className="w-full rounded border px-3 py-2 text-sm" defaultValue="aso" name="documentType">
+        <select
+          className="w-full rounded border px-3 py-2 text-sm"
+          defaultValue="aso"
+          name="documentType"
+        >
           <option value="aso">aso</option>
           <option value="exam_report">exam_report</option>
           <option value="triage_form">triage_form</option>

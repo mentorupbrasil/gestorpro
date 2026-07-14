@@ -1,6 +1,10 @@
 import "server-only";
 
-import { hasTenantOrUnitPermission, requireAal2, requirePermission } from "@/core/auth/authorization";
+import {
+  hasTenantOrUnitPermission,
+  requireAal2,
+  requirePermission,
+} from "@/core/auth/authorization";
 import { resolveAuthorizationContext } from "@/core/auth/session";
 import { AppError } from "@/core/errors/app-error";
 import {
@@ -58,10 +62,7 @@ export const requeueDeadLetterSchema = z.object({
 
 export type RequeueDeadLetterInput = z.infer<typeof requeueDeadLetterSchema>;
 
-export async function enqueueIntegrationJob(
-  input: EnqueueIntegrationJobInput,
-  requestId: string,
-) {
+export async function enqueueIntegrationJob(input: EnqueueIntegrationJobInput, requestId: string) {
   const parsed = enqueueIntegrationJobSchema.parse(input);
   const context = await resolveAuthorizationContext(parsed.tenantId);
   requirePermission(context, "integrations.manage");
@@ -127,10 +128,7 @@ export async function createEsocialEvent(input: CreateEsocialEventInput, request
   return data;
 }
 
-export async function registerConnectorSpoolFile(
-  input: RegisterSpoolFileInput,
-  requestId: string,
-) {
+export async function registerConnectorSpoolFile(input: RegisterSpoolFileInput, requestId: string) {
   const parsed = registerSpoolFileSchema.parse(input);
   const context = await resolveAuthorizationContext(parsed.tenantId);
   if (

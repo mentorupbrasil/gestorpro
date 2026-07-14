@@ -3,10 +3,7 @@ import { redirect } from "next/navigation";
 import { requirePermission } from "@/core/auth/authorization";
 import { resolveAuthorizationContext } from "@/core/auth/session";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
-import {
-  accessMembershipListSchema,
-  assignableRoleListSchema,
-} from "@/features/platform/schemas";
+import { accessMembershipListSchema, assignableRoleListSchema } from "@/features/platform/schemas";
 import { MembershipRoleControls } from "./membership-role-controls";
 import { MembershipStatusForm } from "./membership-status-form";
 
@@ -20,7 +17,9 @@ export default async function AccessPage() {
   const [{ data: memberships, error }, { data: roles, error: rolesError }] = await Promise.all([
     supabase
       .from("tenant_memberships")
-      .select("id, user_id, status, user_profiles(display_name), membership_roles(id, roles(id, code, name))")
+      .select(
+        "id, user_id, status, user_profiles(display_name), membership_roles(id, roles(id, code, name))",
+      )
       .eq("tenant_id", context.tenantId)
       .order("created_at"),
     supabase

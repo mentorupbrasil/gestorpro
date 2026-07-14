@@ -53,9 +53,7 @@ export async function createIncidentAction(
         incidentType: form.data.incidentType,
         severity: form.data.severity,
         tenantId: selectedTenantId,
-        workerId: form.data.workerId
-          ? z.string().uuid().parse(form.data.workerId)
-          : null,
+        workerId: form.data.workerId ? z.string().uuid().parse(form.data.workerId) : null,
       },
       getRequestId(await headers()),
     );

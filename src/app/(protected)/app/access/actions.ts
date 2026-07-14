@@ -56,7 +56,10 @@ export async function setMembershipStatusAction(
       requestId,
       route: "/app/access",
     });
-    return mapAccessError(error, "Não foi possível alterar o vínculo. A ação pode não ser permitida.");
+    return mapAccessError(
+      error,
+      "Não foi possível alterar o vínculo. A ação pode não ser permitida.",
+    );
   }
 
   revalidatePath("/app/access");
@@ -84,7 +87,10 @@ export async function assignMembershipRoleAction(
       requestId,
       route: "/app/access",
     });
-    return mapAccessError(error, "Não foi possível conceder o papel. A ação pode não ser permitida.");
+    return mapAccessError(
+      error,
+      "Não foi possível conceder o papel. A ação pode não ser permitida.",
+    );
   }
 
   revalidatePath("/app/access");
@@ -111,7 +117,10 @@ export async function revokeMembershipRoleAction(
       requestId,
       route: "/app/access",
     });
-    return mapAccessError(error, "Não foi possível remover o papel. A ação pode não ser permitida.");
+    return mapAccessError(
+      error,
+      "Não foi possível remover o papel. A ação pode não ser permitida.",
+    );
   }
 
   revalidatePath("/app/access");

@@ -7,14 +7,14 @@ Atualizado em: 2026-07-13
 - Fase A — Reauditoria e correção da fundação: `PARTIAL / IN_PROGRESS`.
 - Produção e merge na `main`: não autorizados.
 - Fechado tecnicamente nesta linha: contenção DML/RPC, escopo por recurso, AAL2 no banco, typegen oficial, P0.1–P0.3 operacionais, FKs compostas ondas 1–3, **P0.5 papéis + P0.6 leitura sensível (código)**.
-- Gate A ainda aberto: checks remotos da PR #11 a confirmar; typegen pós-`012`; auth unit-scoped em exames/agenda residual; ações humanas (`HUMAN_ACTIONS.md`).
-- Correção urgente desta unidade: gate clínico unit-scoped (`requireTenantOrUnitPermission`) + remoção de `supabase/.temp` do Git.
+- Gate A ainda aberto: checks remotos da PR #11 a confirmar; typegen pós-novas migrations; auth unit-scoped residual; ações humanas (`HUMAN_ACTIONS.md`).
+- Estabilização: `023` aplicada; `024` (estrutura/PCMSO RPC) no repo — apply pendente.
 
 | Fase                         | Estado                | Observação                                        |
 | ---------------------------- | --------------------- | ------------------------------------------------- |
 | 0 — Fundação documental      | TECHNICALLY_COMPLETED | auditoria aprovada; ADRs permanecem PROPOSTA      |
 | 1 — Plataforma e segurança   | REAUDIT_IN_PROGRESS   | P0.5 no repo; validação DB pendente               |
-| 2 — Domínio ocupacional      | CHECKPOINT_PUBLISHED  | revisão final posterior solicitada                |
+| 2 — Domínio ocupacional      | CHECKPOINT_PUBLISHED  | estabilização: `024` estrutura/PCMSO RPC pendente |
 | 3 — Encaminhamentos e agenda | CHECKPOINT_PUBLISHED  | revisão final posterior solicitada                |
 | 4 — Check-in, etapas e filas | CHECKPOINT_PUBLISHED  | Fase F `016` aplicada/commitada                   |
 | 5 — Painel de chamadas       | CHECKPOINT_PUBLISHED  | revisão final posterior solicitada                |

@@ -27,7 +27,10 @@ export function SstWorkspaceForms({
 
   return (
     <section className="mt-5 grid gap-4 lg:grid-cols-3">
-      <form action={incidentAction} className="space-y-3 rounded-3xl border bg-white/90 p-5 shadow-sm">
+      <form
+        action={incidentAction}
+        className="space-y-3 rounded-3xl border bg-white/90 p-5 shadow-sm"
+      >
         <h2 className="text-lg font-semibold">Incidente</h2>
         <select className="w-full rounded border px-3 py-2 text-sm" name="companyId" required>
           <option value="">Empresa…</option>
@@ -56,7 +59,11 @@ export function SstWorkspaceForms({
           <option value="property">property</option>
           <option value="other">other</option>
         </select>
-        <select className="w-full rounded border px-3 py-2 text-sm" defaultValue="low" name="severity">
+        <select
+          className="w-full rounded border px-3 py-2 text-sm"
+          defaultValue="low"
+          name="severity"
+        >
           <option value="low">low</option>
           <option value="medium">medium</option>
           <option value="high">high</option>

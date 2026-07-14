@@ -1,6 +1,11 @@
 import "server-only";
 
-import { requireAal2, requireTenantOrUnitPermission, requireUnitPermission, hasTenantOrUnitPermission } from "@/core/auth/authorization";
+import {
+  requireAal2,
+  requireTenantOrUnitPermission,
+  requireUnitPermission,
+  hasTenantOrUnitPermission,
+} from "@/core/auth/authorization";
 import { resolveAuthorizationContext } from "@/core/auth/session";
 import { AppError } from "@/core/errors/app-error";
 import { recordSensitiveRead } from "@/features/audit/sensitive-read";

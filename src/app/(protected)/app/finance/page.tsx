@@ -96,8 +96,8 @@ export default async function FinancePage() {
           Contratos, faturamento e acesso da empresa
         </h1>
         <p className="mt-3 max-w-3xl text-sm leading-6 text-slate-600">
-          Preço comercial é snapshot imutável e não altera regra clínica. Ciclo: snapshot → billing →
-          fatura → pagamento (AAL2).
+          Preço comercial é snapshot imutável e não altera regra clínica. Ciclo: snapshot → billing
+          → fatura → pagamento (AAL2).
         </p>
       </header>
 

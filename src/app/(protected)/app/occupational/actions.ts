@@ -179,14 +179,15 @@ export async function createPcmsoVersionAction(
   });
   if (!form.success) return { error: "Revise empresa, vigência e versão do PCMSO." };
 
+  const requestId = getRequestId(await headers());
   try {
-    await createPcmsoVersion({ ...form.data, tenantId: selectedTenantId });
+    await createPcmsoVersion({ ...form.data, tenantId: selectedTenantId }, requestId);
   } catch (error) {
     return { error: mfaMessage(error) ?? "Não foi possível criar a versão PCMSO." };
   }
 
   revalidatePath("/app/occupational");
-  return { success: "Versão PCMSO aprovada e protegida contra alteração retroativa." };
+  return { success: "Versão PCMSO publicada com hash e proteção contra alteração retroativa." };
 }
 
 export async function createOccupationalStructureAction(
@@ -214,8 +215,9 @@ export async function createOccupationalStructureAction(
   });
   if (!form.success) return { error: "Revise empresa, trabalhador, estrutura, risco e vigência." };
 
+  const requestId = getRequestId(await headers());
   try {
-    await createOccupationalStructure({ ...form.data, tenantId: selectedTenantId });
+    await createOccupationalStructure({ ...form.data, tenantId: selectedTenantId }, requestId);
   } catch (error) {
     return { error: mfaMessage(error) ?? "Não foi possível criar estrutura e vínculo." };
   }
