@@ -16,7 +16,7 @@ Atualizado em: 2026-07-13
 | 1 — Plataforma e segurança   | REAUDIT_IN_PROGRESS   | P0.5 no repo; validação DB pendente               |
 | 2 — Domínio ocupacional      | CHECKPOINT_PUBLISHED  | revisão final posterior solicitada                |
 | 3 — Encaminhamentos e agenda | CHECKPOINT_PUBLISHED  | revisão final posterior solicitada                |
-| 4 — Check-in, etapas e filas | CHECKPOINT_PUBLISHED  | revisão final posterior solicitada                |
+| 4 — Check-in, etapas e filas | CHECKPOINT_IN_PROGRESS | Fase F: `016` check-in protocolo (apply dono)     |
 | 5 — Painel de chamadas       | CHECKPOINT_PUBLISHED  | revisão final posterior solicitada                |
 | 6 — Triagem e consulta       | CHECKPOINT_PUBLISHED  | P0.1–P0.3 operacionais OK                         |
 | 7 — Exames complementares    | CHECKPOINT_PUBLISHED  | validação profissional futura                     |

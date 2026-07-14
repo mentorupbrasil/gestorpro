@@ -9,6 +9,7 @@ export const checkInSchema = z.object({
 export const encounterListSchema = z.array(
   z.object({
     checked_in_at: z.string(),
+    exam_orders: z.array(z.object({ id: z.uuid() })).nullable().optional(),
     id: z.uuid(),
     status: z.string(),
     workers: z.object({ full_name: z.string() }).nullable(),

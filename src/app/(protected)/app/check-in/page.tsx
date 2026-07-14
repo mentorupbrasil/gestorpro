@@ -24,7 +24,7 @@ export default async function CheckInPage() {
       .order("starts_at"),
     supabase
       .from("encounters")
-      .select("id, status, checked_in_at, workers(full_name)")
+      .select("id, status, checked_in_at, workers(full_name), exam_orders(id)")
       .eq("tenant_id", context.tenantId)
       .order("checked_in_at", { ascending: false }),
     supabase
@@ -53,8 +53,9 @@ export default async function CheckInPage() {
         </p>
         <h1 className="mt-1 text-2xl font-semibold">Check-in transacional</h1>
         <p className="mt-2 max-w-3xl text-sm text-slate-600">
-          O check-in cria atendimento, snapshot imutável, etapas, pedidos iniciais, ticket de fila,
-          auditoria e outbox em uma única transação.
+          O check-in cria atendimento, snapshot com preview do protocolo, etapas (recepção →
+          triagem → exame → consulta → documento), pedidos a partir do encaminhamento, filas,
+          auditoria e outbox em uma única transação (AAL2).
         </p>
       </header>
 
@@ -76,14 +77,20 @@ export default async function CheckInPage() {
             </p>
           ) : (
             <ul className="mt-4 divide-y divide-slate-200 text-sm">
-              {encounters.map((encounter) => (
-                <li className="py-3" key={encounter.id}>
-                  <span className="font-semibold">
-                    {encounter.workers?.full_name ?? "Trabalhador"}
-                  </span>
-                  <span className="ml-2 text-slate-600">{encounter.status}</span>
-                </li>
-              ))}
+              {encounters.map((encounter) => {
+                const examCount = encounter.exam_orders?.length ?? 0;
+                return (
+                  <li className="py-3" key={encounter.id}>
+                    <span className="font-semibold">
+                      {encounter.workers?.full_name ?? "Trabalhador"}
+                    </span>
+                    <span className="ml-2 text-slate-600">
+                      {encounter.status}
+                      {examCount > 0 ? ` · ${examCount} pedido(s) de exame` : ""}
+                    </span>
+                  </li>
+                );
+              })}
             </ul>
           )}
         </div>
