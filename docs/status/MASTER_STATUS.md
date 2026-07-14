@@ -18,10 +18,10 @@ Atualizado em: 2026-07-13
 | 3 — Encaminhamentos e agenda | CHECKPOINT_PUBLISHED  | revisão final posterior solicitada                |
 | 4 — Check-in, etapas e filas | CHECKPOINT_PUBLISHED  | Fase F `016` aplicada/commitada                   |
 | 5 — Painel de chamadas       | CHECKPOINT_PUBLISHED  | revisão final posterior solicitada                |
-| 6 — Triagem e consulta       | CHECKPOINT_IN_PROGRESS | Fase G: `017` alertas/adendo/pausa (apply dono)  |
-| 7 — Exames complementares    | CHECKPOINT_IN_PROGRESS | Fase H: wire diagnóstico+lab UI                   |
-| 8 — Documentos               | CHECKPOINT_IN_PROGRESS | Fase I: `018` + generate/sign UI (apply dono)     |
-| 9 — Financeiro e portal      | CHECKPOINT_PUBLISHED  | validação contábil/jurídica futura                |
+| 6 — Triagem e consulta       | CHECKPOINT_PUBLISHED  | Fase G `017` aplicada                             |
+| 7 — Exames complementares    | CHECKPOINT_PUBLISHED  | Fase H wire diagnóstico+lab                       |
+| 8 — Documentos               | CHECKPOINT_PUBLISHED  | Fase I `018` aplicada                             |
+| 9 — Financeiro e portal      | CHECKPOINT_IN_PROGRESS | Fase J: `019` snapshot/billing/pay (apply dono)  |
 | 10 — Integrações             | CHECKPOINT_PUBLISHED  | eSocial oficial consultado; sem envio real        |
 | 11 — Produção e piloto       | CHECKPOINT_PUBLISHED  | relatório NO-GO; sem GO de produção               |
 

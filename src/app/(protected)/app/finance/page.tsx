@@ -4,6 +4,7 @@ import { requirePermission } from "@/core/auth/authorization";
 import { resolveAuthorizationContext } from "@/core/auth/session";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 import { readEmbeddedRelation } from "@/lib/supabase/relations";
+import { FinanceWorkspaceForms } from "./finance-forms";
 
 function money(cents: number) {
   return new Intl.NumberFormat("pt-BR", { currency: "BRL", style: "currency" }).format(cents / 100);
@@ -17,15 +18,34 @@ export default async function FinancePage() {
   requirePermission(context, "finance.read");
 
   const supabase = await createServerSupabaseClient();
-  const [contractsResult, billingResult, invoicesResult, portalUsersResult] = await Promise.all([
+  const [
+    contractsResult,
+    priceTablesResult,
+    snapshotsResult,
+    billingResult,
+    invoicesResult,
+    portalUsersResult,
+  ] = await Promise.all([
     supabase
       .from("commercial_contracts")
       .select("id, code, name, status, companies(legal_name)")
       .eq("tenant_id", context.tenantId)
       .order("code"),
     supabase
+      .from("commercial_price_tables")
+      .select("id, version, status, contract_id, commercial_contracts(code)")
+      .eq("tenant_id", context.tenantId)
+      .order("created_at", { ascending: false })
+      .limit(40),
+    supabase
+      .from("encounter_price_snapshots")
+      .select("id, encounter_id, created_at, content_hash")
+      .eq("tenant_id", context.tenantId)
+      .order("created_at", { ascending: false })
+      .limit(40),
+    supabase
       .from("billing_items")
-      .select("id, description, amount_cents, billable, status, companies(legal_name)")
+      .select("id, company_id, description, amount_cents, billable, status, companies(legal_name)")
       .eq("tenant_id", context.tenantId)
       .order("created_at", { ascending: false })
       .limit(40),
@@ -45,6 +65,8 @@ export default async function FinancePage() {
 
   if (
     contractsResult.error ||
+    priceTablesResult.error ||
+    snapshotsResult.error ||
     billingResult.error ||
     invoicesResult.error ||
     portalUsersResult.error
@@ -53,6 +75,8 @@ export default async function FinancePage() {
   }
 
   const contracts = contractsResult.data ?? [];
+  const priceTables = priceTablesResult.data ?? [];
+  const snapshots = snapshotsResult.data ?? [];
   const billing = billingResult.data ?? [];
   const invoices = invoicesResult.data ?? [];
   const portalUsers = portalUsersResult.data ?? [];
@@ -72,8 +96,8 @@ export default async function FinancePage() {
           Contratos, faturamento e acesso da empresa
         </h1>
         <p className="mt-3 max-w-3xl text-sm leading-6 text-slate-600">
-          Preço comercial é snapshot e não altera regra clínica. Portal empresarial não deve expor
-          prontuário, observação interna ou status clínico sensível.
+          Preço comercial é snapshot imutável e não altera regra clínica. Ciclo: snapshot → billing →
+          fatura → pagamento (AAL2).
         </p>
       </header>
 
@@ -83,6 +107,38 @@ export default async function FinancePage() {
         <Card label="Faturado" value={money(invoicedTotal)} />
         <Card label="Usuários portal" value={portalUsers.length} />
       </section>
+
+      <FinanceWorkspaceForms
+        billingOptions={billing
+          .filter((item) => item.billable && ["pending", "ready"].includes(item.status))
+          .map((item) => ({
+            id: `${item.id}|${item.company_id}`,
+            label: `${item.description} · ${money(item.amount_cents)}`,
+          }))}
+        contractOptions={contracts.map((item) => ({
+          id: item.id,
+          label: `${item.code} · ${readEmbeddedRelation(item.companies)?.legal_name ?? "Empresa"}`,
+        }))}
+        invoiceOptions={invoices
+          .filter((item) => ["issued", "partially_paid", "overdue"].includes(item.status))
+          .map((item) => ({
+            id: item.id,
+            label: `${money(item.total_cents)} · ${item.status}`,
+          }))}
+        priceTableOptions={priceTables.map((item) => {
+          const contract = Array.isArray(item.commercial_contracts)
+            ? item.commercial_contracts[0]
+            : item.commercial_contracts;
+          return {
+            id: item.id,
+            label: `${contract?.code ?? "CTR"} · v${item.version} (${item.status})`,
+          };
+        })}
+        snapshotOptions={snapshots.map((item) => ({
+          id: item.id,
+          label: `${item.encounter_id.slice(0, 8)}… · ${new Date(item.created_at).toLocaleString("pt-BR")}`,
+        }))}
+      />
 
       <section className="mt-5 rounded-3xl border border-white/70 bg-white/90 p-5 shadow-sm">
         <h2 className="text-lg font-semibold">Itens de faturamento</h2>
