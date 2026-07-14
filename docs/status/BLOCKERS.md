@@ -17,8 +17,8 @@
 
 ## P0.4 / P0.5 / P0.6
 
-- `010`–`019` aplicadas (dono).
-- `020` (Fase K portal) no repo — apply pendente.
+- `010`–`020` aplicadas (dono).
+- `021` (Fase L integrações) no repo — apply pendente.
 
 ## Já resolvido (não reabrir)
 

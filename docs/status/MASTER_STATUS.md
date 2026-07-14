@@ -21,8 +21,8 @@ Atualizado em: 2026-07-13
 | 6 — Triagem e consulta       | CHECKPOINT_PUBLISHED  | Fase G `017` aplicada                             |
 | 7 — Exames complementares    | CHECKPOINT_PUBLISHED  | Fase H wire diagnóstico+lab                       |
 | 8 — Documentos               | CHECKPOINT_PUBLISHED  | Fase I `018` aplicada                             |
-| 9 — Financeiro e portal      | CHECKPOINT_IN_PROGRESS | J `019` + K `020` portal/matriz (apply dono)     |
-| 10 — Integrações             | CHECKPOINT_PUBLISHED  | eSocial oficial consultado; sem envio real        |
+| 9 — Financeiro e portal      | CHECKPOINT_PUBLISHED  | J `019` + K `020`                                 |
+| 10 — Integrações             | CHECKPOINT_IN_PROGRESS | Fase L: `021` spool/dead-letter (apply dono)     |
 | 11 — Produção e piloto       | CHECKPOINT_PUBLISHED  | relatório NO-GO; sem GO de produção               |
 
 Branch de trabalho: `feat/p0-2-consulta-operacional`. PR draft: https://github.com/mentorupbrasil/gestorpro/pull/11

@@ -3,6 +3,7 @@ import { redirect } from "next/navigation";
 import { requirePermission } from "@/core/auth/authorization";
 import { resolveAuthorizationContext } from "@/core/auth/session";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
+import { IntegrationsWorkspaceForms } from "./integrations-forms";
 
 export default async function IntegrationsPage() {
   const selectedTenantId = (await cookies()).get("gestorpro_tenant")?.value;
@@ -19,6 +20,9 @@ export default async function IntegrationsPage() {
     messagesResult,
     equipmentResult,
     deadLettersResult,
+    connectorsResult,
+    layoutsResult,
+    spoolResult,
   ] = await Promise.all([
     supabase
       .from("integration_connections")
@@ -45,14 +49,33 @@ export default async function IntegrationsPage() {
       .limit(30),
     supabase
       .from("equipment_registry")
-      .select("id, code, name, equipment_type, status")
+      .select("id, serial_number, equipment_type, status")
       .eq("tenant_id", context.tenantId)
-      .order("name"),
+      .order("serial_number"),
     supabase
       .from("integration_dead_letters")
-      .select("id, reason_redacted, created_at")
+      .select("id, reason_redacted, created_at, reprocessed_at")
+      .eq("tenant_id", context.tenantId)
+      .is("reprocessed_at", null)
+      .order("created_at", { ascending: false })
+      .limit(30),
+    supabase
+      .from("local_connectors")
+      .select("id, connector_name, status")
       .eq("tenant_id", context.tenantId)
       .order("created_at", { ascending: false })
+      .limit(40),
+    supabase
+      .from("esocial_layout_versions")
+      .select("id, version, technical_note, status")
+      .eq("tenant_id", context.tenantId)
+      .order("created_at", { ascending: false })
+      .limit(40),
+    supabase
+      .from("connector_spool_entries")
+      .select("id, file_name, status, monitored_folder, detected_at")
+      .eq("tenant_id", context.tenantId)
+      .order("detected_at", { ascending: false })
       .limit(30),
   ]);
 
@@ -62,7 +85,10 @@ export default async function IntegrationsPage() {
     esocialResult.error ||
     messagesResult.error ||
     equipmentResult.error ||
-    deadLettersResult.error
+    deadLettersResult.error ||
+    connectorsResult.error ||
+    layoutsResult.error ||
+    spoolResult.error
   ) {
     throw new Error("Não foi possível carregar integrações.");
   }
@@ -73,6 +99,9 @@ export default async function IntegrationsPage() {
   const messages = messagesResult.data ?? [];
   const equipment = equipmentResult.data ?? [];
   const deadLetters = deadLettersResult.data ?? [];
+  const connectors = connectorsResult.data ?? [];
+  const layouts = layoutsResult.data ?? [];
+  const spool = spoolResult.data ?? [];
 
   return (
     <main className="mx-auto max-w-7xl px-2 py-4 sm:px-4">
@@ -84,19 +113,39 @@ export default async function IntegrationsPage() {
           Webhooks, eSocial, mensagens e conector
         </h1>
         <p className="mt-3 max-w-3xl text-sm leading-6 text-slate-600">
-          Integrações ficam idempotentes, com payload redigido e dead-letter. eSocial segue sem
-          envio real até validação oficial separada.
+          Jobs idempotentes, dead-letter reprocessável, spool de pasta monitorada e eSocial só em
+          sandbox (`restricted_production`). Sem envio real de produção.
         </p>
       </header>
 
-      <section className="mt-5 grid gap-4 md:grid-cols-3 xl:grid-cols-6">
+      <section className="mt-5 grid gap-4 md:grid-cols-3 xl:grid-cols-7">
         <Metric label="Conexões" value={connections.length} />
         <Metric label="Jobs" value={jobs.length} />
         <Metric label="eSocial" value={esocialEvents.length} />
         <Metric label="Mensagens" value={messages.length} />
         <Metric label="Equipamentos" value={equipment.length} />
+        <Metric label="Spool" value={spool.length} />
         <Metric label="Dead-letter" value={deadLetters.length} />
       </section>
+
+      <IntegrationsWorkspaceForms
+        connectionOptions={connections.map((item) => ({
+          id: item.id,
+          label: `${item.display_name} · ${item.status}`,
+        }))}
+        connectorOptions={connectors.map((item) => ({
+          id: item.id,
+          label: `${item.connector_name} · ${item.status}`,
+        }))}
+        deadLetterOptions={deadLetters.map((item) => ({
+          id: item.id,
+          label: item.reason_redacted.slice(0, 64),
+        }))}
+        layoutOptions={layouts.map((item) => ({
+          id: item.id,
+          label: `${item.version} · ${item.technical_note} (${item.status})`,
+        }))}
+      />
 
       <section className="mt-5 grid gap-5 xl:grid-cols-2">
         <Panel empty="Nenhuma conexão cadastrada." title="Conexões">
@@ -117,6 +166,23 @@ export default async function IntegrationsPage() {
                 {event.environment} · {event.operation_type} · {event.status} · v
                 {event.payload_version}
               </span>
+            </li>
+          ))}
+        </Panel>
+        <Panel empty="Spool vazio." title="Pasta monitorada">
+          {spool.map((entry) => (
+            <li className="py-3" key={entry.id}>
+              <span className="font-semibold">{entry.file_name}</span>
+              <span className="ml-2 text-sm text-slate-600">
+                {entry.status} · {entry.monitored_folder}
+              </span>
+            </li>
+          ))}
+        </Panel>
+        <Panel empty="Sem dead-letter aberta." title="Dead-letter aberta">
+          {deadLetters.map((item) => (
+            <li className="py-3" key={item.id}>
+              <span className="font-semibold">{item.reason_redacted}</span>
             </li>
           ))}
         </Panel>
