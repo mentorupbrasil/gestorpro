@@ -7945,6 +7945,19 @@ export type Database = {
         };
         Returns: string;
       };
+      create_referral_with_protocol: {
+        Args: {
+          audit_request_id: string;
+          exam_items_value: Json;
+          exam_preview_value: Json;
+          occupational_exam_type_value: string;
+          target_company_id: string;
+          target_tenant_id: string;
+          target_worker_id: string;
+          valid_until_value: string | null;
+        };
+        Returns: string;
+      };
       create_clinic_unit: {
         Args: {
           audit_request_id: string;

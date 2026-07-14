@@ -81,8 +81,8 @@ export default async function SchedulingPage() {
         </p>
         <h1 className="mt-1 text-2xl font-semibold">Encaminhamentos e agenda</h1>
         <p className="mt-2 max-w-3xl text-sm text-slate-600">
-          Agendamento não cria atendimento clínico. Conflitos de recurso são bloqueados e histórico
-          fica preservado.
+          Encaminhamento calcula exames pelo protocolo vigente. Agendamento não cria atendimento
+          clínico; conflitos de recurso são bloqueados.
         </p>
       </header>
 

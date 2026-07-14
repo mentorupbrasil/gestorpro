@@ -13,6 +13,10 @@ export const createScheduleResourceSchema = z.object({
 });
 
 export const createReferralSchema = z.object({
+  asOf: z
+    .string()
+    .regex(/^[0-9]{4}-[0-9]{2}-[0-9]{2}$/)
+    .optional(),
   companyId: z.uuid(),
   occupationalExamType: z.enum([
     "admission",
@@ -21,6 +25,7 @@ export const createReferralSchema = z.object({
     "return_to_work",
     "change_of_risk",
   ]),
+  riskCodes: z.array(z.string().trim().min(1).max(32)).default([]),
   tenantId: z.uuid(),
   validUntil: z
     .string()

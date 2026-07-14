@@ -366,7 +366,15 @@ export async function createExamProtocolPackage(
 export async function simulateRequiredExams(input: SimulateRequiredExamsInput) {
   const parsed = simulateRequiredExamsSchema.parse(input);
   const context = await resolveAuthorizationContext(parsed.tenantId);
-  requirePermission(context, "occupational.read");
+  const canSimulate =
+    context.permissions.has("occupational.read") ||
+    context.permissions.has("referrals.manage") ||
+    context.permissions.has("protocols.manage");
+  if (!canSimulate) {
+    throw new AppError("PERMISSION_DENIED", "Você não possui permissão para esta ação.", {
+      status: 403,
+    });
+  }
 
   const supabase = await createServerSupabaseClient();
   const { data: protocolRows, error } = await supabase
