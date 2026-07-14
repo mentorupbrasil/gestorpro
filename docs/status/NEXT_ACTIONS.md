@@ -1,6 +1,6 @@
 # Próximas ações
 
-1. Aplicar no Supabase: `supabase/migrations/202607140022_fase_m_sst_incidents_epi_cipa.sql`
-2. Commitar feature quando quiser
-3. Antes da Fase N / GO: alinhar com o dono o que falta discutir (deploy, proteção da main, evidências, etc.)
-4. Sem merge/`main`/produção
+1. Aplicar `202607140023_stabilization_sst_rpc_occupational_writes.sql` (`.sql` puro)
+2. Commitar quando quiser
+3. Dívida confirmada (não “fecho” nesta sessão): PCMSO aprovação humanizada; DML occupational restante; ASO PDF real; preço financeiro server-side; portal invite/IDOR; CI/Vercel verdes com evidência; break-glass
+4. Sem merge/`main`/produção — **NO-GO**

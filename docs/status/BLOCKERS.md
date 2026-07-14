@@ -17,9 +17,10 @@
 
 ## P0.4 / P0.5 / P0.6
 
-- `010`–`021` aplicadas (dono).
-- `022` (Fase M SST) no repo — apply pendente.
-- Fase N / produção: **NO-GO** até conversa e GO humano.
+- `010`–`022` aplicadas (dono).
+- `023` (estabilização SST/RPC ocupacional) no repo — apply pendente.
+- Dívida P0/P1 ainda aberta: PCMSO fluxo aprovação; DML occupational residual; ASO PDF; preço server-side; portal IDOR; CI/Dependency Review/Vercel — evidência externa.
+- Fase N / produção: **NO-GO**.
 
 ## Já resolvido (não reabrir)
 

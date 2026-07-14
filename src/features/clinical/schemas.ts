@@ -347,7 +347,8 @@ export const createClinicalAlertSchema = z.object({
   tenantId: z.string().uuid(),
 });
 
-export type CreateClinicalAlertInput = z.infer<typeof createClinicalAlertSchema>;
+export type CreateClinicalAlertInput = z.input<typeof createClinicalAlertSchema>;
+export type CreateClinicalAlertParsed = z.output<typeof createClinicalAlertSchema>;
 
 export const acknowledgeClinicalAlertSchema = z.object({
   alertId: z.string().uuid(),
@@ -355,7 +356,8 @@ export const acknowledgeClinicalAlertSchema = z.object({
   tenantId: z.string().uuid(),
 });
 
-export type AcknowledgeClinicalAlertInput = z.infer<typeof acknowledgeClinicalAlertSchema>;
+export type AcknowledgeClinicalAlertInput = z.input<typeof acknowledgeClinicalAlertSchema>;
+export type AcknowledgeClinicalAlertParsed = z.output<typeof acknowledgeClinicalAlertSchema>;
 
 export const createConsultationAddendumSchema = z.object({
   consultationId: z.string().uuid(),
@@ -380,4 +382,5 @@ export const resolveEncounterFlowPauseSchema = z.object({
   tenantId: z.string().uuid(),
 });
 
-export type ResolveEncounterFlowPauseInput = z.infer<typeof resolveEncounterFlowPauseSchema>;
+export type ResolveEncounterFlowPauseInput = z.input<typeof resolveEncounterFlowPauseSchema>;
+export type ResolveEncounterFlowPauseParsed = z.output<typeof resolveEncounterFlowPauseSchema>;

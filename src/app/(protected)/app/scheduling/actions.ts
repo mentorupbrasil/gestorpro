@@ -97,7 +97,10 @@ export async function createScheduleResourceAction(
   if (!form.success) return { error: "Revise unidade, tipo e código do recurso." };
 
   try {
-    await createScheduleResource({ ...form.data, tenantId: selectedTenantId });
+    await createScheduleResource(
+      { ...form.data, tenantId: selectedTenantId },
+      getRequestId(await headers()),
+    );
   } catch (error) {
     return { error: publicError(error, "Não foi possível criar o recurso.") };
   }

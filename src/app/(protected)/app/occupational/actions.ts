@@ -150,7 +150,10 @@ export async function createExamCatalogItemAction(
   if (!form.success) return { error: "Revise código, nome e tipo do exame." };
 
   try {
-    await createExamCatalogItem({ ...form.data, tenantId: selectedTenantId });
+    await createExamCatalogItem(
+      { ...form.data, tenantId: selectedTenantId },
+      getRequestId(await headers()),
+    );
   } catch (error) {
     return { error: mfaMessage(error) ?? "Não foi possível criar o exame do catálogo." };
   }

@@ -77,32 +77,29 @@ export async function createWorker(input: CreateWorkerInput, requestId: string) 
   return data;
 }
 
-export async function createExamCatalogItem(input: CreateExamCatalogItemInput) {
+export async function createExamCatalogItem(input: CreateExamCatalogItemInput, requestId: string) {
   const parsed = createExamCatalogItemSchema.parse(input);
   const context = await resolveAuthorizationContext(parsed.tenantId);
   requirePermission(context, "protocols.manage");
   requireAal2(context);
 
   const supabase = await createServerSupabaseClient();
-  const { data, error } = await supabase
-    .from("exam_catalog")
-    .insert({
-      code: parsed.code,
-      name: parsed.name,
-      result_type: parsed.resultType,
-      tenant_id: context.tenantId,
-    })
-    .select("id")
-    .single();
+  const { data, error } = await supabase.rpc("create_exam_catalog_item", {
+    audit_request_id: requestId,
+    code_value: parsed.code,
+    name_value: parsed.name,
+    result_type_value: parsed.resultType,
+    target_tenant_id: context.tenantId,
+  });
 
-  if (error || !data?.id) {
+  if (error || typeof data !== "string") {
     throw new AppError("INTERNAL_ERROR", "Não foi possível criar o exame do catálogo.", {
       cause: error,
       status: 500,
     });
   }
 
-  return data.id as string;
+  return data;
 }
 
 export async function createPcmsoVersion(input: CreatePcmsoVersionInput) {

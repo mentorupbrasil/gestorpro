@@ -1,6 +1,6 @@
 import "server-only";
 
-import { requireAal2, requirePermission } from "@/core/auth/authorization";
+import { requireAal2, requirePermission, requireTenantOrUnitPermission, requireUnitPermission } from "@/core/auth/authorization";
 import { resolveAuthorizationContext } from "@/core/auth/session";
 import { AppError } from "@/core/errors/app-error";
 import { simulateRequiredExams } from "@/features/occupational/service";
@@ -84,37 +84,34 @@ export async function createReferral(input: CreateReferralInput, requestId: stri
   return { examCount: calculated.exams.length, id: data };
 }
 
-export async function createScheduleResource(input: CreateScheduleResourceInput) {
+export async function createScheduleResource(
+  input: CreateScheduleResourceInput,
+  requestId: string,
+) {
   const parsed = createScheduleResourceSchema.parse(input);
   const context = await resolveAuthorizationContext(parsed.tenantId);
-  requirePermission(context, "schedule.manage");
+  requireTenantOrUnitPermission(context, "schedule.manage");
+  requireUnitPermission(context, parsed.clinicUnitId, "schedule.manage");
   requireAal2(context);
 
   const supabase = await createServerSupabaseClient();
-  const { data, error } = await supabase
-    .from("schedule_resources")
-    .upsert(
-      {
-        clinic_unit_id: parsed.clinicUnitId,
-        code: parsed.code,
-        name: parsed.name,
-        resource_type: parsed.resourceType,
-        status: "active",
-        tenant_id: context.tenantId,
-      },
-      { onConflict: "tenant_id,clinic_unit_id,code" },
-    )
-    .select("id")
-    .single();
+  const { data, error } = await supabase.rpc("upsert_schedule_resource", {
+    audit_request_id: requestId,
+    code_value: parsed.code,
+    name_value: parsed.name,
+    resource_type_value: parsed.resourceType,
+    target_clinic_unit_id: parsed.clinicUnitId,
+    target_tenant_id: context.tenantId,
+  });
 
-  if (error || !data?.id) {
+  if (error || typeof data !== "string") {
     throw new AppError("INTERNAL_ERROR", "Não foi possível criar o recurso de agenda.", {
       cause: error,
       status: 500,
     });
   }
 
-  return data.id as string;
+  return data;
 }
 
 export async function createAppointment(input: CreateAppointmentInput, requestId: string) {
