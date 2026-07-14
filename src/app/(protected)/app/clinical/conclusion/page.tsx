@@ -7,6 +7,7 @@ import { loadWorkspaceAuth } from "@/core/auth/load-workspace-auth";
 import { AppError } from "@/core/errors/app-error";
 import { loadConclusionWorkspace } from "@/features/clinical/service";
 import { ConclusionStation } from "../conclusion-station";
+import { ConclusionClosureForms } from "../conclusion-closure-forms";
 
 type Props = { searchParams?: Promise<{ conclusion?: string }> };
 
@@ -53,6 +54,14 @@ export default async function ConclusionStationPage({ searchParams }: Props) {
         queue={workspace.queue}
         selectedEncounter={workspace.selectedEncounter}
         selectedRecord={workspace.selectedRecord}
+      />
+      <ConclusionClosureForms
+        conclusionId={workspace.selectedRecord?.conclusionId}
+        conclusionVersion={1}
+        encounterId={
+          workspace.selectedRecord?.encounterId ?? workspace.selectedEncounter?.encounterId
+        }
+        encounterVersion={1}
       />
     </div>
   );

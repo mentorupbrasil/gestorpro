@@ -5,9 +5,11 @@ import { cookies, headers } from "next/headers";
 import { z } from "zod";
 import { AppError } from "@/core/errors/app-error";
 import { createCallEvent, createDisplayPanel } from "@/features/display/service";
+import { createServerSupabaseClient } from "@/lib/supabase/server";
 import { getRequestId } from "@/lib/http/request-id";
+import { randomBytes } from "node:crypto";
 
-export type DisplayFormState = { error?: string; success?: string };
+export type DisplayFormState = { error?: string; success?: string; deviceToken?: string };
 
 const panelFormSchema = z.object({
   channelName: z.string(),
@@ -45,16 +47,32 @@ export async function createDisplayPanelAction(
   if (!form.success) return { error: "Revise unidade, código, nome e canal." };
 
   try {
-    await createDisplayPanel(
+    const requestId = getRequestId(await headers());
+    const panelId = await createDisplayPanel(
       { ...form.data, tenantId: selectedTenantId },
-      getRequestId(await headers()),
+      requestId,
     );
+    const deviceToken = randomBytes(24).toString("base64url");
+    const supabase = await createServerSupabaseClient();
+    const { error } = await supabase.rpc("issue_display_panel_device_token", {
+      audit_request_id: requestId,
+      plain_token_value: deviceToken,
+      target_display_panel_id: panelId,
+      target_tenant_id: selectedTenantId,
+    });
+    if (error) {
+      return {
+        error: publicError(error, "Painel criado, mas falhou emissão do token do dispositivo."),
+      };
+    }
+    revalidatePath("/app/display");
+    return {
+      deviceToken,
+      success: `Painel criado. URL pública: /painel?token=${deviceToken}`,
+    };
   } catch (error) {
     return { error: publicError(error, "Não foi possível criar o painel.") };
   }
-
-  revalidatePath("/app/display");
-  return { success: "Painel criado com canal privado." };
 }
 
 export async function createCallEventAction(

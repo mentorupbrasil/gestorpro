@@ -4860,6 +4860,15 @@ export type Database = {
       [_ in never]: never;
     };
     Functions: {
+      acknowledge_call_delivery: {
+        Args: {
+          ack_kind: string;
+          device_token_value: string;
+          target_call_event_id: string;
+          target_session_id: string;
+        };
+        Returns: boolean;
+      };
       acknowledge_clinical_alert: {
         Args: {
           audit_request_id: string;
@@ -4908,6 +4917,16 @@ export type Database = {
           physician_credential_id_value: string;
           plan_value: string;
           subjective_value: Json;
+          target_encounter_id: string;
+          target_tenant_id: string;
+        };
+        Returns: string;
+      };
+      close_occupational_encounter: {
+        Args: {
+          audit_request_id: string;
+          expected_version: number;
+          idempotency_key_value: string;
           target_encounter_id: string;
           target_tenant_id: string;
         };
@@ -5213,6 +5232,12 @@ export type Database = {
         };
         Returns: Json;
       };
+      get_display_panel_public_state: {
+        Args: {
+          device_token_value: string;
+        };
+        Returns: Json;
+      };
       get_my_authorization_context: {
         Args: {
           target_tenant_id: string;
@@ -5268,6 +5293,19 @@ export type Database = {
         };
         Returns: boolean;
       };
+      hash_device_token: {
+        Args: {
+          token_value: string;
+        };
+        Returns: Json;
+      };
+      heartbeat_display_panel_session: {
+        Args: {
+          device_token_value: string;
+          target_session_id: string;
+        };
+        Returns: boolean;
+      };
       is_aal2: {
         Args: {
           [_: string]: never;
@@ -5283,6 +5321,15 @@ export type Database = {
       is_company_portal_member: {
         Args: {
           target_company_id: string;
+          target_tenant_id: string;
+        };
+        Returns: boolean;
+      };
+      issue_display_panel_device_token: {
+        Args: {
+          audit_request_id: string;
+          plain_token_value: string;
+          target_display_panel_id: string;
           target_tenant_id: string;
         };
         Returns: boolean;
@@ -5430,6 +5477,13 @@ export type Database = {
           payload_redacted_value: Json;
           target_connector_id: string;
           target_tenant_id: string;
+        };
+        Returns: string;
+      };
+      register_display_panel_session: {
+        Args: {
+          device_label_value: string;
+          device_token_value: string;
         };
         Returns: string;
       };
@@ -5634,6 +5688,15 @@ export type Database = {
           target_document_version_id: string;
           target_tenant_id: string;
           user_agent_value: string;
+        };
+        Returns: string;
+      };
+      sign_medical_conclusion: {
+        Args: {
+          audit_request_id: string;
+          expected_version: number;
+          target_conclusion_id: string;
+          target_tenant_id: string;
         };
         Returns: string;
       };

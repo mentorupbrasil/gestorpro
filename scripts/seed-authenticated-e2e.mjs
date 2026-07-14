@@ -194,12 +194,13 @@ try {
     `;
 
     await tx`
-      insert into public.clinic_units (id, tenant_id, code, name, status)
-      values (${unitId}, ${tenantId}, 'E2E-01', 'Unidade E2E Fictícia', 'active')
+      insert into public.clinic_units (id, tenant_id, code, name, status, timezone)
+      values (${unitId}, ${tenantId}, 'E2E-01', 'Unidade E2E Fictícia', 'active', 'America/Fortaleza')
       on conflict (id) do update set
         code = excluded.code,
         name = excluded.name,
         status = 'active',
+        timezone = 'America/Fortaleza',
         updated_at = now()
     `;
 
@@ -220,6 +221,26 @@ try {
       where tenant_id is null and code = 'tenant_admin'
       on conflict do nothing
     `;
+
+    // Papéis operacionais na unidade (tenant_admin não tem clínico após P0)
+    for (const roleCode of [
+      "unit_manager",
+      "receptionist",
+      "nursing",
+      "occupational_physician",
+      "exam_technician",
+      "laboratory",
+      "document_operator",
+      "finance",
+    ]) {
+      await tx`
+        insert into public.membership_roles (membership_id, role_id, clinic_unit_id)
+        select ${membershipId}, role.id, ${unitId}
+        from public.roles role
+        where role.tenant_id is null and role.code = ${roleCode}
+        on conflict do nothing
+      `;
+    }
 
     await tx`
       insert into public.companies (id, tenant_id, legal_name, trade_name, tax_id_normalized, status)
@@ -273,12 +294,16 @@ try {
 
     await tx`
       insert into public.pcmso_versions (
-        id, tenant_id, company_id, pcmso_program_id, version_number, valid_from, status
+        id, tenant_id, company_id, pcmso_program_id, version_number, valid_from, status, approved_at, content_hash
       ) values (
         ${pcmsoVersionId}, ${tenantId}, ${companyId}, ${pcmsoProgramId}, 1,
-        current_date - 30, 'draft'
+        current_date - 30, 'approved', now() - interval '1 day', 'e2e-pcmso-hash'
       )
-      on conflict (id) do nothing
+      on conflict (id) do update set
+        status = 'approved',
+        approved_at = coalesce(public.pcmso_versions.approved_at, now()),
+        valid_from = current_date - 30,
+        updated_at = now()
     `;
 
     await tx`
@@ -335,19 +360,129 @@ try {
         starts_at, ends_at, status, preparation_instructions
       ) values (
         ${appointmentId}, ${tenantId}, ${unitId}, ${referralId}, ${resourceId},
-        date_trunc('day', now()) + interval '1 day 09:00',
-        date_trunc('day', now()) + interval '1 day 09:30',
+        date_trunc('day', now() at time zone 'America/Fortaleza') + interval '9 hours',
+        date_trunc('day', now() at time zone 'America/Fortaleza') + interval '9 hours 30 minutes',
         'scheduled', 'Cenário estritamente fictício; não usar para orientação clínica.'
       )
       on conflict (id) do update set
         starts_at = excluded.starts_at,
         ends_at = excluded.ends_at,
+        status = 'scheduled',
         preparation_instructions = excluded.preparation_instructions,
+        updated_at = now()
+    `;
+
+    const sectorId = "d2100000-0000-4000-8000-000000000001";
+    const jobId = "d2200000-0000-4000-8000-000000000001";
+    const gheId = "d2300000-0000-4000-8000-000000000001";
+    const riskId = "d2400000-0000-4000-8000-000000000001";
+    const protocolId = "d2500000-0000-4000-8000-000000000001";
+    const protocolItemId = "d2600000-0000-4000-8000-000000000001";
+    const credentialId = "d2700000-0000-4000-8000-000000000001";
+    const conclusionRuleId = "d2800000-0000-4000-8000-000000000001";
+    const panelId = "d2900000-0000-4000-8000-000000000001";
+    const deviceToken = "e2e-public-display-token-ficticio-001";
+
+    await tx`
+      insert into public.sectors (id, tenant_id, company_id, code, name, status)
+      values (${sectorId}, ${tenantId}, ${companyId}, 'SETOR_E2E', 'Setor E2E Fictício', 'active')
+      on conflict (id) do update set status = 'active', name = excluded.name
+    `;
+
+    await tx`
+      insert into public.job_positions (id, tenant_id, company_id, sector_id, code, name, status)
+      values (${jobId}, ${tenantId}, ${companyId}, ${sectorId}, 'FUNCAO_E2E', 'Função E2E Fictícia', 'active')
+      on conflict (id) do update set status = 'active', name = excluded.name
+    `;
+
+    await tx`
+      insert into public.exposure_groups (id, tenant_id, company_id, code, name, status)
+      values (${gheId}, ${tenantId}, ${companyId}, 'GHE_E2E', 'GHE E2E Fictício', 'active')
+      on conflict (id) do update set status = 'active', name = excluded.name
+    `;
+
+    await tx`
+      insert into public.occupational_risks (id, tenant_id, code, name, risk_type, status)
+      values (${riskId}, ${tenantId}, 'RISCO_E2E', 'Risco fictício E2E', 'physical', 'active')
+      on conflict (id) do update set status = 'active', name = excluded.name
+    `;
+
+    await tx`
+      insert into public.risk_assignments (
+        id, tenant_id, company_id, exposure_group_id, job_position_id, occupational_risk_id, source, starts_on
+      ) values (
+        'd2410000-0000-4000-8000-000000000001', ${tenantId}, ${companyId}, ${gheId}, ${jobId}, ${riskId},
+        'pcmso', current_date - 30
+      )
+      on conflict (id) do nothing
+    `;
+
+    await tx`
+      update public.employment_contracts
+      set sector_id = ${sectorId},
+          job_position_id = ${jobId},
+          exposure_group_id = ${gheId},
+          updated_at = now()
+      where id = ${employmentId}
+    `;
+
+    await tx`
+      insert into public.exam_protocols (
+        id, tenant_id, pcmso_version_id, occupational_exam_type, rule_version, status
+      ) values (
+        ${protocolId}, ${tenantId}, ${pcmsoVersionId}, 'periodic', 1, 'approved'
+      )
+      on conflict (id) do update set status = 'approved', updated_at = now()
+    `;
+
+    await tx`
+      insert into public.exam_protocol_items (
+        id, tenant_id, exam_protocol_id, exam_catalog_id, required
+      ) values (
+        ${protocolItemId}, ${tenantId}, ${protocolId}, ${examCatalogId}, true
+      )
+      on conflict (id) do nothing
+    `;
+
+    await tx`
+      insert into public.clinical_professional_credentials (
+        id, tenant_id, user_id, clinic_unit_id, professional_role,
+        council_code, council_region, registration_number, status
+      ) values (
+        ${credentialId}, ${tenantId}, ${userId}, ${unitId}, 'physician',
+        'CRM', 'SP', '000000', 'active'
+      )
+      on conflict (id) do update set status = 'active', updated_at = now()
+    `;
+
+    await tx`
+      insert into public.medical_conclusion_rules (
+        id, tenant_id, code, name, status,
+        block_when_no_closed_triage, block_when_no_closed_consultation,
+        block_when_pending_required_exams, block_when_flow_paused
+      ) values (
+        ${conclusionRuleId}, ${tenantId}, 'DEFAULT_E2E', 'Regra E2E fictícia', 'active',
+        true, true, true, true
+      )
+      on conflict (id) do update set status = 'active', name = excluded.name
+    `;
+
+    await tx`
+      insert into public.display_panels (
+        id, tenant_id, clinic_unit_id, code, name, channel_name, status, device_token_hash
+      ) values (
+        ${panelId}, ${tenantId}, ${unitId}, 'PAINEL_E2E', 'Painel E2E',
+        'display:e2e:private', 'active', encode(digest(${deviceToken}, 'sha256'), 'hex')
+      )
+      on conflict (id) do update set
+        status = 'active',
+        device_token_hash = encode(digest(${deviceToken}, 'sha256'), 'hex'),
         updated_at = now()
     `;
   });
 
   console.log("Authenticated E2E seed and fictitious operational scenario are ready.");
+  console.log("Public panel token (fictitious): e2e-public-display-token-ficticio-001");
 } finally {
   await sql.end({ timeout: 5 });
 }

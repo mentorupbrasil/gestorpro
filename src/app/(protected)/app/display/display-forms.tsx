@@ -43,6 +43,11 @@ export function DisplayForms({
           {panelPending ? "Criando…" : "Criar painel"}
         </button>
         <StateMessage state={panelState} />
+        {panelState.deviceToken ? (
+          <p className="break-all text-xs text-gp-text-muted">
+            Token do dispositivo: {panelState.deviceToken}
+          </p>
+        ) : null}
       </form>
 
       <form action={callAction} className="grid gap-3 gp-surface p-4">
