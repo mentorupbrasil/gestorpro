@@ -61,4 +61,14 @@ await fs.writeFile(temporaryTypePath, result.stdout, { encoding: "utf8", mode: 0
 await fs.rename(temporaryTypePath, typePath);
 await fs.writeFile(fingerprintPath, `${fingerprint}\n`, { encoding: "utf8", mode: 0o600 });
 
+const format = spawnSync(
+  process.execPath,
+  [path.resolve("node_modules/prettier/bin/prettier.cjs"), "--write", typePath],
+  { encoding: "utf8", stdio: "inherit" },
+);
+if (format.status !== 0) {
+  console.error("Prettier failed on generated Supabase types.");
+  process.exit(format.status ?? 1);
+}
+
 console.log("Official Supabase types generated and schema fingerprint updated.");
