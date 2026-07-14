@@ -17,8 +17,9 @@
 
 ## P0.4 / P0.5 / P0.6
 
-- `010`–`020` aplicadas (dono).
-- `021` (Fase L integrações) no repo — apply pendente.
+- `010`–`021` aplicadas (dono).
+- `022` (Fase M SST) no repo — apply pendente.
+- Fase N / produção: **NO-GO** até conversa e GO humano.
 
 ## Já resolvido (não reabrir)
 

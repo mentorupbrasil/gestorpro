@@ -44,6 +44,8 @@ export const permissions = [
   "integrations.manage",
   "esocial.read",
   "esocial.manage",
+  "sst.read",
+  "sst.manage",
   "messages.read",
   "messages.manage",
   "equipment.read",

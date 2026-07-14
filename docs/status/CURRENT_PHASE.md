@@ -1,9 +1,8 @@
 # Fase atual
 
-- Fase atual: **Fase L checkpoint** — spool conector + dead-letter + eSocial sandbox
-- Entrega: `202607140021_fase_l_connector_spool_deadletter.sql` + forms em `/app/integrations`
-- Dono: aplicar `021` (arquivo `.sql` puro) e commitar
-- Sem envio eSocial de produção
-- Produção app: **NO-GO**
+- Fase atual: **Fase M checkpoint** — SST operacional (incidentes/EPI/CIPA scaffold)
+- Entrega: `202607140022_fase_m_sst_incidents_epi_cipa.sql` + `/app/sst`
+- Dono: aplicar `022` (`.sql` puro) e commitar
+- Próximo: **Fase N** = piloto/produção → permanece **NO-GO** humano (conversar antes)
 - Branch: `feat/p0-2-consulta-operacional`
 - Atualizado em: 2026-07-13

@@ -54,6 +54,12 @@ const modules = [
     status: "console inicial",
   },
   {
+    description: "Incidentes, EPI e CIPA — scaffold operacional (não documento legal).",
+    href: "/app/sst",
+    label: "SST operacional",
+    status: "checkpoint M",
+  },
+  {
     description: "Visão sanitizada da empresa: status, documentos liberados e faturas.",
     href: "/app/portal",
     label: "Portal empresarial",
