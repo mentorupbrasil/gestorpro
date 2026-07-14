@@ -15,6 +15,7 @@ const navigationGroups = [
   {
     items: [
       { href: "/app/occupational", label: "Empresas e PCMSO" },
+      { href: "/app/sst", label: "SST" },
       { href: "/app/scheduling", label: "Encaminhamentos" },
       { href: "/app/check-in", label: "Check-in e filas" },
       { href: "/app/display", label: "Painel de chamadas" },

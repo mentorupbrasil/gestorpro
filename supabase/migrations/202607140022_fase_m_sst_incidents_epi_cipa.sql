@@ -88,42 +88,22 @@ create policy sst_incidents_read on public.sst_incidents
   for select to authenticated
   using (public.has_tenant_permission(tenant_id, 'sst.read'));
 
-drop policy if exists sst_incidents_manage on public.sst_incidents;
-create policy sst_incidents_manage on public.sst_incidents
-  for all to authenticated
-  using (public.has_tenant_permission(tenant_id, 'sst.manage'))
-  with check (
-    public.has_tenant_permission(tenant_id, 'sst.manage')
-    and created_by = auth.uid()
-  );
-
 drop policy if exists sst_epi_read on public.sst_epi_issues;
 create policy sst_epi_read on public.sst_epi_issues
   for select to authenticated
   using (public.has_tenant_permission(tenant_id, 'sst.read'));
-
-drop policy if exists sst_epi_manage on public.sst_epi_issues;
-create policy sst_epi_manage on public.sst_epi_issues
-  for all to authenticated
-  using (public.has_tenant_permission(tenant_id, 'sst.manage'))
-  with check (
-    public.has_tenant_permission(tenant_id, 'sst.manage')
-    and created_by = auth.uid()
-  );
 
 drop policy if exists sst_cipa_read on public.sst_cipa_memberships;
 create policy sst_cipa_read on public.sst_cipa_memberships
   for select to authenticated
   using (public.has_tenant_permission(tenant_id, 'sst.read'));
 
-drop policy if exists sst_cipa_manage on public.sst_cipa_memberships;
-create policy sst_cipa_manage on public.sst_cipa_memberships
-  for all to authenticated
-  using (public.has_tenant_permission(tenant_id, 'sst.manage'))
-  with check (
-    public.has_tenant_permission(tenant_id, 'sst.manage')
-    and created_by = auth.uid()
-  );
+revoke insert, update, delete on public.sst_incidents from authenticated;
+revoke insert, update, delete on public.sst_epi_issues from authenticated;
+revoke insert, update, delete on public.sst_cipa_memberships from authenticated;
+grant select on public.sst_incidents to authenticated;
+grant select on public.sst_epi_issues to authenticated;
+grant select on public.sst_cipa_memberships to authenticated;
 
 create or replace function public.create_sst_incident(
   target_tenant_id uuid,

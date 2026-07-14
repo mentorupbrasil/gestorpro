@@ -42,7 +42,9 @@ export default async function SstPage() {
         .limit(30),
       supabase
         .from("sst_cipa_memberships")
-        .select("id, role_label, status, mandate_starts_on, workers(full_name), companies(legal_name)")
+        .select(
+          "id, role_label, status, mandate_starts_on, workers(full_name), companies(legal_name)",
+        )
         .eq("tenant_id", context.tenantId)
         .order("created_at", { ascending: false })
         .limit(30),
@@ -91,7 +93,7 @@ export default async function SstPage() {
           ) : (
             incidents.map((item) => (
               <li className="py-2 text-sm" key={item.id}>
-                <span className="font-medium">
+                <span className="font-semibold">
                   {item.incident_type} · {item.severity}
                 </span>
                 <span className="ml-2 text-slate-500">
@@ -107,7 +109,7 @@ export default async function SstPage() {
           ) : (
             epiIssues.map((item) => (
               <li className="py-2 text-sm" key={item.id}>
-                <span className="font-medium">
+                <span className="font-semibold">
                   {item.epi_code} · {item.epi_name}
                 </span>
                 <span className="ml-2 text-slate-500">
