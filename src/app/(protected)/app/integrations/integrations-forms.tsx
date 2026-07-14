@@ -42,9 +42,9 @@ export function IntegrationsWorkspaceForms({
 
   return (
     <section className="mt-5 grid gap-4 lg:grid-cols-2">
-      <form action={jobAction} className="space-y-3 rounded-3xl border bg-white/90 p-5 shadow-sm">
+      <form action={jobAction} className="space-y-3 gp-surface p-4">
         <h2 className="text-lg font-semibold">Enfileirar job</h2>
-        <select className="w-full rounded border px-3 py-2 text-sm" name="connectionId" required>
+        <select className="gp-input" name="connectionId" required>
           <option value="">Conexão…</option>
           {connectionOptions.map((item) => (
             <option key={item.id} value={item.id}>
@@ -52,15 +52,10 @@ export function IntegrationsWorkspaceForms({
             </option>
           ))}
         </select>
-        <input
-          className="w-full rounded border px-3 py-2 text-sm"
-          defaultValue="webhook_delivery"
-          name="jobType"
-          required
-        />
+        <input className="gp-input" defaultValue="webhook_delivery" name="jobType" required />
         <input name="idempotencyKey" type="hidden" value={idempotencyKey} />
         <button
-          className="rounded bg-emerald-800 px-3 py-2 text-sm font-medium text-white disabled:opacity-60"
+          className="gp-btn gp-btn-primary"
           disabled={jobPending || connectionOptions.length === 0}
           type="submit"
         >
@@ -70,12 +65,9 @@ export function IntegrationsWorkspaceForms({
         {jobState.success ? <p className="text-sm text-emerald-700">{jobState.success}</p> : null}
       </form>
 
-      <form
-        action={esocialAction}
-        className="space-y-3 rounded-3xl border bg-white/90 p-5 shadow-sm"
-      >
+      <form action={esocialAction} className="space-y-3 gp-surface p-4">
         <h2 className="text-lg font-semibold">eSocial sandbox</h2>
-        <select className="w-full rounded border px-3 py-2 text-sm" name="layoutVersionId" required>
+        <select className="gp-input" name="layoutVersionId" required>
           <option value="">Layout…</option>
           {layoutOptions.map((item) => (
             <option key={item.id} value={item.id}>
@@ -83,20 +75,10 @@ export function IntegrationsWorkspaceForms({
             </option>
           ))}
         </select>
-        <input
-          className="w-full rounded border px-3 py-2 text-sm"
-          defaultValue="S-2220"
-          name="eventType"
-          required
-        />
-        <input
-          className="w-full rounded border px-3 py-2 text-sm"
-          name="businessKey"
-          placeholder="chave de negócio"
-          required
-        />
+        <input className="gp-input" defaultValue="S-2220" name="eventType" required />
+        <input className="gp-input" name="businessKey" placeholder="chave de negócio" required />
         <button
-          className="rounded bg-emerald-800 px-3 py-2 text-sm font-medium text-white disabled:opacity-60"
+          className="gp-btn gp-btn-primary"
           disabled={esocialPending || layoutOptions.length === 0}
           type="submit"
         >
@@ -108,9 +90,9 @@ export function IntegrationsWorkspaceForms({
         ) : null}
       </form>
 
-      <form action={spoolAction} className="space-y-3 rounded-3xl border bg-white/90 p-5 shadow-sm">
+      <form action={spoolAction} className="space-y-3 gp-surface p-4">
         <h2 className="text-lg font-semibold">Spool / pasta monitorada</h2>
-        <select className="w-full rounded border px-3 py-2 text-sm" name="connectorId" required>
+        <select className="gp-input" name="connectorId" required>
           <option value="">Conector…</option>
           {connectorOptions.map((item) => (
             <option key={item.id} value={item.id}>
@@ -119,19 +101,14 @@ export function IntegrationsWorkspaceForms({
           ))}
         </select>
         <input
-          className="w-full rounded border px-3 py-2 text-sm"
+          className="gp-input"
           defaultValue="C:/spool/gestorpro"
           name="monitoredFolder"
           required
         />
-        <input
-          className="w-full rounded border px-3 py-2 text-sm"
-          defaultValue="arquivo-entrada.bin"
-          name="fileName"
-          required
-        />
+        <input className="gp-input" defaultValue="arquivo-entrada.bin" name="fileName" required />
         <button
-          className="rounded bg-emerald-800 px-3 py-2 text-sm font-medium text-white disabled:opacity-60"
+          className="gp-btn gp-btn-primary"
           disabled={spoolPending || connectorOptions.length === 0}
           type="submit"
         >
@@ -143,9 +120,9 @@ export function IntegrationsWorkspaceForms({
         ) : null}
       </form>
 
-      <form action={deadAction} className="space-y-3 rounded-3xl border bg-white/90 p-5 shadow-sm">
+      <form action={deadAction} className="space-y-3 gp-surface p-4">
         <h2 className="text-lg font-semibold">Reprocessar dead-letter</h2>
-        <select className="w-full rounded border px-3 py-2 text-sm" name="deadLetterId" required>
+        <select className="gp-input" name="deadLetterId" required>
           <option value="">Dead-letter…</option>
           {deadLetterOptions.map((item) => (
             <option key={item.id} value={item.id}>
@@ -154,7 +131,7 @@ export function IntegrationsWorkspaceForms({
           ))}
         </select>
         <button
-          className="rounded bg-slate-800 px-3 py-2 text-sm font-medium text-white disabled:opacity-60"
+          className="gp-btn gp-btn-secondary"
           disabled={deadPending || deadLetterOptions.length === 0}
           type="submit"
         >

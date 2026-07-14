@@ -3,6 +3,7 @@ import { redirect } from "next/navigation";
 import { requirePermission } from "@/core/auth/authorization";
 import { resolveAuthorizationContext } from "@/core/auth/session";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
+import { PageHeader, Surface } from "@/components/ui/page-chrome";
 import { IntegrationsWorkspaceForms } from "./integrations-forms";
 
 export default async function IntegrationsPage() {
@@ -104,21 +105,14 @@ export default async function IntegrationsPage() {
   const spool = spoolResult.data ?? [];
 
   return (
-    <main className="mx-auto max-w-7xl px-2 py-4 sm:px-4">
-      <header className="rounded-3xl border border-white/70 bg-white/90 p-6 shadow-sm">
-        <p className="text-sm font-semibold uppercase tracking-wide text-emerald-800">
-          Integrações
-        </p>
-        <h1 className="mt-2 text-3xl font-semibold tracking-tight">
-          Webhooks, eSocial, mensagens e conector
-        </h1>
-        <p className="mt-3 max-w-3xl text-sm leading-6 text-slate-600">
-          Jobs idempotentes, dead-letter reprocessável, spool de pasta monitorada e eSocial só em
-          sandbox (`restricted_production`). Sem envio real de produção.
-        </p>
-      </header>
+    <div>
+      <PageHeader
+        description="Jobs idempotentes, dead-letter reprocessável, spool de pasta monitorada e eSocial só em sandbox (`restricted_production`). Sem envio real de produção."
+        eyebrow="Integrações"
+        title="Webhooks, eSocial, mensagens e conector"
+      />
 
-      <section className="mt-5 grid gap-4 md:grid-cols-3 xl:grid-cols-7">
+      <section className="mb-4 grid gap-3 sm:grid-cols-3 xl:grid-cols-7">
         <Metric label="Conexões" value={connections.length} />
         <Metric label="Jobs" value={jobs.length} />
         <Metric label="eSocial" value={esocialEvents.length} />
@@ -147,12 +141,12 @@ export default async function IntegrationsPage() {
         }))}
       />
 
-      <section className="mt-5 grid gap-5 xl:grid-cols-2">
+      <section className="mt-4 grid gap-3 xl:grid-cols-2">
         <Panel empty="Nenhuma conexão cadastrada." title="Conexões">
           {connections.map((connection) => (
-            <li className="py-3" key={connection.id}>
-              <span className="font-semibold">{connection.display_name}</span>
-              <span className="ml-2 text-sm text-slate-600">
+            <li className="py-2.5" key={connection.id}>
+              <span className="font-semibold text-gp-text">{connection.display_name}</span>
+              <span className="ml-2 text-sm text-gp-text-muted">
                 {connection.provider} · {connection.connection_type} · {connection.status}
               </span>
             </li>
@@ -160,9 +154,9 @@ export default async function IntegrationsPage() {
         </Panel>
         <Panel empty="Nenhum evento eSocial criado." title="Eventos eSocial">
           {esocialEvents.map((event) => (
-            <li className="py-3" key={event.id}>
-              <span className="font-semibold">{event.event_type}</span>
-              <span className="ml-2 text-sm text-slate-600">
+            <li className="py-2.5" key={event.id}>
+              <span className="font-semibold text-gp-text">{event.event_type}</span>
+              <span className="ml-2 text-sm text-gp-text-muted">
                 {event.environment} · {event.operation_type} · {event.status} · v
                 {event.payload_version}
               </span>
@@ -171,9 +165,9 @@ export default async function IntegrationsPage() {
         </Panel>
         <Panel empty="Spool vazio." title="Pasta monitorada">
           {spool.map((entry) => (
-            <li className="py-3" key={entry.id}>
-              <span className="font-semibold">{entry.file_name}</span>
-              <span className="ml-2 text-sm text-slate-600">
+            <li className="py-2.5" key={entry.id}>
+              <span className="font-semibold text-gp-text">{entry.file_name}</span>
+              <span className="ml-2 text-sm text-gp-text-muted">
                 {entry.status} · {entry.monitored_folder}
               </span>
             </li>
@@ -181,22 +175,22 @@ export default async function IntegrationsPage() {
         </Panel>
         <Panel empty="Sem dead-letter aberta." title="Dead-letter aberta">
           {deadLetters.map((item) => (
-            <li className="py-3" key={item.id}>
-              <span className="font-semibold">{item.reason_redacted}</span>
+            <li className="py-2.5" key={item.id}>
+              <span className="font-semibold text-gp-text">{item.reason_redacted}</span>
             </li>
           ))}
         </Panel>
       </section>
-    </main>
+    </div>
   );
 }
 
 function Metric({ label, value }: Readonly<{ label: string; value: number }>) {
   return (
-    <div className="rounded-2xl border border-white/70 bg-white/90 p-5 shadow-sm">
-      <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">{label}</p>
-      <p className="mt-2 text-3xl font-semibold text-emerald-950">{value}</p>
-    </div>
+    <Surface className="p-3">
+      <p className="text-xs font-semibold uppercase tracking-wide text-gp-text-muted">{label}</p>
+      <p className="mt-1 text-base font-semibold text-gp-text">{value}</p>
+    </Surface>
   );
 }
 
@@ -206,13 +200,13 @@ function Panel({
   title,
 }: Readonly<{ children: React.ReactNode[]; empty: string; title: string }>) {
   return (
-    <div className="rounded-3xl border border-white/70 bg-white/90 p-5 shadow-sm">
-      <h2 className="text-lg font-semibold">{title}</h2>
+    <Surface className="p-4">
+      <h2 className="text-base font-semibold text-gp-text">{title}</h2>
       {children.length === 0 ? (
-        <p className="mt-4 rounded-2xl bg-slate-100 p-4 text-sm text-slate-700">{empty}</p>
+        <p className="mt-3 text-sm text-gp-text-muted">{empty}</p>
       ) : (
-        <ul className="mt-4 divide-y divide-slate-100">{children}</ul>
+        <ul className="mt-3 divide-y divide-gp-border text-sm">{children}</ul>
       )}
-    </div>
+    </Surface>
   );
 }

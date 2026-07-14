@@ -1,5 +1,12 @@
 # Log de implementação
 
+## 2026-07-14 — polimento de layout (shell)
+
+- Shell grafite recolhível (~240 px), topbar compacta (unidade/org, busca visual, alertas, perfil).
+- Menu por grupos; **Exames** expansível; SST removido do menu (sem duplicata).
+- Tokens CSS estilo Supabase + Geist Sans; overview usando `PageHeader`/`Surface`/tabela densa.
+- Sem mudança de regra de negócio/banco.
+
 ## 2026-07-14 — remove Demo da UX operacional
 
 - Removidos: seção “Ambientes de teste” no select-tenant, banner “Dados fictícios…”, script `seed-clinical-demo` / `pnpm seed:clinical:demo`.

@@ -4,6 +4,7 @@ import { requirePermission } from "@/core/auth/authorization";
 import { resolveAuthorizationContext } from "@/core/auth/session";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 import { accessMembershipListSchema, assignableRoleListSchema } from "@/features/platform/schemas";
+import { PageHeader, Surface } from "@/components/ui/page-chrome";
 import { MembershipRoleControls } from "./membership-role-controls";
 import { MembershipStatusForm } from "./membership-status-form";
 
@@ -35,28 +36,25 @@ export default async function AccessPage() {
   const canManageRoles = context.permissions.has("roles.manage");
 
   return (
-    <main className="mx-auto max-w-5xl px-6 py-10">
-      <header className="border-b border-slate-200 pb-5">
-        <p className="text-sm font-semibold uppercase tracking-wide text-emerald-800">
-          Administração
-        </p>
-        <h1 className="mt-1 text-2xl font-semibold">Acessos e vínculos</h1>
-        <p className="mt-2 max-w-3xl text-sm text-slate-600">
-          Concessão e remoção de papéis exigem MFA (AAL2), não permitem autoelevação e protegem o
-          último administrador ativo do tenant.
-        </p>
-      </header>
+    <div>
+      <PageHeader
+        description="Concessão e remoção de papéis exigem MFA (AAL2), não permitem autoelevação e protegem o último administrador ativo do tenant."
+        eyebrow="Administração"
+        title="Acessos e vínculos"
+      />
       {accessMemberships.length === 0 ? (
-        <p className="mt-6 bg-slate-100 p-4">Nenhum vínculo encontrado.</p>
+        <Surface className="p-4">
+          <p className="text-sm text-gp-text-muted">Nenhum vínculo encontrado.</p>
+        </Surface>
       ) : (
-        <div className="mt-6 overflow-x-auto">
-          <table className="w-full border-collapse text-left text-sm">
+        <Surface className="overflow-x-auto">
+          <table className="gp-table">
             <thead>
-              <tr className="border-b border-slate-300">
-                <th className="px-2 py-3">Usuário</th>
-                <th className="px-2 py-3">Papéis</th>
-                <th className="px-2 py-3">Status</th>
-                <th className="px-2 py-3">
+              <tr>
+                <th>Usuário</th>
+                <th>Papéis</th>
+                <th>Status</th>
+                <th>
                   <span className="sr-only">Ações</span>
                 </th>
               </tr>
@@ -78,12 +76,12 @@ export default async function AccessPage() {
                     Boolean(item),
                   );
                 return (
-                  <tr className="border-b border-slate-200" key={membership.id}>
-                    <td className="px-2 py-3 align-top">
+                  <tr key={membership.id}>
+                    <td className="align-top font-medium text-gp-text">
                       {membership.user_profiles?.display_name ?? "Usuário autorizado"}
                       {isSelf ? " (você)" : ""}
                     </td>
-                    <td className="px-2 py-3 align-top">
+                    <td className="align-top">
                       <MembershipRoleControls
                         assignedRoleIds={membershipRoles.map((role) => role.roleId)}
                         canManageRoles={canManageRoles}
@@ -96,14 +94,16 @@ export default async function AccessPage() {
                         roles={assignableRoles}
                       />
                     </td>
-                    <td className="px-2 py-3 align-top">
-                      {membership.status === "active"
-                        ? "Ativo"
-                        : membership.status === "blocked"
-                          ? "Bloqueado"
-                          : "Inativo"}
+                    <td className="align-top">
+                      <span className="gp-badge">
+                        {membership.status === "active"
+                          ? "Ativo"
+                          : membership.status === "blocked"
+                            ? "Bloqueado"
+                            : "Inativo"}
+                      </span>
                     </td>
-                    <td className="px-2 py-3 text-right align-top">
+                    <td className="align-top text-right">
                       {!isSelf && context.permissions.has("memberships.manage") ? (
                         <MembershipStatusForm
                           membershipId={membership.id}
@@ -116,8 +116,8 @@ export default async function AccessPage() {
               })}
             </tbody>
           </table>
-        </div>
+        </Surface>
       )}
-    </main>
+    </div>
   );
 }

@@ -22,7 +22,7 @@ export function TotpEnrollmentForm() {
   );
 
   return (
-    <section className="mt-8 border-t border-slate-200 pt-6" aria-labelledby="mfa-enroll-title">
+    <section className="mt-4 gp-surface p-4" aria-labelledby="mfa-enroll-title">
       <h2 id="mfa-enroll-title" className="text-lg font-semibold">
         Ativar aplicativo autenticador
       </h2>
@@ -31,7 +31,7 @@ export function TotpEnrollmentForm() {
       </p>
       <form action={startAction} className="mt-4">
         <button
-          className="rounded bg-emerald-800 px-4 py-2 font-semibold text-white disabled:opacity-60"
+          className="gp-btn gp-btn-primary"
           disabled={starting || Boolean(enrollmentState.enrollment)}
           type="submit"
         >
@@ -68,7 +68,7 @@ export function TotpEnrollmentForm() {
               <label className="grid gap-1 text-sm font-medium">
                 Código do autenticador
                 <input
-                  className="rounded border border-slate-300 px-3 py-2"
+                  className="gp-input"
                   inputMode="numeric"
                   maxLength={6}
                   name="code"
@@ -76,11 +76,7 @@ export function TotpEnrollmentForm() {
                   required
                 />
               </label>
-              <button
-                className="rounded bg-emerald-800 px-4 py-2 font-semibold text-white disabled:opacity-60"
-                disabled={verifying}
-                type="submit"
-              >
+              <button className="gp-btn gp-btn-primary" disabled={verifying} type="submit">
                 {verifying ? "Verificando…" : "Confirmar MFA"}
               </button>
             </form>

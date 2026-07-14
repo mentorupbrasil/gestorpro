@@ -1,135 +1,260 @@
+"use client";
+
 import Link from "next/link";
-import type { ReactNode } from "react";
+import { usePathname } from "next/navigation";
+import { useState, type ReactNode } from "react";
 import { signOut } from "../actions";
+import { isExamGroup, workspaceNavigation } from "./workspace-nav";
 
-const navigationGroups = [
-  {
-    items: [
-      { href: "/app", label: "Visão geral" },
-      { href: "/app/units", label: "Unidades" },
-      { href: "/app/access", label: "Acessos" },
-      { href: "/app/security", label: "Segurança" },
-    ],
-    label: "Plataforma",
-  },
-  {
-    items: [
-      { href: "/app/occupational", label: "Empresas e PCMSO" },
-      { href: "/app/sst", label: "SST" },
-      { href: "/app/scheduling", label: "Encaminhamentos" },
-      { href: "/app/check-in", label: "Check-in e filas" },
-      { href: "/app/display", label: "Painel de chamadas" },
-    ],
-    label: "Operação",
-  },
-  {
-    items: [
-      { href: "/app/clinical", label: "Clínica" },
-      { href: "/app/exams/visual-acuity", label: "Acuidade" },
-      { href: "/app/exams/audiometry", label: "Audiometria" },
-      { href: "/app/exams/spirometry", label: "Espirometria" },
-      { href: "/app/exams/diagnostics", label: "ECG/EEG/RX" },
-      { href: "/app/exams/laboratory", label: "Laboratório" },
-    ],
-    label: "Atendimento",
-  },
-  {
-    items: [
-      { href: "/app/documents", label: "Documentos" },
-      { href: "/app/finance", label: "Financeiro" },
-      { href: "/app/portal", label: "Portal empresa" },
-      { href: "/app/sst", label: "SST" },
-      { href: "/app/integrations", label: "Integrações" },
-    ],
-    label: "Fechamento",
-  },
-];
+const SIDEBAR_KEY = "gestorpro.sidebar.collapsed";
 
-export function WorkspaceShell({ children }: Readonly<{ children: ReactNode }>) {
+function readCollapsedPreference() {
+  if (typeof window === "undefined") return false;
+  try {
+    return window.localStorage.getItem(SIDEBAR_KEY) === "1";
+  } catch {
+    return false;
+  }
+}
+
+function isActivePath(pathname: string, href: string) {
+  if (href === "/app") return pathname === "/app";
+  return pathname === href || pathname.startsWith(`${href}/`);
+}
+
+export function WorkspaceShell({
+  children,
+  tenantLabel,
+  userLabel,
+  unitLabel,
+}: Readonly<{
+  children: ReactNode;
+  tenantLabel: string;
+  userLabel: string;
+  unitLabel: string;
+}>) {
+  const pathname = usePathname();
+  const [collapsed, setCollapsed] = useState(readCollapsedPreference);
+  const [examsPinned, setExamsPinned] = useState(false);
+  const [mobileOpen, setMobileOpen] = useState(false);
+
+  const examsActive = pathname.startsWith("/app/exams");
+  const examsOpen = examsActive || examsPinned;
+  const sidebarWidth = collapsed ? "w-[72px]" : "w-[240px]";
+
+  function toggleCollapsed() {
+    setCollapsed((current) => {
+      const next = !current;
+      try {
+        window.localStorage.setItem(SIDEBAR_KEY, next ? "1" : "0");
+      } catch {
+        // ignore storage failures
+      }
+      return next;
+    });
+  }
+
+  function closeMobile() {
+    setMobileOpen(false);
+  }
+
   return (
-    <div className="min-h-screen bg-[radial-gradient(circle_at_top_left,#d8f3e5_0,#f5f7f6_36rem,#eef2f0_100%)] text-slate-950">
+    <div className="min-h-screen bg-gp-bg text-gp-text">
       <a
-        className="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-50 focus:rounded-lg focus:bg-emerald-900 focus:px-4 focus:py-2 focus:text-white"
+        className="sr-only focus:not-sr-only focus:fixed focus:left-3 focus:top-3 focus:z-50 focus:rounded focus:bg-gp-accent-strong focus:px-3 focus:py-2 focus:text-[#04150f]"
         href="#conteudo-principal"
       >
         Pular para o conteúdo
       </a>
-      <div className="mx-auto flex min-h-screen w-full max-w-[1500px] gap-6 px-4 py-4 lg:px-6">
-        <aside className="hidden w-72 shrink-0 lg:block">
-          <div className="sticky top-4 rounded-3xl border border-white/70 bg-white/85 p-5 shadow-sm backdrop-blur">
-            <div className="rounded-2xl bg-emerald-950 p-4 text-white">
-              <p className="text-xs font-semibold uppercase tracking-[0.25em] text-emerald-200">
-                GestorPro
-              </p>
-              <p className="mt-2 text-xl font-semibold">Unimetra Ocupacional</p>
-              <p className="mt-2 text-xs text-emerald-100">
-                Operação clínica com rastreabilidade, segurança e isolamento por tenant.
-              </p>
-            </div>
 
-            <nav className="mt-5 space-y-5" aria-label="Módulos do sistema">
-              {navigationGroups.map((group) => (
-                <section key={group.label}>
-                  <h2 className="px-2 text-xs font-semibold uppercase tracking-wide text-slate-500">
+      {mobileOpen ? (
+        <button
+          aria-label="Fechar menu"
+          className="fixed inset-0 z-30 bg-black/30 lg:hidden"
+          onClick={closeMobile}
+          type="button"
+        />
+      ) : null}
+
+      <div className="flex min-h-screen">
+        <aside
+          className={`fixed inset-y-0 left-0 z-40 flex ${sidebarWidth} flex-col bg-gp-sidebar text-gp-sidebar-text transition-[width] duration-200 lg:static ${
+            mobileOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"
+          }`}
+        >
+          <div className="flex h-14 items-center gap-2 border-b border-white/10 px-3">
+            <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded bg-gp-accent text-xs font-bold text-[#04150f]">
+              GP
+            </div>
+            {!collapsed ? (
+              <div className="min-w-0">
+                <p className="truncate text-sm font-semibold">GestorPro</p>
+                <p className="truncate text-[11px] text-gp-sidebar-muted">Saúde ocupacional</p>
+              </div>
+            ) : null}
+            <button
+              aria-label={collapsed ? "Expandir menu" : "Recolher menu"}
+              className="ml-auto hidden rounded p-1.5 text-gp-sidebar-muted hover:bg-gp-sidebar-elevated hover:text-white lg:inline-flex"
+              onClick={toggleCollapsed}
+              type="button"
+            >
+              {collapsed ? "»" : "«"}
+            </button>
+          </div>
+
+          <nav className="flex-1 overflow-y-auto px-2 py-3" aria-label="Módulos do sistema">
+            {workspaceNavigation.map((group) => (
+              <section className="mb-4" key={group.label}>
+                {!collapsed ? (
+                  <h2 className="px-2 pb-1 text-[11px] font-semibold uppercase tracking-[0.12em] text-gp-sidebar-muted">
                     {group.label}
                   </h2>
-                  <ul className="mt-2 space-y-1">
-                    {group.items.map((item) => (
+                ) : (
+                  <div className="mx-auto mb-2 h-px w-6 bg-white/10" />
+                )}
+                <ul className="space-y-0.5">
+                  {group.items.map((item) => {
+                    if (isExamGroup(item)) {
+                      return (
+                        <li key="exams">
+                          <button
+                            aria-expanded={examsOpen}
+                            className={`flex w-full items-center gap-2 rounded px-2.5 py-2 text-left text-sm ${
+                              examsActive
+                                ? "bg-gp-accent/15 text-gp-accent"
+                                : "text-gp-sidebar-text hover:bg-gp-sidebar-elevated"
+                            }`}
+                            onClick={() => {
+                              if (collapsed) {
+                                setCollapsed(false);
+                                setExamsPinned(true);
+                                return;
+                              }
+                              if (examsActive) return;
+                              setExamsPinned((value) => !value);
+                            }}
+                            type="button"
+                          >
+                            <span className="inline-block w-4 text-center text-xs opacity-70">
+                              ☰
+                            </span>
+                            {!collapsed ? (
+                              <>
+                                <span className="flex-1 font-medium">{item.label}</span>
+                                <span className="text-[10px] text-gp-sidebar-muted">
+                                  {examsOpen ? "−" : "+"}
+                                </span>
+                              </>
+                            ) : null}
+                          </button>
+                          {examsOpen && !collapsed ? (
+                            <ul className="mt-0.5 ml-4 space-y-0.5 border-l border-white/10 pl-2">
+                              {item.children.map((child) => {
+                                const active = isActivePath(pathname, child.href);
+                                return (
+                                  <li key={child.href}>
+                                    <Link
+                                      className={`block rounded px-2 py-1.5 text-sm ${
+                                        active
+                                          ? "bg-gp-accent/15 font-medium text-gp-accent"
+                                          : "text-gp-sidebar-muted hover:bg-gp-sidebar-elevated hover:text-gp-sidebar-text"
+                                      }`}
+                                      href={child.href}
+                                      onClick={closeMobile}
+                                    >
+                                      {child.label}
+                                    </Link>
+                                  </li>
+                                );
+                              })}
+                            </ul>
+                          ) : null}
+                        </li>
+                      );
+                    }
+
+                    const active = isActivePath(pathname, item.href);
+                    return (
                       <li key={item.href}>
                         <Link
-                          className="block rounded-xl px-3 py-2 text-sm font-medium text-slate-700 hover:bg-emerald-50 hover:text-emerald-950 focus:outline-none focus:ring-2 focus:ring-emerald-700"
+                          className={`flex items-center gap-2 rounded px-2.5 py-2 text-sm ${
+                            active
+                              ? "bg-gp-accent/15 font-medium text-gp-accent"
+                              : "text-gp-sidebar-text hover:bg-gp-sidebar-elevated"
+                          }`}
                           href={item.href}
+                          onClick={() => {
+                            closeMobile();
+                            if (!item.href.startsWith("/app/exams")) setExamsPinned(false);
+                          }}
+                          title={item.label}
                         >
-                          {item.label}
+                          <span className="inline-block w-4 text-center text-xs opacity-70">•</span>
+                          {!collapsed ? <span>{item.label}</span> : null}
                         </Link>
                       </li>
-                    ))}
-                  </ul>
-                </section>
-              ))}
-            </nav>
-          </div>
+                    );
+                  })}
+                </ul>
+              </section>
+            ))}
+          </nav>
         </aside>
 
-        <div className="min-w-0 flex-1">
-          <header className="mb-4 rounded-3xl border border-white/70 bg-white/85 px-4 py-4 shadow-sm backdrop-blur">
-            <div className="flex flex-wrap items-center justify-between gap-3">
-              <div>
-                <p className="text-xs font-semibold uppercase tracking-[0.25em] text-emerald-800">
-                  Ambiente seguro
-                </p>
-                <p className="mt-1 text-sm text-slate-600">
-                  Sessão autenticada com controle de acesso por organização.
-                </p>
-              </div>
-              <form action={signOut}>
-                <button
-                  className="rounded-xl border border-slate-300 bg-white px-4 py-2 text-sm font-semibold text-slate-700 shadow-sm hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-emerald-700"
-                  type="submit"
-                >
-                  Sair
-                </button>
-              </form>
+        <div className="flex min-w-0 flex-1 flex-col">
+          <header className="sticky top-0 z-20 flex h-14 items-center gap-3 border-b border-gp-border bg-gp-surface px-3 sm:px-4">
+            <button
+              aria-label="Abrir menu"
+              className="gp-btn gp-btn-ghost px-2 lg:hidden"
+              onClick={() => setMobileOpen(true)}
+              type="button"
+            >
+              Menu
+            </button>
+
+            <div className="hidden min-w-0 items-center gap-2 sm:flex">
+              <span className="truncate text-sm font-medium text-gp-text">{unitLabel}</span>
+              <span className="text-gp-border-strong">·</span>
+              <span className="truncate text-sm text-gp-text-muted">{tenantLabel}</span>
             </div>
-            <nav className="mt-4 overflow-x-auto lg:hidden" aria-label="Navegação compacta">
-              <ul className="flex min-w-max gap-2">
-                {navigationGroups.flatMap((group) =>
-                  group.items.map((item) => (
-                    <li key={item.href}>
-                      <Link
-                        className="block rounded-full border border-slate-200 bg-white px-3 py-2 text-xs font-semibold text-slate-700"
-                        href={item.href}
-                      >
-                        {item.label}
-                      </Link>
-                    </li>
-                  )),
-                )}
-              </ul>
-            </nav>
+
+            <div className="ml-auto flex min-w-0 flex-1 items-center justify-end gap-2 sm:max-w-xl">
+              <label className="relative hidden min-w-0 flex-1 md:block">
+                <span className="sr-only">Busca</span>
+                <input
+                  className="gp-input h-9"
+                  disabled
+                  placeholder="Busca (em breve)"
+                  type="search"
+                />
+              </label>
+              <button
+                aria-label="Alertas"
+                className="gp-btn gp-btn-secondary h-9 px-3"
+                disabled
+                type="button"
+              >
+                Alertas
+              </button>
+              <div className="flex items-center gap-2 rounded border border-gp-border bg-gp-bg px-2 py-1">
+                <div className="hidden text-right sm:block">
+                  <p className="max-w-[10rem] truncate text-xs font-medium text-gp-text">
+                    {userLabel}
+                  </p>
+                  <p className="text-[11px] text-gp-text-muted">Perfil</p>
+                </div>
+                <form action={signOut}>
+                  <button className="gp-btn gp-btn-secondary h-8 px-2.5 text-xs" type="submit">
+                    Sair
+                  </button>
+                </form>
+              </div>
+            </div>
           </header>
 
-          <div id="conteudo-principal">{children}</div>
+          <main className="min-w-0 flex-1 px-3 py-4 sm:px-5" id="conteudo-principal">
+            {children}
+          </main>
         </div>
       </div>
     </div>

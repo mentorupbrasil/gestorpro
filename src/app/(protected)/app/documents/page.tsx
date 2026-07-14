@@ -5,6 +5,7 @@ import { resolveAuthorizationContext } from "@/core/auth/session";
 import { recordSensitiveRead } from "@/features/audit/sensitive-read";
 import { getRequestId } from "@/lib/http/request-id";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
+import { PageHeader, Surface } from "@/components/ui/page-chrome";
 import { DocumentsWorkspaceForms } from "./documents-forms";
 
 export default async function DocumentsPage() {
@@ -81,19 +82,14 @@ export default async function DocumentsPage() {
   const deliveries = deliveriesResult.data ?? [];
 
   return (
-    <main className="mx-auto max-w-7xl px-2 py-4 sm:px-4">
-      <header className="rounded-3xl border border-white/70 bg-white/90 p-6 shadow-sm">
-        <p className="text-sm font-semibold uppercase tracking-wide text-emerald-800">Documentos</p>
-        <h1 className="mt-2 text-3xl font-semibold tracking-tight">
-          Templates, versões e entregas
-        </h1>
-        <p className="mt-3 max-w-3xl text-sm leading-6 text-slate-600">
-          Documento emitido é imutável. Correção gera nova versão, hash preservado e acesso
-          auditado. ASO incompleto permanece bloqueado.
-        </p>
-      </header>
+    <div>
+      <PageHeader
+        description="Documento emitido é imutável. Correção gera nova versão, hash preservado e acesso auditado. ASO incompleto permanece bloqueado."
+        eyebrow="Documentos"
+        title="Templates, versões e entregas"
+      />
 
-      <section className="mt-5 grid gap-4 md:grid-cols-4">
+      <section className="mb-4 grid gap-3 sm:grid-cols-4">
         <Stat label="Templates" value={templates.length} />
         <Stat label="Documentos" value={documents.length} />
         <Stat label="Versões" value={versions.length} />
@@ -117,48 +113,48 @@ export default async function DocumentsPage() {
         }))}
       />
 
-      <section className="mt-5 rounded-3xl border border-white/70 bg-white/90 p-5 shadow-sm">
-        <h2 className="text-lg font-semibold">Documentos recentes</h2>
+      <Surface className="mt-4 overflow-x-auto p-0">
+        <div className="border-b border-gp-border px-4 py-3">
+          <h2 className="text-base font-semibold text-gp-text">Documentos recentes</h2>
+        </div>
         {documents.length === 0 ? (
-          <p className="mt-4 rounded-2xl bg-slate-100 p-4 text-sm text-slate-700">
-            Nenhum documento gerado.
-          </p>
+          <p className="p-4 text-sm text-gp-text-muted">Nenhum documento gerado.</p>
         ) : (
-          <div className="mt-4 overflow-x-auto">
-            <table className="w-full border-collapse text-left text-sm">
-              <thead>
-                <tr className="border-b border-slate-200 text-xs uppercase tracking-wide text-slate-500">
-                  <th className="px-3 py-3">Tipo</th>
-                  <th className="px-3 py-3">Status</th>
-                  <th className="px-3 py-3">Versão atual</th>
-                  <th className="px-3 py-3">Criado em</th>
+          <table className="gp-table">
+            <thead>
+              <tr>
+                <th>Tipo</th>
+                <th>Status</th>
+                <th>Versão atual</th>
+                <th>Criado em</th>
+              </tr>
+            </thead>
+            <tbody>
+              {documents.map((document) => (
+                <tr key={document.id}>
+                  <td className="font-medium text-gp-text">{document.document_type}</td>
+                  <td>
+                    <span className="gp-badge">{document.status}</span>
+                  </td>
+                  <td>v{document.current_version}</td>
+                  <td className="text-gp-text-muted">
+                    {new Date(document.created_at).toLocaleString("pt-BR")}
+                  </td>
                 </tr>
-              </thead>
-              <tbody>
-                {documents.map((document) => (
-                  <tr className="border-b border-slate-100 last:border-0" key={document.id}>
-                    <td className="px-3 py-3 font-semibold">{document.document_type}</td>
-                    <td className="px-3 py-3">{document.status}</td>
-                    <td className="px-3 py-3">v{document.current_version}</td>
-                    <td className="px-3 py-3 text-slate-600">
-                      {new Date(document.created_at).toLocaleString("pt-BR")}
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+              ))}
+            </tbody>
+          </table>
         )}
-      </section>
-    </main>
+      </Surface>
+    </div>
   );
 }
 
 function Stat({ label, value }: Readonly<{ label: string; value: number }>) {
   return (
-    <div className="rounded-2xl border border-white/70 bg-white/90 p-5 shadow-sm">
-      <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">{label}</p>
-      <p className="mt-2 text-3xl font-semibold text-emerald-950">{value}</p>
-    </div>
+    <Surface className="p-3">
+      <p className="text-xs font-semibold uppercase tracking-wide text-gp-text-muted">{label}</p>
+      <p className="mt-1 text-base font-semibold text-gp-text">{value}</p>
+    </Surface>
   );
 }

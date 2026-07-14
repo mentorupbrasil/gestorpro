@@ -30,7 +30,7 @@ export function MembershipStatusForm({ membershipId, nextStatus }: MembershipSta
         className={
           isBlocking
             ? "text-sm font-semibold text-red-700"
-            : "text-sm font-semibold text-emerald-800"
+            : "text-sm font-semibold text-gp-accent-strong"
         }
         disabled={pending}
         type="submit"
@@ -43,7 +43,7 @@ export function MembershipStatusForm({ membershipId, nextStatus }: MembershipSta
         </span>
       ) : null}
       {state.success ? (
-        <span className="mt-1 block max-w-48 text-xs text-emerald-800" role="status">
+        <span className="mt-1 block max-w-48 text-xs text-gp-accent-strong" role="status">
           {state.success}
         </span>
       ) : null}

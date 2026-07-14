@@ -10,6 +10,7 @@ import {
 } from "@/features/clinical/service";
 import { getRequestId } from "@/lib/http/request-id";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
+import { PageHeader } from "@/components/ui/page-chrome";
 import { ClinicalFlowPanel } from "./clinical-flow-panel";
 import { ConclusionStation } from "./conclusion-station";
 import { ConsultationStation } from "./consultation-station";
@@ -83,17 +84,12 @@ export default async function ClinicalPage({ searchParams }: ClinicalPageProps) 
   }
 
   return (
-    <main className="mx-auto max-w-7xl px-6 py-10">
-      <header className="border-b border-slate-200 pb-5">
-        <p className="text-sm font-semibold uppercase tracking-wide text-emerald-800">
-          Clínica ocupacional
-        </p>
-        <h1 className="mt-1 text-2xl font-semibold">Triagem, consulta e conclusão médica</h1>
-        <p className="mt-2 max-w-3xl text-sm text-slate-600">
-          Dados clínicos são sensíveis, exigem MFA para escrita e ficam separados da recepção e da
-          empresa. Alertas são auxiliares; aptidão final continua sendo decisão humana do médico.
-        </p>
-      </header>
+    <div>
+      <PageHeader
+        description="Dados clínicos são sensíveis, exigem MFA para escrita e ficam separados da recepção e da empresa. Alertas são auxiliares; aptidão final continua sendo decisão humana do médico."
+        eyebrow="Clínica ocupacional"
+        title="Triagem, consulta e conclusão médica"
+      />
 
       <TriageStation
         formVersionId={triageWorkspace.formVersion.id}
@@ -126,6 +122,6 @@ export default async function ClinicalPage({ searchParams }: ClinicalPageProps) 
         encounterId={flowEncounterId}
         pauses={pauses}
       />
-    </main>
+    </div>
   );
 }

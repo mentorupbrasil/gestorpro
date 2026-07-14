@@ -4,6 +4,7 @@ import { requirePermission } from "@/core/auth/authorization";
 import { resolveAuthorizationContext } from "@/core/auth/session";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 import { readEmbeddedRelation } from "@/lib/supabase/relations";
+import { PageHeader, Surface } from "@/components/ui/page-chrome";
 import { FinanceWorkspaceForms } from "./finance-forms";
 
 function money(cents: number) {
@@ -96,21 +97,14 @@ export default async function FinancePage() {
   const invoicedTotal = invoices.reduce((total, invoice) => total + invoice.total_cents, 0);
 
   return (
-    <main className="mx-auto max-w-7xl px-2 py-4 sm:px-4">
-      <header className="rounded-3xl border border-white/70 bg-white/90 p-6 shadow-sm">
-        <p className="text-sm font-semibold uppercase tracking-wide text-emerald-800">
-          Financeiro e portal empresarial
-        </p>
-        <h1 className="mt-2 text-3xl font-semibold tracking-tight">
-          Contratos, faturamento e acesso da empresa
-        </h1>
-        <p className="mt-3 max-w-3xl text-sm leading-6 text-slate-600">
-          Preço comercial é snapshot imutável e não altera regra clínica. Ciclo: snapshot → billing
-          → fatura → pagamento (AAL2).
-        </p>
-      </header>
+    <div>
+      <PageHeader
+        description="Preço comercial é snapshot imutável e não altera regra clínica. Ciclo: snapshot → billing → fatura → pagamento (AAL2)."
+        eyebrow="Financeiro e portal empresarial"
+        title="Contratos, faturamento e acesso da empresa"
+      />
 
-      <section className="mt-5 grid gap-4 md:grid-cols-4">
+      <section className="mb-4 grid gap-3 sm:grid-cols-4">
         <Card label="Contratos" value={contracts.length} />
         <Card label="A faturar" value={money(openBilling)} />
         <Card label="Faturado" value={money(invoicedTotal)} />
@@ -153,48 +147,46 @@ export default async function FinancePage() {
         }))}
       />
 
-      <section className="mt-5 rounded-3xl border border-white/70 bg-white/90 p-5 shadow-sm">
-        <h2 className="text-lg font-semibold">Itens de faturamento</h2>
+      <Surface className="mt-4 overflow-x-auto p-0">
+        <div className="border-b border-gp-border px-4 py-3">
+          <h2 className="text-base font-semibold text-gp-text">Itens de faturamento</h2>
+        </div>
         {billing.length === 0 ? (
-          <p className="mt-4 rounded-2xl bg-slate-100 p-4 text-sm text-slate-700">
-            Nenhum item de faturamento criado.
-          </p>
+          <p className="p-4 text-sm text-gp-text-muted">Nenhum item de faturamento criado.</p>
         ) : (
-          <div className="mt-4 overflow-x-auto">
-            <table className="w-full border-collapse text-left text-sm">
-              <thead>
-                <tr className="border-b border-slate-200 text-xs uppercase tracking-wide text-slate-500">
-                  <th className="px-3 py-3">Empresa</th>
-                  <th className="px-3 py-3">Descrição</th>
-                  <th className="px-3 py-3">Valor</th>
-                  <th className="px-3 py-3">Status</th>
+          <table className="gp-table">
+            <thead>
+              <tr>
+                <th>Empresa</th>
+                <th>Descrição</th>
+                <th>Valor</th>
+                <th>Status</th>
+              </tr>
+            </thead>
+            <tbody>
+              {billing.map((item) => (
+                <tr key={item.id}>
+                  <td>{readEmbeddedRelation(item.companies)?.legal_name ?? "Empresa"}</td>
+                  <td>{item.description}</td>
+                  <td className="font-semibold text-gp-text">{money(item.amount_cents)}</td>
+                  <td>
+                    <span className="gp-badge">{item.status}</span>
+                  </td>
                 </tr>
-              </thead>
-              <tbody>
-                {billing.map((item) => (
-                  <tr className="border-b border-slate-100 last:border-0" key={item.id}>
-                    <td className="px-3 py-3">
-                      {readEmbeddedRelation(item.companies)?.legal_name ?? "Empresa"}
-                    </td>
-                    <td className="px-3 py-3">{item.description}</td>
-                    <td className="px-3 py-3 font-semibold">{money(item.amount_cents)}</td>
-                    <td className="px-3 py-3">{item.status}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+              ))}
+            </tbody>
+          </table>
         )}
-      </section>
-    </main>
+      </Surface>
+    </div>
   );
 }
 
 function Card({ label, value }: Readonly<{ label: string; value: number | string }>) {
   return (
-    <div className="rounded-2xl border border-white/70 bg-white/90 p-5 shadow-sm">
-      <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">{label}</p>
-      <p className="mt-2 text-2xl font-semibold text-emerald-950">{value}</p>
-    </div>
+    <Surface className="p-3">
+      <p className="text-xs font-semibold uppercase tracking-wide text-gp-text-muted">{label}</p>
+      <p className="mt-1 text-base font-semibold text-gp-text">{value}</p>
+    </Surface>
   );
 }

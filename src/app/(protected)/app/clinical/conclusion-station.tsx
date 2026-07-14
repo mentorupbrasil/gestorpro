@@ -46,17 +46,17 @@ export function ConclusionStation({
   );
 
   return (
-    <section className="mt-8 rounded border border-slate-200 bg-white p-5 shadow-sm">
-      <header className="flex flex-wrap items-start justify-between gap-3 border-b border-slate-100 pb-4">
+    <section className="mt-4 gp-surface p-4">
+      <header className="mb-3 flex flex-wrap items-start justify-between gap-3 border-b border-gp-border pb-3">
         <div>
-          <p className="text-xs font-semibold uppercase tracking-wide text-emerald-800">P0.3</p>
-          <h2 className="text-lg font-semibold">Estação de conclusão médica</h2>
-          <p className="mt-1 text-sm text-slate-600">
+          <p className="text-xs font-semibold uppercase tracking-wide text-gp-text-muted">P0.3</p>
+          <h2 className="text-base font-semibold text-gp-text">Estação de conclusão médica</h2>
+          <p className="mt-1 text-sm text-gp-text-muted">
             Profissional: {professionalName}. Decisão humana explícita — o sistema não define
             aptidão automaticamente.
           </p>
         </div>
-        <p className="text-sm text-slate-500">{queue.length} aguardando conclusão</p>
+        <p className="text-sm text-gp-text-muted">{queue.length} aguardando conclusão</p>
       </header>
 
       <div className="mt-4 grid gap-4 lg:grid-cols-[280px_minmax(0,1fr)]">
@@ -133,7 +133,7 @@ export function ConclusionStation({
                 <label className="grid gap-1 text-sm">
                   <span className="font-medium text-slate-800">Credencial médica</span>
                   <select
-                    className="rounded border border-slate-300 px-3 py-2"
+                    className="gp-input"
                     defaultValue={defaultPhysicianId}
                     name="physicianCredentialId"
                     required
@@ -147,12 +147,7 @@ export function ConclusionStation({
                 </label>
                 <label className="grid gap-1 text-sm">
                   <span className="font-medium text-slate-800">Conclusão</span>
-                  <select
-                    className="rounded border border-slate-300 px-3 py-2"
-                    defaultValue="fit"
-                    name="conclusionCode"
-                    required
-                  >
+                  <select className="gp-input" defaultValue="fit" name="conclusionCode" required>
                     {Object.entries(conclusionCodeLabels).map(([code, label]) => (
                       <option key={code} value={code}>
                         {label}
@@ -163,20 +158,17 @@ export function ConclusionStation({
                 <label className="grid gap-1 text-sm">
                   <span className="font-medium text-slate-800">Restrições (uma por linha)</span>
                   <textarea
-                    className="min-h-20 rounded border border-slate-300 px-3 py-2"
+                    className="min-h-20 gp-input"
                     defaultValue={restrictionsDefault}
                     name="restrictions"
                   />
                 </label>
                 <label className="grid gap-1 text-sm">
                   <span className="font-medium text-slate-800">Observações</span>
-                  <textarea
-                    className="min-h-20 rounded border border-slate-300 px-3 py-2"
-                    name="notes"
-                  />
+                  <textarea className="min-h-20 gp-input" name="notes" />
                 </label>
                 <button
-                  className="rounded bg-emerald-800 px-4 py-2 text-sm font-semibold text-white disabled:opacity-60"
+                  className="gp-btn gp-btn-primary"
                   disabled={pending || blockers.length > 0 || !selectedEncounter.consultationId}
                   type="submit"
                 >

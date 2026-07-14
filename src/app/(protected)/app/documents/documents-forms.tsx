@@ -42,16 +42,9 @@ export function DocumentsWorkspaceForms({
 
   return (
     <div className="mt-6 grid gap-4 lg:grid-cols-2">
-      <form
-        action={createAction}
-        className="space-y-3 rounded-2xl border border-slate-200 bg-white/90 p-4"
-      >
+      <form action={createAction} className="space-y-3 gp-surface p-4">
         <h3 className="font-semibold">Gerar versão</h3>
-        <select
-          className="w-full rounded border px-3 py-2 text-sm"
-          name="templateVersionId"
-          required
-        >
+        <select className="gp-input" name="templateVersionId" required>
           <option value="">Template version…</option>
           {templateVersions.map((item) => (
             <option key={item.id} value={item.id}>
@@ -60,16 +53,12 @@ export function DocumentsWorkspaceForms({
           ))}
         </select>
         <input
-          className="w-full rounded border px-3 py-2 text-sm font-mono"
+          className="gp-input font-mono"
           name="encounterId"
           placeholder="encounter_id"
           required
         />
-        <select
-          className="w-full rounded border px-3 py-2 text-sm"
-          defaultValue="generic"
-          name="documentType"
-        >
+        <select className="gp-input" defaultValue="generic" name="documentType">
           <option value="generic">generic</option>
           <option value="triage_form">triage_form</option>
           <option value="exam_report">exam_report</option>
@@ -83,7 +72,7 @@ export function DocumentsWorkspaceForms({
         </p>
         <input name="idempotencyKey" type="hidden" value={idempotencyKey} />
         <button
-          className="rounded bg-emerald-800 px-3 py-2 text-sm font-medium text-white disabled:opacity-60"
+          className="gp-btn gp-btn-primary"
           disabled={createPending || templateVersions.length === 0}
           type="submit"
         >
@@ -95,13 +84,10 @@ export function DocumentsWorkspaceForms({
         ) : null}
       </form>
 
-      <form
-        action={signAction}
-        className="space-y-3 rounded-2xl border border-slate-200 bg-white/90 p-4"
-      >
+      <form action={signAction} className="space-y-3 gp-surface p-4">
         <h3 className="font-semibold">Assinar versão</h3>
         <select
-          className="w-full rounded border px-3 py-2 text-sm"
+          className="gp-input"
           name="documentVersionId"
           onChange={(event) => setSelectedVersionId(event.target.value)}
           required
@@ -117,7 +103,7 @@ export function DocumentsWorkspaceForms({
         <input name="contentHash" type="hidden" value={selectedHash} />
         <p className="truncate font-mono text-xs text-slate-500">{selectedHash || "hash…"}</p>
         <button
-          className="rounded bg-slate-800 px-3 py-2 text-sm font-medium text-white disabled:opacity-60"
+          className="gp-btn gp-btn-secondary"
           disabled={signPending || versions.length === 0 || !selectedHash}
           type="submit"
         >

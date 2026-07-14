@@ -5,6 +5,7 @@ import { resolveAuthorizationContext } from "@/core/auth/session";
 import { encounterListSchema, queueTicketListSchema } from "@/features/encounters/schemas";
 import { appointmentListSchema } from "@/features/scheduling/schemas";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
+import { PageHeader, Surface } from "@/components/ui/page-chrome";
 import { CheckInForm } from "./check-in-form";
 
 export default async function CheckInPage() {
@@ -46,18 +47,12 @@ export default async function CheckInPage() {
   const tickets = queueTicketListSchema.parse(queueResult.data);
 
   return (
-    <main className="mx-auto max-w-6xl px-6 py-10">
-      <header className="border-b border-slate-200 pb-5">
-        <p className="text-sm font-semibold uppercase tracking-wide text-emerald-800">
-          Check-in e filas
-        </p>
-        <h1 className="mt-1 text-2xl font-semibold">Check-in transacional</h1>
-        <p className="mt-2 max-w-3xl text-sm text-slate-600">
-          O check-in cria atendimento, snapshot com preview do protocolo, etapas (recepção → triagem
-          → exame → consulta → documento), pedidos a partir do encaminhamento, filas, auditoria e
-          outbox em uma única transação (AAL2).
-        </p>
-      </header>
+    <div>
+      <PageHeader
+        description="O check-in cria atendimento, snapshot com preview do protocolo, etapas (recepção → triagem → exame → consulta → documento), pedidos a partir do encaminhamento, filas, auditoria e outbox em uma única transação (AAL2)."
+        eyebrow="Check-in e filas"
+        title="Check-in transacional"
+      />
 
       <CheckInForm
         appointments={appointments.map((appointment) => ({
@@ -68,23 +63,21 @@ export default async function CheckInPage() {
         }))}
       />
 
-      <section className="mt-10 grid gap-8 lg:grid-cols-2">
-        <div>
-          <h2 className="text-lg font-semibold">Atendimentos</h2>
+      <section className="mt-4 grid gap-3 lg:grid-cols-2">
+        <Surface className="p-4">
+          <h2 className="text-base font-semibold text-gp-text">Atendimentos</h2>
           {encounters.length === 0 ? (
-            <p className="mt-3 rounded bg-slate-100 p-4 text-sm text-slate-700">
-              Nenhum atendimento em aberto.
-            </p>
+            <p className="mt-3 text-sm text-gp-text-muted">Nenhum atendimento em aberto.</p>
           ) : (
-            <ul className="mt-4 divide-y divide-slate-200 text-sm">
+            <ul className="mt-3 divide-y divide-gp-border text-sm">
               {encounters.map((encounter) => {
                 const examCount = encounter.exam_orders?.length ?? 0;
                 return (
-                  <li className="py-3" key={encounter.id}>
-                    <span className="font-semibold">
+                  <li className="py-2.5" key={encounter.id}>
+                    <span className="font-semibold text-gp-text">
                       {encounter.workers?.full_name ?? "Trabalhador"}
                     </span>
-                    <span className="ml-2 text-slate-600">
+                    <span className="ml-2 text-gp-text-muted">
                       {encounter.status}
                       {examCount > 0 ? ` · ${examCount} pedido(s) de exame` : ""}
                     </span>
@@ -93,22 +86,20 @@ export default async function CheckInPage() {
               })}
             </ul>
           )}
-        </div>
+        </Surface>
 
-        <div>
-          <h2 className="text-lg font-semibold">Fila</h2>
+        <Surface className="p-4">
+          <h2 className="text-base font-semibold text-gp-text">Fila</h2>
           {tickets.length === 0 ? (
-            <p className="mt-3 rounded bg-slate-100 p-4 text-sm text-slate-700">
-              Nenhum ticket aguardando.
-            </p>
+            <p className="mt-3 text-sm text-gp-text-muted">Nenhum ticket aguardando.</p>
           ) : (
-            <ul className="mt-4 divide-y divide-slate-200 text-sm">
+            <ul className="mt-3 divide-y divide-gp-border text-sm">
               {tickets.map((ticket) => (
-                <li className="py-3" key={ticket.id}>
-                  <span className="font-semibold">
+                <li className="py-2.5" key={ticket.id}>
+                  <span className="font-semibold text-gp-text">
                     {ticket.encounters?.workers?.full_name ?? "Trabalhador"}
                   </span>
-                  <span className="ml-2 text-slate-600">
+                  <span className="ml-2 text-gp-text-muted">
                     {ticket.queue_definitions?.name ?? "Fila"} · prioridade {ticket.priority} ·{" "}
                     {ticket.status}
                   </span>
@@ -116,8 +107,8 @@ export default async function CheckInPage() {
               ))}
             </ul>
           )}
-        </div>
+        </Surface>
       </section>
-    </main>
+    </div>
   );
 }

@@ -5,6 +5,7 @@ import { resolveAuthorizationContext } from "@/core/auth/session";
 import { callEventListSchema, displayPanelListSchema } from "@/features/display/schemas";
 import { queueTicketListSchema } from "@/features/encounters/schemas";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
+import { PageHeader, Surface } from "@/components/ui/page-chrome";
 import { DisplayForms } from "./display-forms";
 
 export default async function DisplayPage() {
@@ -50,17 +51,12 @@ export default async function DisplayPage() {
   const calls = callEventListSchema.parse(callsResult.data);
 
   return (
-    <main className="mx-auto max-w-6xl px-6 py-10">
-      <header className="border-b border-slate-200 pb-5">
-        <p className="text-sm font-semibold uppercase tracking-wide text-emerald-800">
-          Painel de chamadas
-        </p>
-        <h1 className="mt-1 text-2xl font-semibold">Chamadas persistidas</h1>
-        <p className="mt-2 max-w-3xl text-sm text-slate-600">
-          Realtime é transporte: a chamada é persistida antes de qualquer publicação. Payload de TV
-          permanece mínimo e sem CPF, empresa, exame, diagnóstico ou resultado.
-        </p>
-      </header>
+    <div>
+      <PageHeader
+        description="Realtime é transporte: a chamada é persistida antes de qualquer publicação. Payload de TV permanece mínimo e sem CPF, empresa, exame, diagnóstico ou resultado."
+        eyebrow="Painel de chamadas"
+        title="Chamadas persistidas"
+      />
 
       <DisplayForms
         clinicUnits={(unitsResult.data ?? []).map((unit) => ({ id: unit.id, name: unit.name }))}
@@ -73,25 +69,23 @@ export default async function DisplayPage() {
         }))}
       />
 
-      <section className="mt-10">
-        <h2 className="text-lg font-semibold">Histórico recente</h2>
+      <Surface className="mt-4 p-4">
+        <h2 className="text-base font-semibold text-gp-text">Histórico recente</h2>
         {calls.length === 0 ? (
-          <p className="mt-3 rounded bg-slate-100 p-4 text-sm text-slate-700">
-            Nenhuma chamada registrada.
-          </p>
+          <p className="mt-3 text-sm text-gp-text-muted">Nenhuma chamada registrada.</p>
         ) : (
-          <ul className="mt-4 divide-y divide-slate-200 text-sm">
+          <ul className="mt-3 divide-y divide-gp-border text-sm">
             {calls.map((call) => (
-              <li className="py-3" key={call.id}>
-                <span className="font-semibold">{call.action}</span>
-                <span className="ml-2 text-slate-600">
+              <li className="py-2.5" key={call.id}>
+                <span className="font-semibold text-gp-text">{call.action}</span>
+                <span className="ml-2 text-gp-text-muted">
                   {call.status} · {new Date(call.created_at).toLocaleString("pt-BR")}
                 </span>
               </li>
             ))}
           </ul>
         )}
-      </section>
-    </main>
+      </Surface>
+    </div>
   );
 }

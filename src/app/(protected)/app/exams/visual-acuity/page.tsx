@@ -4,6 +4,7 @@ import { requireTenantOrUnitPermission } from "@/core/auth/authorization";
 import { resolveAuthorizationContext } from "@/core/auth/session";
 import { examOrderListSchema, visualAcuityResultListSchema } from "@/features/exams/schemas";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
+import { PageHeader } from "@/components/ui/page-chrome";
 import { VisualAcuityForms } from "./visual-acuity-forms";
 
 export default async function VisualAcuityPage() {
@@ -35,17 +36,12 @@ export default async function VisualAcuityPage() {
   const results = visualAcuityResultListSchema.parse(resultsResult.data);
 
   return (
-    <main className="mx-auto max-w-6xl px-6 py-10">
-      <header className="border-b border-slate-200 pb-5">
-        <p className="text-sm font-semibold uppercase tracking-wide text-emerald-800">
-          Exames complementares
-        </p>
-        <h1 className="mt-1 text-2xl font-semibold">Acuidade visual</h1>
-        <p className="mt-2 max-w-3xl text-sm text-slate-600">
-          Registra medidas por olho, binocular, com/sem correção, condições de teste e conclusão
-          profissional. Correções criam nova versão; nada é apagado.
-        </p>
-      </header>
+    <div>
+      <PageHeader
+        description="Registra medidas por olho, binocular, com/sem correção, condições de teste e conclusão profissional. Correções criam nova versão; nada é apagado."
+        eyebrow="Exames complementares"
+        title="Acuidade visual"
+      />
 
       <VisualAcuityForms
         orders={orders.map((order) => ({
@@ -57,6 +53,6 @@ export default async function VisualAcuityPage() {
           name: `${result.exam_order_id} · ${result.status} · v${result.current_version}`,
         }))}
       />
-    </main>
+    </div>
   );
 }

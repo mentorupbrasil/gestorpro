@@ -48,22 +48,19 @@ export function FinanceWorkspaceForms({
   const dueOn = tomorrow.toISOString().slice(0, 10);
 
   return (
-    <section className="mt-5 grid gap-4 lg:grid-cols-2">
-      <form
-        action={snapshotAction}
-        className="space-y-3 rounded-3xl border bg-white/90 p-5 shadow-sm"
-      >
+    <section className="mt-4 grid gap-3 lg:grid-cols-2">
+      <form action={snapshotAction} className="space-y-3 gp-surface p-4">
         <h2 className="text-lg font-semibold">1. Snapshot de preço</h2>
         <p className="text-xs text-slate-600">
           Valor vem da tabela aprovada no servidor. O cliente só escolhe o código faturável.
         </p>
         <input
-          className="w-full rounded border px-3 py-2 text-sm font-mono"
+          className="gp-input font-mono"
           name="encounterId"
           placeholder="encounter_id"
           required
         />
-        <select className="w-full rounded border px-3 py-2 text-sm" name="contractId" required>
+        <select className="gp-input" name="contractId" required>
           <option value="">Contrato…</option>
           {contractOptions.map((item) => (
             <option key={item.id} value={item.id}>
@@ -71,7 +68,7 @@ export function FinanceWorkspaceForms({
             </option>
           ))}
         </select>
-        <select className="w-full rounded border px-3 py-2 text-sm" name="priceTableId" required>
+        <select className="gp-input" name="priceTableId" required>
           <option value="">Tabela…</option>
           {priceTableOptions.map((item) => (
             <option key={item.id} value={item.id}>
@@ -79,7 +76,7 @@ export function FinanceWorkspaceForms({
             </option>
           ))}
         </select>
-        <select className="w-full rounded border px-3 py-2 text-sm" name="billableCode" required>
+        <select className="gp-input" name="billableCode" required>
           <option value="">Código faturável…</option>
           {priceItemOptions.map((item) => (
             <option key={item.id} value={item.id}>
@@ -91,7 +88,7 @@ export function FinanceWorkspaceForms({
           <input name="technicalRepeat" type="checkbox" /> Repetição técnica (não faturável)
         </label>
         <button
-          className="rounded bg-emerald-800 px-3 py-2 text-sm font-medium text-white disabled:opacity-60"
+          className="gp-btn gp-btn-primary"
           disabled={
             snapshotPending || contractOptions.length === 0 || priceItemOptions.length === 0
           }
@@ -105,12 +102,9 @@ export function FinanceWorkspaceForms({
         ) : null}
       </form>
 
-      <form
-        action={billingAction}
-        className="space-y-3 rounded-3xl border bg-white/90 p-5 shadow-sm"
-      >
+      <form action={billingAction} className="space-y-3 gp-surface p-4">
         <h2 className="text-lg font-semibold">2. Gerar faturamento</h2>
-        <select className="w-full rounded border px-3 py-2 text-sm" name="snapshotId" required>
+        <select className="gp-input" name="snapshotId" required>
           <option value="">Snapshot…</option>
           {snapshotOptions.map((item) => (
             <option key={item.id} value={item.id}>
@@ -119,7 +113,7 @@ export function FinanceWorkspaceForms({
           ))}
         </select>
         <button
-          className="rounded bg-emerald-800 px-3 py-2 text-sm font-medium text-white disabled:opacity-60"
+          className="gp-btn gp-btn-primary"
           disabled={billingPending || snapshotOptions.length === 0}
           type="submit"
         >
@@ -131,12 +125,9 @@ export function FinanceWorkspaceForms({
         ) : null}
       </form>
 
-      <form
-        action={invoiceAction}
-        className="space-y-3 rounded-3xl border bg-white/90 p-5 shadow-sm"
-      >
+      <form action={invoiceAction} className="space-y-3 gp-surface p-4">
         <h2 className="text-lg font-semibold">3. Emitir fatura</h2>
-        <select className="w-full rounded border px-3 py-2 text-sm" name="billingPayload" required>
+        <select className="gp-input" name="billingPayload" required>
           <option value="">Item pending/ready…</option>
           {billingOptions.map((item) => (
             <option key={item.id} value={item.id}>
@@ -144,15 +135,9 @@ export function FinanceWorkspaceForms({
             </option>
           ))}
         </select>
-        <input
-          className="w-full rounded border px-3 py-2 text-sm"
-          defaultValue={dueOn}
-          name="dueOn"
-          required
-          type="date"
-        />
+        <input className="gp-input" defaultValue={dueOn} name="dueOn" required type="date" />
         <button
-          className="rounded bg-emerald-800 px-3 py-2 text-sm font-medium text-white disabled:opacity-60"
+          className="gp-btn gp-btn-primary"
           disabled={invoicePending || billingOptions.length === 0}
           type="submit"
         >
@@ -164,12 +149,9 @@ export function FinanceWorkspaceForms({
         ) : null}
       </form>
 
-      <form
-        action={paymentAction}
-        className="space-y-3 rounded-3xl border bg-white/90 p-5 shadow-sm"
-      >
+      <form action={paymentAction} className="space-y-3 gp-surface p-4">
         <h2 className="text-lg font-semibold">4. Registrar pagamento</h2>
-        <select className="w-full rounded border px-3 py-2 text-sm" name="invoiceId" required>
+        <select className="gp-input" name="invoiceId" required>
           <option value="">Fatura…</option>
           {invoiceOptions.map((item) => (
             <option key={item.id} value={item.id}>
@@ -178,26 +160,17 @@ export function FinanceWorkspaceForms({
           ))}
         </select>
         <input
-          className="w-full rounded border px-3 py-2 text-sm"
+          className="gp-input"
           min={1}
           name="amountCents"
           placeholder="valor em centavos"
           required
           type="number"
         />
-        <input
-          className="w-full rounded border px-3 py-2 text-sm"
-          defaultValue="pix"
-          name="method"
-          required
-        />
-        <input
-          className="w-full rounded border px-3 py-2 text-sm"
-          name="reference"
-          placeholder="referência (opcional)"
-        />
+        <input className="gp-input" defaultValue="pix" name="method" required />
+        <input className="gp-input" name="reference" placeholder="referência (opcional)" />
         <button
-          className="rounded bg-slate-800 px-3 py-2 text-sm font-medium text-white disabled:opacity-60"
+          className="gp-btn gp-btn-secondary"
           disabled={paymentPending || invoiceOptions.length === 0}
           type="submit"
         >

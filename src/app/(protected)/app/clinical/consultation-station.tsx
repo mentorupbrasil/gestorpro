@@ -46,7 +46,7 @@ function Field({
     <label className="grid gap-1 text-sm">
       <span className="font-medium text-slate-800">{label}</span>
       <input
-        className="rounded border border-slate-300 px-3 py-2 read-only:bg-slate-50"
+        className="gp-input read-only:bg-gp-bg"
         defaultValue={fieldValue(defaultValue)}
         name={name}
         readOnly={readOnly}
@@ -73,7 +73,7 @@ function TextArea({
     <label className="grid gap-1 text-sm">
       <span className="font-medium text-slate-800">{label}</span>
       <textarea
-        className="min-h-20 rounded border border-slate-300 px-3 py-2 read-only:bg-slate-50"
+        className="min-h-20 gp-input read-only:bg-gp-bg"
         defaultValue={fieldValue(defaultValue)}
         name={name}
         readOnly={readOnly}
@@ -107,16 +107,16 @@ export function ConsultationStation({
   }, [router, state.encounterId, state.success]);
 
   return (
-    <section className="mt-8 rounded border border-slate-200 bg-white p-5 shadow-sm">
-      <header className="flex flex-wrap items-start justify-between gap-3 border-b border-slate-100 pb-4">
+    <section className="mt-4 gp-surface p-4">
+      <header className="mb-3 flex flex-wrap items-start justify-between gap-3 border-b border-gp-border pb-3">
         <div>
-          <p className="text-xs font-semibold uppercase tracking-wide text-sky-800">P0.2</p>
-          <h2 className="text-lg font-semibold">Estação de consulta médica</h2>
-          <p className="mt-1 text-sm text-slate-600">
+          <p className="text-xs font-semibold uppercase tracking-wide text-gp-text-muted">P0.2</p>
+          <h2 className="text-base font-semibold text-gp-text">Estação de consulta médica</h2>
+          <p className="mt-1 text-sm text-gp-text-muted">
             Profissional: {professionalName}. Somente atendimentos com triagem concluída.
           </p>
         </div>
-        <p className="text-sm text-slate-500">{queue.length} na fila de consulta</p>
+        <p className="text-sm text-gp-text-muted">{queue.length} na fila de consulta</p>
       </header>
 
       <div className="mt-4 grid gap-4 lg:grid-cols-[280px_minmax(0,1fr)]">
@@ -178,7 +178,7 @@ export function ConsultationStation({
                 <label className="grid gap-1 text-sm">
                   <span className="font-medium text-slate-800">Credencial médica</span>
                   <select
-                    className="rounded border border-slate-300 px-3 py-2 read-only:bg-slate-50"
+                    className="gp-input read-only:bg-gp-bg"
                     defaultValue={defaultPhysicianId}
                     disabled={readOnly}
                     name="physicianCredentialId"

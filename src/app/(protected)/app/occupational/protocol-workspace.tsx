@@ -47,17 +47,13 @@ export function ProtocolWorkspace({
   );
 
   return (
-    <section className="mt-10 grid gap-6 border-t border-slate-200 pt-8 lg:grid-cols-3">
-      <form action={protocolAction} className="grid gap-3">
-        <h2 className="text-lg font-semibold">Pacote de protocolo</h2>
-        <p className="text-sm text-slate-600">Cria itens e ativa protocolo na versão PCMSO.</p>
+    <section className="mt-4 grid gap-3 lg:grid-cols-3">
+      <form action={protocolAction} className="grid gap-3 gp-surface p-4">
+        <h2 className="text-base font-semibold text-gp-text">Pacote de protocolo</h2>
+        <p className="text-sm text-gp-text-muted">Cria itens e ativa protocolo na versão PCMSO.</p>
         <label className="grid gap-1 text-sm font-medium">
           Versão PCMSO
-          <select
-            className="rounded border border-slate-300 px-3 py-2"
-            name="pcmsoVersionId"
-            required
-          >
+          <select className="gp-input" name="pcmsoVersionId" required>
             <option value="">Selecione</option>
             {pcmsoVersions.map((item) => (
               <option key={item.id} value={item.id}>
@@ -68,11 +64,7 @@ export function ProtocolWorkspace({
         </label>
         <label className="grid gap-1 text-sm font-medium">
           Tipo de exame ocupacional
-          <select
-            className="rounded border border-slate-300 px-3 py-2"
-            name="occupationalExamType"
-            required
-          >
+          <select className="gp-input" name="occupationalExamType" required>
             {examTypes.map(([value, label]) => (
               <option key={value} value={value}>
                 {label}
@@ -82,12 +74,7 @@ export function ProtocolWorkspace({
         </label>
         <label className="grid gap-1 text-sm font-medium">
           Exames do catálogo
-          <select
-            className="min-h-28 rounded border border-slate-300 px-3 py-2"
-            multiple
-            name="examCatalogIds"
-            required
-          >
+          <select className="min-h-28 gp-input" multiple name="examCatalogIds" required>
             {catalogs.map((item) => (
               <option key={item.id} value={item.id}>
                 {item.label}
@@ -97,14 +84,14 @@ export function ProtocolWorkspace({
         </label>
         <label className="grid gap-1 text-sm font-medium">
           Códigos de risco (opcional, vírgula)
-          <input className="rounded border border-slate-300 px-3 py-2" name="riskCodes" />
+          <input className="gp-input" name="riskCodes" />
         </label>
         <label className="flex items-center gap-2 text-sm">
           <input defaultChecked name="activate" type="checkbox" value="true" />
           Ativar imediatamente
         </label>
         <button
-          className="rounded bg-emerald-800 px-4 py-2 text-sm font-semibold text-white disabled:opacity-60"
+          className="gp-btn gp-btn-primary"
           disabled={protocolPending || catalogs.length === 0 || pcmsoVersions.length === 0}
           type="submit"
         >
@@ -122,18 +109,14 @@ export function ProtocolWorkspace({
         ) : null}
       </form>
 
-      <form action={simulateAction} className="grid gap-3">
-        <h2 className="text-lg font-semibold">Simular exames</h2>
-        <p className="text-sm text-slate-600">
+      <form action={simulateAction} className="grid gap-3 gp-surface p-4">
+        <h2 className="text-base font-semibold text-gp-text">Simular exames</h2>
+        <p className="text-sm text-gp-text-muted">
           Motor `calculateRequiredExams` com protocolo vigente.
         </p>
         <label className="grid gap-1 text-sm font-medium">
           Tipo
-          <select
-            className="rounded border border-slate-300 px-3 py-2"
-            name="occupationalExamType"
-            required
-          >
+          <select className="gp-input" name="occupationalExamType" required>
             {examTypes.map(([value, label]) => (
               <option key={value} value={value}>
                 {label}
@@ -144,7 +127,7 @@ export function ProtocolWorkspace({
         <label className="grid gap-1 text-sm font-medium">
           Data de referência
           <input
-            className="rounded border border-slate-300 px-3 py-2"
+            className="gp-input"
             defaultValue={new Date().toISOString().slice(0, 10)}
             name="asOf"
             required
@@ -153,11 +136,11 @@ export function ProtocolWorkspace({
         </label>
         <label className="grid gap-1 text-sm font-medium">
           Riscos (vírgula)
-          <input className="rounded border border-slate-300 px-3 py-2" name="riskCodes" />
+          <input className="gp-input" name="riskCodes" />
         </label>
         <label className="grid gap-1 text-sm font-medium">
           Trabalhador (overrides)
-          <select className="rounded border border-slate-300 px-3 py-2" name="workerId">
+          <select className="gp-input" name="workerId">
             <option value="">Nenhum</option>
             {workers.map((item) => (
               <option key={item.id} value={item.id}>
@@ -166,11 +149,7 @@ export function ProtocolWorkspace({
             ))}
           </select>
         </label>
-        <button
-          className="rounded bg-slate-800 px-4 py-2 text-sm font-semibold text-white disabled:opacity-60"
-          disabled={simulatePending}
-          type="submit"
-        >
+        <button className="gp-btn gp-btn-secondary" disabled={simulatePending} type="submit">
           {simulatePending ? "Calculando…" : "Simular"}
         </button>
         {simulateState.error ? (
@@ -185,25 +164,21 @@ export function ProtocolWorkspace({
         ) : null}
       </form>
 
-      <form action={overrideAction} className="grid gap-3">
-        <h2 className="text-lg font-semibold">Override manual</h2>
-        <p className="text-sm text-slate-600">
+      <form action={overrideAction} className="grid gap-3 gp-surface p-4">
+        <h2 className="text-base font-semibold text-gp-text">Override manual</h2>
+        <p className="text-sm text-gp-text-muted">
           Add/remove auditado com justificativa (≥10). Sem aptidão.
         </p>
         <label className="grid gap-1 text-sm font-medium">
           Ação
-          <select className="rounded border border-slate-300 px-3 py-2" name="action" required>
+          <select className="gp-input" name="action" required>
             <option value="add">Adicionar exame</option>
             <option value="remove">Remover exame</option>
           </select>
         </label>
         <label className="grid gap-1 text-sm font-medium">
           Exame
-          <select
-            className="rounded border border-slate-300 px-3 py-2"
-            name="examCatalogId"
-            required
-          >
+          <select className="gp-input" name="examCatalogId" required>
             <option value="">Selecione</option>
             {catalogs.map((item) => (
               <option key={item.id} value={item.id}>
@@ -214,7 +189,7 @@ export function ProtocolWorkspace({
         </label>
         <label className="grid gap-1 text-sm font-medium">
           Trabalhador
-          <select className="rounded border border-slate-300 px-3 py-2" name="workerId" required>
+          <select className="gp-input" name="workerId" required>
             <option value="">Selecione</option>
             {workers.map((item) => (
               <option key={item.id} value={item.id}>
@@ -225,7 +200,7 @@ export function ProtocolWorkspace({
         </label>
         <label className="grid gap-1 text-sm font-medium">
           Protocolo (opcional)
-          <select className="rounded border border-slate-300 px-3 py-2" name="examProtocolId">
+          <select className="gp-input" name="examProtocolId">
             <option value="">Nenhum</option>
             {protocols.map((item) => (
               <option key={item.id} value={item.id}>
@@ -236,11 +211,7 @@ export function ProtocolWorkspace({
         </label>
         <label className="grid gap-1 text-sm font-medium">
           Justificativa
-          <textarea
-            className="min-h-20 rounded border border-slate-300 px-3 py-2"
-            name="justification"
-            required
-          />
+          <textarea className="min-h-20 gp-input" name="justification" required />
         </label>
         <button
           className="rounded bg-amber-800 px-4 py-2 text-sm font-semibold text-white disabled:opacity-60"

@@ -4,6 +4,7 @@ import { requirePermission } from "@/core/auth/authorization";
 import { resolveAuthorizationContext } from "@/core/auth/session";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 import { readEmbeddedRelation } from "@/lib/supabase/relations";
+import { PageHeader, Surface } from "@/components/ui/page-chrome";
 import { SstWorkspaceForms } from "./sst-forms";
 
 export default async function SstPage() {
@@ -67,36 +68,29 @@ export default async function SstPage() {
   const cipa = cipaResult.data ?? [];
 
   return (
-    <main className="mx-auto max-w-7xl px-2 py-4 sm:px-4">
-      <header className="rounded-3xl border border-white/70 bg-white/90 p-6 shadow-sm">
-        <p className="text-sm font-semibold uppercase tracking-wide text-emerald-800">
-          SST operacional
-        </p>
-        <h1 className="mt-2 text-3xl font-semibold tracking-tight">
-          Incidentes, EPI e CIPA (scaffold)
-        </h1>
-        <p className="mt-3 max-w-3xl text-sm leading-6 text-slate-600">
-          Registro operacional multi-tenant. Não é CAT, PPP, LTCAT nem PGR — sem pretensão
-          jurídica/documental completa nesta fase.
-        </p>
-      </header>
+    <div>
+      <PageHeader
+        description="Registro operacional multi-tenant. Não é CAT, PPP, LTCAT nem PGR — sem pretensão jurídica/documental completa nesta fase."
+        eyebrow="SST operacional"
+        title="Incidentes, EPI e CIPA (scaffold)"
+      />
 
       <SstWorkspaceForms
         companyOptions={companies.map((item) => ({ id: item.id, label: item.legal_name }))}
         workerOptions={workers.map((item) => ({ id: item.id, label: item.full_name }))}
       />
 
-      <section className="mt-5 grid gap-4 lg:grid-cols-3">
+      <section className="mt-4 grid gap-3 lg:grid-cols-3">
         <Panel title="Incidentes">
           {incidents.length === 0 ? (
             <Empty text="Nenhum incidente." />
           ) : (
             incidents.map((item) => (
               <li className="py-2 text-sm" key={item.id}>
-                <span className="font-semibold">
+                <span className="font-semibold text-gp-text">
                   {item.incident_type} · {item.severity}
                 </span>
-                <span className="ml-2 text-slate-500">
+                <span className="ml-2 text-gp-text-muted">
                   {readEmbeddedRelation(item.companies)?.legal_name ?? "Empresa"} · {item.status}
                 </span>
               </li>
@@ -109,10 +103,10 @@ export default async function SstPage() {
           ) : (
             epiIssues.map((item) => (
               <li className="py-2 text-sm" key={item.id}>
-                <span className="font-semibold">
+                <span className="font-semibold text-gp-text">
                   {item.epi_code} · {item.epi_name}
                 </span>
-                <span className="ml-2 text-slate-500">
+                <span className="ml-2 text-gp-text-muted">
                   {readEmbeddedRelation(item.workers)?.full_name ?? "Trabalhador"} · {item.status}
                 </span>
               </li>
@@ -125,8 +119,8 @@ export default async function SstPage() {
           ) : (
             cipa.map((item) => (
               <li className="py-2 text-sm" key={item.id}>
-                <span className="font-medium">{item.role_label}</span>
-                <span className="ml-2 text-slate-500">
+                <span className="font-medium text-gp-text">{item.role_label}</span>
+                <span className="ml-2 text-gp-text-muted">
                   {readEmbeddedRelation(item.workers)?.full_name ?? "Trabalhador"} · {item.status}
                 </span>
               </li>
@@ -134,19 +128,19 @@ export default async function SstPage() {
           )}
         </Panel>
       </section>
-    </main>
+    </div>
   );
 }
 
 function Panel({ children, title }: Readonly<{ children: React.ReactNode; title: string }>) {
   return (
-    <div className="rounded-3xl border border-white/70 bg-white/90 p-5 shadow-sm">
-      <h2 className="text-lg font-semibold">{title}</h2>
-      <ul className="mt-3 divide-y divide-slate-100">{children}</ul>
-    </div>
+    <Surface className="p-4">
+      <h2 className="text-base font-semibold text-gp-text">{title}</h2>
+      <ul className="mt-3 divide-y divide-gp-border">{children}</ul>
+    </Surface>
   );
 }
 
 function Empty({ text }: Readonly<{ text: string }>) {
-  return <li className="py-2 text-sm text-slate-600">{text}</li>;
+  return <li className="py-2 text-sm text-gp-text-muted">{text}</li>;
 }

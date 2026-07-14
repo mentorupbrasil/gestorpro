@@ -6,6 +6,7 @@ import { hasTenantOrUnitPermission, requirePermission } from "@/core/auth/author
 import { resolveAuthorizationContext } from "@/core/auth/session";
 import { loadCompanyPortalOverview } from "@/features/portal/service";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
+import { PageHeader, Surface } from "@/components/ui/page-chrome";
 import { PortalAdminForms } from "./portal-admin-forms";
 
 function money(cents: number) {
@@ -99,26 +100,21 @@ export default async function CompanyPortalPage({ searchParams }: PortalPageProp
   const overview = companyId ? await loadCompanyPortalOverview(selectedTenantId, companyId) : null;
 
   return (
-    <main className="mx-auto max-w-7xl px-2 py-4 sm:px-4">
-      <header className="rounded-3xl border border-white/70 bg-white/90 p-6 shadow-sm">
-        <p className="text-sm font-semibold uppercase tracking-wide text-emerald-800">
-          Portal empresarial
-        </p>
-        <h1 className="mt-2 text-3xl font-semibold tracking-tight">Visão da empresa</h1>
-        <p className="mt-3 max-w-3xl text-sm leading-6 text-slate-600">
-          Sem prontuário clínico. Status operacional sanitizado, documentos só pela matriz de
-          liberação e faturas da empresa selecionada.
-        </p>
-      </header>
+    <div>
+      <PageHeader
+        description="Sem prontuário clínico. Status operacional sanitizado, documentos só pela matriz de liberação e faturas da empresa selecionada."
+        eyebrow="Portal empresarial"
+        title="Visão da empresa"
+      />
 
       {selectableCompanies.length > 0 ? (
-        <nav className="mt-5 flex flex-wrap gap-2">
+        <nav className="mb-4 flex flex-wrap gap-2">
           {selectableCompanies.map((company) => (
             <Link
-              className={`rounded-full border px-3 py-1 text-sm ${
+              className={`rounded border px-3 py-1.5 text-sm font-medium ${
                 company.id === companyId
-                  ? "border-emerald-800 bg-emerald-900 text-white"
-                  : "border-slate-200 bg-white"
+                  ? "border-gp-accent-strong bg-gp-accent-strong text-[#04150f]"
+                  : "border-gp-border-strong bg-gp-surface text-gp-text hover:bg-gp-bg"
               }`}
               href={`/app/portal?company=${company.id}`}
               key={company.id}
@@ -128,9 +124,11 @@ export default async function CompanyPortalPage({ searchParams }: PortalPageProp
           ))}
         </nav>
       ) : (
-        <p className="mt-5 rounded-2xl bg-slate-100 p-4 text-sm text-slate-700">
-          Nenhum vínculo de portal ativo para este usuário.
-        </p>
+        <Surface className="mb-4 p-4">
+          <p className="text-sm text-gp-text-muted">
+            Nenhum vínculo de portal ativo para este usuário.
+          </p>
+        </Surface>
       )}
 
       {canManage ? (
@@ -138,15 +136,15 @@ export default async function CompanyPortalPage({ searchParams }: PortalPageProp
       ) : null}
 
       {overview ? (
-        <section className="mt-5 grid gap-4 lg:grid-cols-3">
+        <section className="mt-4 grid gap-3 lg:grid-cols-3">
           <Panel title="Atendimentos (sanitizado)">
             {overview.encountersSafe.length === 0 ? (
               <Empty text="Nenhum atendimento." />
             ) : (
               overview.encountersSafe.map((item) => (
                 <li className="py-2 text-sm" key={item.id}>
-                  <span className="font-medium">{item.statusLabel}</span>
-                  <span className="ml-2 text-slate-500">
+                  <span className="font-medium text-gp-text">{item.statusLabel}</span>
+                  <span className="ml-2 text-gp-text-muted">
                     {item.checkedInAt ? new Date(item.checkedInAt).toLocaleString("pt-BR") : "—"}
                   </span>
                 </li>
@@ -159,8 +157,8 @@ export default async function CompanyPortalPage({ searchParams }: PortalPageProp
             ) : (
               overview.releasedDocuments.map((item) => (
                 <li className="py-2 text-sm" key={item.id}>
-                  <span className="font-medium">{item.documentType}</span>
-                  <span className="ml-2 text-slate-500">
+                  <span className="font-medium text-gp-text">{item.documentType}</span>
+                  <span className="ml-2 text-gp-text-muted">
                     {item.status} · v{item.currentVersion ?? 1}
                   </span>
                 </li>
@@ -173,8 +171,8 @@ export default async function CompanyPortalPage({ searchParams }: PortalPageProp
             ) : (
               overview.invoices.map((item) => (
                 <li className="py-2 text-sm" key={item.id}>
-                  <span className="font-medium">{money(item.totalCents)}</span>
-                  <span className="ml-2 text-slate-500">{item.status}</span>
+                  <span className="font-medium text-gp-text">{money(item.totalCents)}</span>
+                  <span className="ml-2 text-gp-text-muted">{item.status}</span>
                 </li>
               ))
             )}
@@ -183,33 +181,33 @@ export default async function CompanyPortalPage({ searchParams }: PortalPageProp
       ) : null}
 
       {overview && overview.releaseRules.length > 0 ? (
-        <section className="mt-5 rounded-3xl border bg-white/90 p-5 shadow-sm">
-          <h2 className="text-lg font-semibold">Matriz vigente</h2>
-          <ul className="mt-3 divide-y text-sm">
+        <Surface className="mt-4 p-4">
+          <h2 className="text-base font-semibold text-gp-text">Matriz vigente</h2>
+          <ul className="mt-3 divide-y divide-gp-border text-sm">
             {overview.releaseRules.map((rule) => (
               <li className="flex justify-between gap-3 py-2" key={rule.documentType}>
                 <span>{rule.documentType}</span>
-                <span className="text-slate-600">
+                <span className="text-gp-text-muted">
                   {rule.releaseToCompany ? "liberado" : "bloqueado"} · {rule.redactionProfile}
                 </span>
               </li>
             ))}
           </ul>
-        </section>
+        </Surface>
       ) : null}
-    </main>
+    </div>
   );
 }
 
 function Panel({ children, title }: Readonly<{ children: React.ReactNode; title: string }>) {
   return (
-    <div className="rounded-3xl border border-white/70 bg-white/90 p-5 shadow-sm">
-      <h2 className="text-lg font-semibold">{title}</h2>
-      <ul className="mt-3 divide-y divide-slate-100">{children}</ul>
-    </div>
+    <Surface className="p-4">
+      <h2 className="text-base font-semibold text-gp-text">{title}</h2>
+      <ul className="mt-3 divide-y divide-gp-border">{children}</ul>
+    </Surface>
   );
 }
 
 function Empty({ text }: Readonly<{ text: string }>) {
-  return <li className="py-2 text-sm text-slate-600">{text}</li>;
+  return <li className="py-2 text-sm text-gp-text-muted">{text}</li>;
 }

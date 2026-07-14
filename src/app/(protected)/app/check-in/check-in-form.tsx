@@ -11,11 +11,11 @@ export function CheckInForm({ appointments }: { appointments: readonly Appointme
   const [state, action, pending] = useActionState(checkInAction, initialState);
 
   return (
-    <form action={action} className="mt-8 grid gap-4 border-t border-slate-200 pt-5">
-      <h2 className="text-lg font-semibold">Check-in</h2>
+    <form action={action} className="mt-0 grid gap-3 gp-surface p-4">
+      <h2 className="text-base font-semibold text-gp-text">Check-in</h2>
       <label className="grid gap-1 text-sm font-medium">
         Agendamento
-        <select className="rounded border border-slate-300 px-3 py-2" name="appointmentId" required>
+        <select className="gp-input" name="appointmentId" required>
           <option value="">Selecione</option>
           {appointments.map((appointment) => (
             <option key={appointment.id} value={appointment.id}>
@@ -24,11 +24,7 @@ export function CheckInForm({ appointments }: { appointments: readonly Appointme
           ))}
         </select>
       </label>
-      <button
-        className="w-fit rounded bg-emerald-800 px-4 py-2 font-semibold text-white disabled:opacity-60"
-        disabled={pending}
-        type="submit"
-      >
+      <button className="gp-btn gp-btn-primary w-fit" disabled={pending} type="submit">
         {pending ? "Registrando…" : "Realizar check-in"}
       </button>
       {state.error ? <p className="text-sm text-red-700">{state.error}</p> : null}

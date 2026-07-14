@@ -23,12 +23,12 @@ export function PortalAdminForms({
 
   return (
     <section className="mt-5 grid gap-4 lg:grid-cols-2">
-      <form action={userAction} className="space-y-3 rounded-3xl border bg-white/90 p-5 shadow-sm">
+      <form action={userAction} className="space-y-3 gp-surface p-4">
         <h2 className="text-lg font-semibold">Usuário do portal</h2>
         <p className="text-xs text-slate-600">
           Só vínculos ativos do tenant. UUID livre não é aceito.
         </p>
-        <select className="w-full rounded border px-3 py-2 text-sm" name="companyId" required>
+        <select className="gp-input" name="companyId" required>
           <option value="">Empresa…</option>
           {companyOptions.map((item) => (
             <option key={item.id} value={item.id}>
@@ -36,7 +36,7 @@ export function PortalAdminForms({
             </option>
           ))}
         </select>
-        <select className="w-full rounded border px-3 py-2 text-sm" name="userId" required>
+        <select className="gp-input" name="userId" required>
           <option value="">Membro do tenant…</option>
           {membershipOptions.map((item) => (
             <option key={item.id} value={item.id}>
@@ -44,17 +44,13 @@ export function PortalAdminForms({
             </option>
           ))}
         </select>
-        <select
-          className="w-full rounded border px-3 py-2 text-sm"
-          defaultValue="active"
-          name="status"
-        >
+        <select className="gp-input" defaultValue="active" name="status">
           <option value="active">active</option>
           <option value="suspended">suspended</option>
           <option value="revoked">revoked</option>
         </select>
         <button
-          className="rounded bg-emerald-800 px-3 py-2 text-sm font-medium text-white disabled:opacity-60"
+          className="gp-btn gp-btn-primary"
           disabled={userPending || companyOptions.length === 0 || membershipOptions.length === 0}
           type="submit"
         >
@@ -64,9 +60,9 @@ export function PortalAdminForms({
         {userState.success ? <p className="text-sm text-emerald-700">{userState.success}</p> : null}
       </form>
 
-      <form action={ruleAction} className="space-y-3 rounded-3xl border bg-white/90 p-5 shadow-sm">
+      <form action={ruleAction} className="space-y-3 gp-surface p-4">
         <h2 className="text-lg font-semibold">Matriz de documentos</h2>
-        <select className="w-full rounded border px-3 py-2 text-sm" name="companyId" required>
+        <select className="gp-input" name="companyId" required>
           <option value="">Empresa…</option>
           {companyOptions.map((item) => (
             <option key={item.id} value={item.id}>
@@ -74,21 +70,13 @@ export function PortalAdminForms({
             </option>
           ))}
         </select>
-        <select
-          className="w-full rounded border px-3 py-2 text-sm"
-          defaultValue="aso"
-          name="documentType"
-        >
+        <select className="gp-input" defaultValue="aso" name="documentType">
           <option value="aso">aso</option>
           <option value="exam_report">exam_report</option>
           <option value="triage_form">triage_form</option>
           <option value="generic">generic</option>
         </select>
-        <select
-          className="w-full rounded border px-3 py-2 text-sm"
-          defaultValue="operational"
-          name="redactionProfile"
-        >
+        <select className="gp-input" defaultValue="operational" name="redactionProfile">
           <option value="operational">operational</option>
           <option value="minimal">minimal</option>
           <option value="full_allowed">full_allowed</option>
@@ -97,7 +85,7 @@ export function PortalAdminForms({
           <input defaultChecked name="releaseToCompany" type="checkbox" /> Liberar para a empresa
         </label>
         <button
-          className="rounded bg-emerald-800 px-3 py-2 text-sm font-medium text-white disabled:opacity-60"
+          className="gp-btn gp-btn-primary"
           disabled={rulePending || companyOptions.length === 0}
           type="submit"
         >

@@ -77,7 +77,7 @@ export function ClinicalFlowPanel({
   const activePause = pauses.find((pause) => pause.status === "active");
 
   return (
-    <section className="mt-10 space-y-6 rounded-2xl border border-slate-200 p-5">
+    <section className="mt-4 space-y-4 gp-surface p-4">
       <header>
         <h2 className="text-lg font-semibold">Fluxo clínico (Fase G)</h2>
         <p className="mt-1 text-sm text-slate-600">
@@ -86,36 +86,28 @@ export function ClinicalFlowPanel({
       </header>
 
       <div className="grid gap-6 lg:grid-cols-2">
-        <form action={createAlert} className="space-y-3 rounded-xl border border-slate-100 p-4">
+        <form action={createAlert} className="space-y-3 gp-surface p-4">
           <h3 className="font-medium">Novo alerta</h3>
           <input name="encounterId" type="hidden" value={encounterId} />
-          <select
-            className="w-full rounded border px-3 py-2 text-sm"
-            defaultValue="attention"
-            name="severity"
-          >
+          <select className="gp-input" defaultValue="attention" name="severity">
             <option value="info">info</option>
             <option value="attention">attention</option>
             <option value="urgent">urgent</option>
           </select>
           <textarea
-            className="w-full rounded border px-3 py-2 text-sm"
+            className="gp-input"
             name="message"
             placeholder="Mensagem do alerta"
             required
             rows={3}
           />
-          <button
-            className="rounded bg-emerald-800 px-3 py-2 text-sm font-medium text-white disabled:opacity-60"
-            disabled={alertPending}
-            type="submit"
-          >
+          <button className="gp-btn gp-btn-primary" disabled={alertPending} type="submit">
             Criar alerta
           </button>
           <Feedback state={alertState} />
         </form>
 
-        <form action={pauseFlow} className="space-y-3 rounded-xl border border-slate-100 p-4">
+        <form action={pauseFlow} className="space-y-3 gp-surface p-4">
           <h3 className="font-medium">Pausa / intercorrência</h3>
           <input name="encounterId" type="hidden" value={encounterId} />
           {activePause ? (
@@ -123,7 +115,7 @@ export function ClinicalFlowPanel({
           ) : (
             <>
               <textarea
-                className="w-full rounded border px-3 py-2 text-sm"
+                className="gp-input"
                 name="reason"
                 placeholder="Motivo da pausa"
                 required
@@ -143,20 +135,16 @@ export function ClinicalFlowPanel({
       </div>
 
       {activePause ? (
-        <form action={resolvePause} className="space-y-3 rounded-xl border border-slate-100 p-4">
+        <form action={resolvePause} className="space-y-3 gp-surface p-4">
           <h3 className="font-medium">Retomar fluxo</h3>
           <input name="pauseId" type="hidden" value={activePause.id} />
           <textarea
-            className="w-full rounded border px-3 py-2 text-sm"
+            className="gp-input"
             name="resolvedNote"
             placeholder="Nota de resolução (opcional)"
             rows={2}
           />
-          <button
-            className="rounded bg-emerald-800 px-3 py-2 text-sm font-medium text-white disabled:opacity-60"
-            disabled={resolvePending}
-            type="submit"
-          >
+          <button className="gp-btn gp-btn-primary" disabled={resolvePending} type="submit">
             Resolver pausa
           </button>
           <Feedback state={resolveState} />
@@ -195,27 +183,18 @@ export function ClinicalFlowPanel({
       </div>
 
       {consultationId ? (
-        <form action={createAddendum} className="space-y-3 rounded-xl border border-slate-100 p-4">
+        <form action={createAddendum} className="space-y-3 gp-surface p-4">
           <h3 className="font-medium">Adendo de consulta</h3>
           <input name="consultationId" type="hidden" value={consultationId} />
-          <input
-            className="w-full rounded border px-3 py-2 text-sm"
-            name="reason"
-            placeholder="Motivo do adendo"
-            required
-          />
+          <input className="gp-input" name="reason" placeholder="Motivo do adendo" required />
           <textarea
-            className="w-full rounded border px-3 py-2 text-sm"
+            className="gp-input"
             name="note"
             placeholder="Nota adicional"
             required
             rows={3}
           />
-          <button
-            className="rounded bg-slate-800 px-3 py-2 text-sm font-medium text-white disabled:opacity-60"
-            disabled={addendumPending}
-            type="submit"
-          >
+          <button className="gp-btn gp-btn-secondary" disabled={addendumPending} type="submit">
             Registrar adendo
           </button>
           <Feedback state={addendumState} />
