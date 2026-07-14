@@ -23,25 +23,33 @@ export default async function PublicPanelPage({ searchParams }: Props) {
     );
   }
 
+  let sessionId: string | null = null;
+  let panelName = "";
+  let recentCalls: Array<{ createdAt: string; room: string | null; ticketCode: string | null }> =
+    [];
+  let activeCall: {
+    action: string;
+    callEventId: string;
+    createdAt: string;
+    payload: Record<string, unknown>;
+  } | null = null;
+  let authError = false;
+
   try {
-    const sessionId = await registerDisplaySession(token, label);
+    sessionId = await registerDisplaySession(token, label);
     const state = await loadDisplayPublicState(token);
-    return (
-      <PublicCallBoard
-        deviceToken={token}
-        initialState={{
-          activeCall: state.activeCall ?? null,
-          panelName: state.panelName,
-          recentCalls: state.recentCalls.map((call) => ({
-            createdAt: call.createdAt,
-            room: call.room ?? null,
-            ticketCode: call.ticketCode ?? null,
-          })),
-        }}
-        sessionId={sessionId}
-      />
-    );
+    panelName = state.panelName;
+    activeCall = state.activeCall ?? null;
+    recentCalls = state.recentCalls.map((call) => ({
+      createdAt: call.createdAt,
+      room: call.room ?? null,
+      ticketCode: call.ticketCode ?? null,
+    }));
   } catch {
+    authError = true;
+  }
+
+  if (authError || !sessionId) {
     return (
       <main className="grid min-h-screen place-items-center bg-[#0b1220] px-6 text-white">
         <div className="max-w-md text-center">
@@ -53,4 +61,16 @@ export default async function PublicPanelPage({ searchParams }: Props) {
       </main>
     );
   }
+
+  return (
+    <PublicCallBoard
+      deviceToken={token}
+      initialState={{
+        activeCall,
+        panelName,
+        recentCalls,
+      }}
+      sessionId={sessionId}
+    />
+  );
 }
