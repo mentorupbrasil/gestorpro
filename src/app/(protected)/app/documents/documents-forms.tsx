@@ -30,7 +30,6 @@ export function DocumentsWorkspaceForms({
     () => versions.find((item) => item.id === selectedVersionId)?.contentHash ?? "",
     [selectedVersionId, versions],
   );
-  const [storagePath] = useState(() => `checkpoint/${crypto.randomUUID()}.bin`);
   const [idempotencyKey] = useState(() => `doc-${crypto.randomUUID()}`);
   const [createState, createAction, createPending] = useActionState(
     createDocumentVersionAction,
@@ -76,11 +75,13 @@ export function DocumentsWorkspaceForms({
           <option value="exam_report">exam_report</option>
           <option value="aso">aso</option>
         </select>
-        <input name="storagePath" type="hidden" value={storagePath} />
-        <input name="idempotencyKey" type="hidden" value={idempotencyKey} />
         <label className="flex items-center gap-2 text-sm">
           <input name="hasMedicalConclusion" type="checkbox" /> Conclusão médica existente (ASO)
         </label>
+        <p className="text-xs text-slate-600">
+          Path e PDF são gerados no servidor (bucket privado). Sem path do cliente.
+        </p>
+        <input name="idempotencyKey" type="hidden" value={idempotencyKey} />
         <button
           className="rounded bg-emerald-800 px-3 py-2 text-sm font-medium text-white disabled:opacity-60"
           disabled={createPending || templateVersions.length === 0}

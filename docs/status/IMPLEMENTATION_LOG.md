@@ -1,5 +1,11 @@
 # Log de implementação
 
+## 2026-07-14 — ASO/documentos path opaco + pending render (`027`)
+
+- Migration `202607140027_stabilization_document_opaque_path_pending_render.sql`: bucket `clinical-private`; create com path opaco + `pending`; `finalize_document_version_render`; imutabilidade com exceção estreita.
+- App: remove `storagePath` do cliente; sobe stub PDF sem PHI via service role; só então finaliza `rendered`.
+- Apply: pendente do dono.
+
 ## 2026-07-14 — preço server-side (`026`)
 
 - Migration `202607140026_stabilization_server_side_price_snapshot.sql`: RPC resolve `unit_price_cents` da tabela aprovada; ignora amountCents/hash do cliente; valida encounter/contrato/tabela.

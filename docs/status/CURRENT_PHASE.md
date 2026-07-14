@@ -1,8 +1,7 @@
 # Fase atual
 
-- Fase atual: **estabilização** — portal IDOR (`025`) + preço server-side (`026`) no repo
-- Aplicar no SQL Editor (`.sql` puro, nesta ordem): `025` depois `026`
-- Depois: ASO PDF/storage → polimento
+- Fase atual: **estabilização** — ASO/docs `027` no repo (path opaco + pending até bytes)
+- Aplicar: `supabase/migrations/202607140027_stabilization_document_opaque_path_pending_render.sql`
 - Produção: **NO-GO** / PR #11 draft
 - Branch: `feat/p0-2-consulta-operacional`
 - Atualizado em: 2026-07-14

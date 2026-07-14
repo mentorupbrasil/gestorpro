@@ -24,6 +24,10 @@ export async function createDocumentVersionAction(
   const selectedTenantId = (await cookies()).get("gestorpro_tenant")?.value;
   if (!selectedTenantId) return { error: "Selecione uma organização." };
 
+  if (formData.get("storagePath")) {
+    return { error: "Caminho de storage do cliente não é aceito." };
+  }
+
   const form = z
     .object({
       documentType: z.enum(["aso", "triage_form", "exam_report", "generic"]),
@@ -31,7 +35,6 @@ export async function createDocumentVersionAction(
       hasMedicalConclusion: z.coerce.boolean().default(false),
       idempotencyKey: z.string().min(8),
       pendingRequiredExams: z.coerce.number().int().nonnegative().default(0),
-      storagePath: z.string().min(3),
       templateVersionId: z.string().uuid(),
     })
     .safeParse({
@@ -40,7 +43,6 @@ export async function createDocumentVersionAction(
       hasMedicalConclusion: formData.get("hasMedicalConclusion") === "on",
       idempotencyKey: formData.get("idempotencyKey"),
       pendingRequiredExams: formData.get("pendingRequiredExams") ?? 0,
-      storagePath: formData.get("storagePath"),
       templateVersionId: formData.get("templateVersionId"),
     });
   if (!form.success) return { error: "Revise os campos do documento." };
@@ -58,14 +60,19 @@ export async function createDocumentVersionAction(
           issuedAt: new Date().toISOString(),
           type: form.data.documentType,
         },
-        storagePath: form.data.storagePath,
         templateVersionId: form.data.templateVersionId,
         tenantId: selectedTenantId,
       },
       getRequestId(await headers()),
     );
     revalidatePath("/app/documents");
-    return { success: `Versão gerada (${result.versionId.slice(0, 8)}…).` };
+    if (result.renderStatus !== "rendered") {
+      return {
+        success:
+          `Versão ${result.versionId.slice(0, 8)}… criada (pending). ${result.warning ?? ""}`.trim(),
+      };
+    }
+    return { success: `Versão gerada e PDF privado gravado (${result.versionId.slice(0, 8)}…).` };
   } catch (error) {
     return { error: publicError(error, "Falha ao gerar documento.") };
   }

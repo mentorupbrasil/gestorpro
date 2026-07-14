@@ -5188,6 +5188,16 @@ export type Database = {
         };
         Returns: Json;
       };
+      finalize_document_version_render: {
+        Args: {
+          audit_request_id: string;
+          content_hash_value: string;
+          render_status_value: string;
+          target_document_version_id: string;
+          target_tenant_id: string;
+        };
+        Returns: string;
+      };
       get_company_portal_overview: {
         Args: {
           target_company_id: string;
