@@ -31,22 +31,20 @@ export async function createPriceSnapshotAction(
 
   const form = z
     .object({
-      amountCents: z.coerce.number().int().nonnegative(),
+      billableCode: z.string().trim().min(1),
       contractId: z.string().uuid(),
-      description: z.string().trim().min(1),
       encounterId: z.string().uuid(),
       priceTableId: z.string().uuid(),
       technicalRepeat: z.coerce.boolean().default(false),
     })
     .safeParse({
-      amountCents: formData.get("amountCents"),
+      billableCode: formData.get("billableCode"),
       contractId: formData.get("contractId"),
-      description: formData.get("description"),
       encounterId: formData.get("encounterId"),
       priceTableId: formData.get("priceTableId"),
       technicalRepeat: formData.get("technicalRepeat") === "on",
     });
-  if (!form.success) return { error: "Revise encontro, contrato, tabela e valor." };
+  if (!form.success) return { error: "Revise encontro, contrato, tabela e código faturável." };
 
   try {
     await createEncounterPriceSnapshot(
@@ -55,9 +53,7 @@ export async function createPriceSnapshotAction(
         encounterId: form.data.encounterId,
         items: [
           {
-            amountCents: form.data.amountCents,
-            billable: !form.data.technicalRepeat,
-            description: form.data.description,
+            billableCode: form.data.billableCode,
             technicalRepeat: form.data.technicalRepeat,
           },
         ],

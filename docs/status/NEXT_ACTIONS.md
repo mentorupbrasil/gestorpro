@@ -1,7 +1,8 @@
 # Próximas ações
 
-1. **Humano:** aplicar `supabase/migrations/202607140025_stabilization_portal_idor_hardening.sql` (arquivo `.sql` puro no SQL Editor)
-2. Commit/push da unidade portal (se ainda local) e confirmar CI
-3. Próxima unidade de código: **preço server-side** (não confiar em `amountCents` do cliente)
-4. Depois: ASO PDF/storage → polimento UX/seed/E2E
-5. Sem merge/`main`/produção — **NO-GO**
+1. **Humano:** aplicar nesta ordem (`.sql` puro no SQL Editor):
+   - `supabase/migrations/202607140025_stabilization_portal_idor_hardening.sql`
+   - `supabase/migrations/202607140026_stabilization_server_side_price_snapshot.sql`
+2. Confirmar CI da PR #11 após o push desta unidade
+3. Próxima unidade: **ASO PDF/storage** (depois polimento UX/seed/E2E)
+4. Sem merge/`main`/produção — **NO-GO**

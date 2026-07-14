@@ -21,6 +21,7 @@ export default async function FinancePage() {
   const [
     contractsResult,
     priceTablesResult,
+    priceItemsResult,
     snapshotsResult,
     billingResult,
     invoicesResult,
@@ -37,6 +38,12 @@ export default async function FinancePage() {
       .eq("tenant_id", context.tenantId)
       .order("created_at", { ascending: false })
       .limit(40),
+    supabase
+      .from("commercial_price_items")
+      .select("billable_code, description, unit_price_cents, price_table_id")
+      .eq("tenant_id", context.tenantId)
+      .order("billable_code")
+      .limit(120),
     supabase
       .from("encounter_price_snapshots")
       .select("id, encounter_id, created_at, content_hash")
@@ -66,6 +73,7 @@ export default async function FinancePage() {
   if (
     contractsResult.error ||
     priceTablesResult.error ||
+    priceItemsResult.error ||
     snapshotsResult.error ||
     billingResult.error ||
     invoicesResult.error ||
@@ -76,6 +84,7 @@ export default async function FinancePage() {
 
   const contracts = contractsResult.data ?? [];
   const priceTables = priceTablesResult.data ?? [];
+  const priceItems = priceItemsResult.data ?? [];
   const snapshots = snapshotsResult.data ?? [];
   const billing = billingResult.data ?? [];
   const invoices = invoicesResult.data ?? [];
@@ -125,6 +134,10 @@ export default async function FinancePage() {
             id: item.id,
             label: `${money(item.total_cents)} · ${item.status}`,
           }))}
+        priceItemOptions={priceItems.map((item) => ({
+          id: item.billable_code,
+          label: `${item.billable_code} · ${item.description} · ${money(item.unit_price_cents)}`,
+        }))}
         priceTableOptions={priceTables.map((item) => {
           const contract = Array.isArray(item.commercial_contracts)
             ? item.commercial_contracts[0]

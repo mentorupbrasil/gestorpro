@@ -19,8 +19,8 @@
 
 ## P0.4 / P0.5 / P0.6
 
-- `010`–`024` aplicadas (dono). `025` portal IDOR no repo — **apply pendente**.
-- Dívida restante: preço server-side; ASO PDF; PCMSO draft→approve humanizado.
+- `010`–`024` aplicadas. `025` portal IDOR + `026` preço server-side no repo — **apply pendente**.
+- Dívida restante: ASO PDF/storage; PCMSO draft→approve humanizado; polimento.
 - Fase N / produção: **NO-GO**.
 
 ## Já resolvido (não reabrir)

@@ -15,12 +15,14 @@ export function FinanceWorkspaceForms({
   billingOptions,
   contractOptions,
   invoiceOptions,
+  priceItemOptions,
   priceTableOptions,
   snapshotOptions,
 }: {
   billingOptions: Option[];
   contractOptions: Option[];
   invoiceOptions: Option[];
+  priceItemOptions: Option[];
   priceTableOptions: Option[];
   snapshotOptions: Option[];
 }) {
@@ -52,6 +54,9 @@ export function FinanceWorkspaceForms({
         className="space-y-3 rounded-3xl border bg-white/90 p-5 shadow-sm"
       >
         <h2 className="text-lg font-semibold">1. Snapshot de preço</h2>
+        <p className="text-xs text-slate-600">
+          Valor vem da tabela aprovada no servidor. O cliente só escolhe o código faturável.
+        </p>
         <input
           className="w-full rounded border px-3 py-2 text-sm font-mono"
           name="encounterId"
@@ -74,26 +79,22 @@ export function FinanceWorkspaceForms({
             </option>
           ))}
         </select>
-        <input
-          className="w-full rounded border px-3 py-2 text-sm"
-          defaultValue="Exame ocupacional"
-          name="description"
-          required
-        />
-        <input
-          className="w-full rounded border px-3 py-2 text-sm"
-          defaultValue={15000}
-          min={0}
-          name="amountCents"
-          type="number"
-          required
-        />
+        <select className="w-full rounded border px-3 py-2 text-sm" name="billableCode" required>
+          <option value="">Código faturável…</option>
+          {priceItemOptions.map((item) => (
+            <option key={item.id} value={item.id}>
+              {item.label}
+            </option>
+          ))}
+        </select>
         <label className="flex items-center gap-2 text-sm">
           <input name="technicalRepeat" type="checkbox" /> Repetição técnica (não faturável)
         </label>
         <button
           className="rounded bg-emerald-800 px-3 py-2 text-sm font-medium text-white disabled:opacity-60"
-          disabled={snapshotPending || contractOptions.length === 0}
+          disabled={
+            snapshotPending || contractOptions.length === 0 || priceItemOptions.length === 0
+          }
           type="submit"
         >
           Criar snapshot

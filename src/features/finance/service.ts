@@ -3,17 +3,12 @@ import "server-only";
 import { requireAal2, requirePermission } from "@/core/auth/authorization";
 import { resolveAuthorizationContext } from "@/core/auth/session";
 import { AppError } from "@/core/errors/app-error";
-import {
-  assertCommercialDoesNotChangeClinicalProtocol,
-  buildPriceSnapshotHash,
-} from "@/features/finance/finance-workflow";
+import { assertCommercialDoesNotChangeClinicalProtocol } from "@/features/finance/finance-workflow";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 import { z } from "zod";
 
 const snapshotItemSchema = z.object({
-  amountCents: z.number().int().nonnegative(),
-  billable: z.boolean().default(true),
-  description: z.string().trim().min(1).max(500),
+  billableCode: z.string().trim().min(1).max(64),
   nonBillableReason: z.string().trim().max(200).optional(),
   technicalRepeat: z.boolean().default(false),
 });
@@ -68,20 +63,19 @@ export async function createEncounterPriceSnapshot(
     clinicalProtocolChanged: parsed.clinicalProtocolChanged,
   });
 
+  // Preço e hash são resolvidos/congelados na RPC a partir da tabela aprovada.
   const snapshotPayload = {
-    description: "Snapshot comercial do atendimento",
-    items: parsed.items,
-    totalCents: parsed.items.reduce((total, item) => {
-      if (!item.billable || item.technicalRepeat) return total;
-      return total + item.amountCents;
-    }, 0),
+    items: parsed.items.map((item) => ({
+      billableCode: item.billableCode,
+      nonBillableReason: item.nonBillableReason,
+      technicalRepeat: item.technicalRepeat,
+    })),
   };
-  const contentHash = buildPriceSnapshotHash(snapshotPayload);
 
   const supabase = await createServerSupabaseClient();
   const { data, error } = await supabase.rpc("create_encounter_price_snapshot", {
     audit_request_id: requestId,
-    content_hash_value: contentHash,
+    content_hash_value: "",
     snapshot_payload_value: snapshotPayload,
     target_contract_id: parsed.contractId,
     target_encounter_id: parsed.encounterId,

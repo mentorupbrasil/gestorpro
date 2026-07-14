@@ -1,5 +1,12 @@
 # Log de implementação
 
+## 2026-07-14 — preço server-side (`026`)
+
+- Migration `202607140026_stabilization_server_side_price_snapshot.sql`: RPC resolve `unit_price_cents` da tabela aprovada; ignora amountCents/hash do cliente; valida encounter/contrato/tabela.
+- App/UI: formulário usa `billableCode` (sem valor livre).
+- pgTAP: `supabase/tests/server_side_price_snapshot.sql`.
+- Apply: pendente do dono (após `025`).
+
 ## 2026-07-14 — portal IDOR hardening (`025`)
 
 - Migration `202607140025_stabilization_portal_idor_hardening.sql`: `is_company_portal_member(tenant, company)` (+ membership ativa); upsert exige membership do tenant; release rule valida empresa∈tenant; FKs compostas portal→companies.
