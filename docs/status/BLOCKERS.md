@@ -7,10 +7,9 @@
 
 ## CI remoto
 
-- Build Vercel: passou após `z.input` Zod.
-- Dependency review: passou (Dependency graph habilitado).
-- `quality`: lint OK; passo `types:supabase:check` falhava por fingerprint das migrations — regenerado offline (`pnpm types:supabase:generate` sem credenciais) + `tsc` OK; commit/push desta unidade.
-- Não afirmar “CI verde” sem evidência na PR #11 após o push.
+- PR #11 (commit `40db238`): **quality, review, Vercel, CodeQL** passaram.
+- Causa do `types:supabase:check`: fingerprint das migrations atualizado com typegen offline + Prettier no arquivo gerado.
+- Scripts de typegen agora rodam Prettier após gerar (`f74e295`) para não reeditar `format:check`.
 - CI workflow ignora push direto na `main` (`branches-ignore: [main]`) — esperado até branch protection humana.
 
 ## Auth unit-scoped
