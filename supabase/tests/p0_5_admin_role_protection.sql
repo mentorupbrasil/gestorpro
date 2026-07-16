@@ -1,6 +1,6 @@
 begin;
 
-select plan(7);
+select plan(8);
 
 insert into auth.users (id, instance_id, aud, role, email, encrypted_password, created_at, updated_at)
 values
@@ -76,13 +76,24 @@ select throws_ok(
   $$select public.assign_membership_role(
     'a0000000-0000-4000-8000-000000000011',
     'a1000000-0000-4000-8000-000000000011',
-    'a2000000-0000-4000-8000-000000000012',
+    (select id from public.roles where tenant_id is null and code = 'tenant_admin' limit 1),
     null,
-    'p0-5-self'
+    'p0-5-self-privileged'
   )$$,
   '42501',
-  'cannot change own membership roles',
-  'administrator cannot self-assign roles'
+  'cannot change own privileged membership roles',
+  'administrator cannot self-assign privileged roles'
+);
+
+select lives_ok(
+  $$select public.assign_membership_role(
+    'a0000000-0000-4000-8000-000000000011',
+    'a1000000-0000-4000-8000-000000000011',
+    (select id from public.roles where tenant_id is null and code = 'receptionist' limit 1),
+    null,
+    'p0-5-self-operational'
+  )$$,
+  'administrator can self-assign operational roles with AAL2'
 );
 
 select lives_ok(
@@ -103,8 +114,8 @@ select throws_ok(
     'p0-5-last-admin'
   )$$,
   '42501',
-  'cannot revoke the last active tenant administrator role',
-  'last tenant_admin role cannot be stripped'
+  'cannot change own privileged membership roles',
+  'administrator cannot strip own privileged tenant_admin role'
 );
 
 select throws_ok(

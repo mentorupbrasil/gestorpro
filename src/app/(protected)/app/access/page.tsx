@@ -60,7 +60,7 @@ export default async function AccessPage() {
   return (
     <div>
       <PageHeader
-        description="Concessão e remoção de papéis exigem MFA (AAL2), não permitem autoelevação e protegem o último administrador ativo do tenant."
+        description="Concessão e remoção de papéis exigem MFA (AAL2). Administradores podem autoatribuir papéis operacionais; papéis administrativos e o último tenant_admin permanecem protegidos."
         eyebrow="Administração"
         title="Acessos e vínculos"
       />
@@ -88,14 +88,18 @@ export default async function AccessPage() {
                   .map((item) =>
                     item.roles
                       ? {
+                          code: item.roles.code,
                           id: item.id,
                           name: item.roles.name,
                           roleId: item.roles.id,
                         }
                       : null,
                   )
-                  .filter((item): item is { id: string; name: string; roleId: string } =>
-                    Boolean(item),
+                  .filter(
+                    (
+                      item,
+                    ): item is { code: string; id: string; name: string; roleId: string } =>
+                      Boolean(item),
                   );
                 return (
                   <tr key={membership.id}>
@@ -110,6 +114,7 @@ export default async function AccessPage() {
                         isSelf={isSelf}
                         membershipId={membership.id}
                         membershipRoles={membershipRoles.map((role) => ({
+                          code: role.code,
                           id: role.id,
                           name: role.name,
                         }))}

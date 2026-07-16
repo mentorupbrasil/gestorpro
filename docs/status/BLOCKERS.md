@@ -11,6 +11,11 @@
 - Apply migrations no Postgres de produção
 - Deploy produção + pentest/piloto
 
+## Operacional (tenant real / preview)
+
+- Conta só com `tenant_admin` não abre check-in até conceder papel operacional + criar unidade.
+- Após `035`: autoatribuição operacional na tela Acessos (exige MFA AAL2).
+
 ## Fechado nesta linha (engenharia)
 
 - Allowlist RPC / check-in / papéis / agenda timezone
@@ -20,3 +25,4 @@
 - Painel Realtime + heartbeat
 - Exames por fila
 - Portal IDOR overview ampliado
+- Bootstrap self-grant operacional (`035`)
