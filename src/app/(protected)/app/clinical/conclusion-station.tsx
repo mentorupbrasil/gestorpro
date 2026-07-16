@@ -199,7 +199,7 @@ function QueueButton({ item, selected }: { item: ConclusionQueueItem; selected: 
       className={`w-full rounded border px-3 py-2 text-left text-sm ${
         selected ? "border-emerald-700 bg-emerald-50" : "border-slate-200 hover:border-emerald-300"
       }`}
-      onClick={() => router.push(`/app/clinical?conclusion=${item.encounterId}`)}
+      onClick={() => router.push(`/app/clinical/conclusion?conclusion=${item.encounterId}`)}
       type="button"
     >
       <p className="font-semibold text-slate-900">{item.workerName}</p>

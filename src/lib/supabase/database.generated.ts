@@ -1489,6 +1489,42 @@ export type Database = {
         };
         Relationships: [];
       };
+      encounter_step_dependencies: {
+        Row: {
+          created_at: string;
+          dependency_group: string;
+          depends_on_step_id: string;
+          encounter_id: string;
+          id: string | null;
+          is_required: boolean;
+          priority: number;
+          step_id: string;
+          tenant_id: string;
+        };
+        Insert: {
+          created_at: string;
+          dependency_group: string;
+          depends_on_step_id: string;
+          encounter_id: string;
+          id?: string;
+          is_required: boolean;
+          priority: number;
+          step_id: string;
+          tenant_id: string;
+        };
+        Update: {
+          created_at?: string;
+          dependency_group?: string;
+          depends_on_step_id?: string;
+          encounter_id?: string;
+          id?: string;
+          is_required?: boolean;
+          priority?: number;
+          step_id?: string;
+          tenant_id?: string;
+        };
+        Relationships: [];
+      };
       encounter_steps: {
         Row: {
           created_at: string;
