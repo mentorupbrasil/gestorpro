@@ -1,8 +1,10 @@
 import "server-only";
 
+import { AppError } from "@/core/errors/app-error";
+import type { Permission } from "@/core/auth/permissions";
 import { requireAal2, requireTenantOrUnitPermission } from "@/core/auth/authorization";
 import { resolveAuthorizationContext } from "@/core/auth/session";
-import { AppError } from "@/core/errors/app-error";
+import { permissionForStepType } from "@/features/encounters/step-permissions";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 import { z } from "zod";
 
@@ -23,10 +25,30 @@ export async function transitionEncounterStep(
 ) {
   const parsed = transitionSchema.parse(input);
   const context = await resolveAuthorizationContext(parsed.tenantId);
-  requireTenantOrUnitPermission(context, "encounters.manage");
   requireAal2(context);
 
   const supabase = await createServerSupabaseClient();
+  const { data: step, error: stepError } = await supabase
+    .from("encounter_steps")
+    .select("id, step_type")
+    .eq("tenant_id", context.tenantId)
+    .eq("id", parsed.encounterStepId)
+    .maybeSingle();
+
+  if (stepError || !step) {
+    throw new AppError("VALIDATION_FAILED", "Etapa do atendimento não encontrada.", {
+      cause: stepError,
+      status: 404,
+    });
+  }
+
+  const requiredPermission =
+    parsed.action === "reopen"
+      ? ("clinical.reopen" as Permission)
+      : permissionForStepType(step.step_type);
+
+  requireTenantOrUnitPermission(context, requiredPermission);
+
   const { data, error } = await supabase.rpc("transition_encounter_step", {
     audit_request_id: requestId,
     expected_version: parsed.expectedVersion,

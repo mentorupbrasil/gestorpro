@@ -8,7 +8,11 @@ import {
   scheduleResourceListSchema,
 } from "@/features/scheduling/schemas";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
-import { REFERRAL_COMPANY_EMBED, REFERRAL_WORKER_EMBED, APPOINTMENT_RESOURCE_EMBED } from "@/lib/supabase/embeds";
+import {
+  REFERRAL_COMPANY_EMBED,
+  REFERRAL_WORKER_EMBED,
+  APPOINTMENT_RESOURCE_EMBED,
+} from "@/lib/supabase/embeds";
 import { PageHeader, Surface } from "@/components/ui/page-chrome";
 import { SchedulingForms } from "./scheduling-forms";
 

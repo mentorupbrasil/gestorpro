@@ -55,7 +55,8 @@ export function ConclusionClosureForms({
       <form action={asoAction} className="gp-surface grid gap-3 p-4">
         <h2 className="text-base font-semibold">2. Gerar e assinar ASO (AAL2)</h2>
         <p className="text-sm text-gp-text-muted">
-          PDF stub não-PHI com hash e auditoria. Template aprovado do tenant.
+          PDF operacional gerado do snapshot imutável (empresa, trabalhador, exames, conclusão,
+          CRM). Exige template aprovado e conclusão assinada.
         </p>
         <input name="encounterId" type="hidden" value={encounterId ?? ""} />
         <input name="templateVersionId" type="hidden" value={templateVersionId ?? ""} />

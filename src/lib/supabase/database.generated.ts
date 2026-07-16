@@ -3099,8 +3099,6 @@ export type Database = {
           signature_status: string | null;
           signed_at: string | null;
           tenant_id: string;
-          updated_at: string;
-          version: number;
         };
         Insert: {
           conclusion_code?: string;

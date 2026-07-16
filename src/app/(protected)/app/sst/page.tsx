@@ -48,9 +48,7 @@ export default async function SstPage() {
         .limit(30),
       supabase
         .from("sst_epi_issues")
-        .select(
-          `id, epi_code, epi_name, status, issued_at, ${SST_EPI_WORKER_EMBED}(full_name)`,
-        )
+        .select(`id, epi_code, epi_name, status, issued_at, ${SST_EPI_WORKER_EMBED}(full_name)`)
         .eq("tenant_id", context.tenantId)
         .order("issued_at", { ascending: false })
         .limit(30),

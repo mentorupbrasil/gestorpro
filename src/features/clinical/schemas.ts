@@ -324,11 +324,15 @@ export const conclusionQueueRowSchema = consultationQueueRowSchema.extend({
     .default([]),
   referrals: embeddedOneSchema(
     z.object({
-      companies: embeddedOneSchema(z.object({ legal_name: z.string() })).nullable().optional(),
+      companies: embeddedOneSchema(z.object({ legal_name: z.string() }))
+        .nullable()
+        .optional(),
       company_id: z.string().uuid().optional(),
       occupational_exam_type: z.string().nullable().optional(),
     }),
-  ).nullable().optional(),
+  )
+    .nullable()
+    .optional(),
   version: z.number().int().positive().optional().default(1),
 });
 

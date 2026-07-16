@@ -1,7 +1,10 @@
 # Próximas ações
 
-1. Você (preview): apply `035`–`036` no Supabase; MFA; clicar **Inicializar operação deste tenant**
-2. Você: cumprir `HUMAN_ACTIONS.md` (repo privado, branch protection, revisão Vercel/Supabase)
-3. Você: aprovar PR #12 → merge `main` → apply `028–036` em prod → deploy
-4. Agente: não mergeia/`main`/prod neste ciclo
-5. Opcional: E2E clínico profundo pós-seed (triagem→close) em ambiente de teste
+1. Agente: fechar gates locais (`format` ✓ → lint → typegen → test → build → e2e)
+2. Agente: migration autorização estrita (sem fallback `encounters.manage` clínico)
+3. Agente: remover ASO stub do fluxo operacional; PDF a partir do snapshot
+4. Agente: faturamento derivado de serviços do atendimento (sem `E2E_EXAM`)
+5. Agente: bootstrap admin-only (sem self-grant clínico)
+6. Agente: `completeEncounterStepByType` falha estruturada (sem best-effort)
+7. Você: apply migrations no Supabase de teste autorizado
+8. Você: cumprir `HUMAN_ACTIONS.md`; não merge/prod sem GO

@@ -126,9 +126,7 @@ export default async function WorkspacePage() {
           <p className="mt-1 text-base font-semibold text-gp-warning">NO-GO</p>
         </Surface>
         <Surface className="p-3">
-          <p className="text-xs font-semibold uppercase tracking-wide text-gp-text-muted">
-            Tenant
-          </p>
+          <p className="text-xs font-semibold uppercase tracking-wide text-gp-text-muted">Tenant</p>
           <p className="mt-1 text-base font-semibold">
             {needsBootstrap ? "Setup pendente" : "Base ok"}
           </p>

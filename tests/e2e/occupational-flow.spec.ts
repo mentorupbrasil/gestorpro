@@ -112,7 +112,9 @@ test.describe("authenticated occupational flow", () => {
     await page.goto("/app/scheduling");
     await expect(page.getByRole("heading", { name: "Encaminhamentos e agenda" })).toBeVisible();
     await expect(page.getByRole("option", { name: /Sala de demonstração E2E/ })).toBeAttached();
-    await expect(page.getByRole("option", { name: /Trabalhador Fictício E2E/ }).first()).toBeAttached();
+    await expect(
+      page.getByRole("option", { name: /Trabalhador Fictício E2E/ }).first(),
+    ).toBeAttached();
 
     await page.goto("/app/check-in");
     await expect(page.getByRole("heading", { name: "Estação operacional" })).toBeVisible({
@@ -143,7 +145,9 @@ test.describe("authenticated occupational flow", () => {
     });
 
     await page.goto("/app/documents");
-    await expect(page.getByRole("heading", { level: 1, name: /Templates|Documentos/i })).toBeVisible({
+    await expect(
+      page.getByRole("heading", { level: 1, name: /Templates|Documentos/i }),
+    ).toBeVisible({
       timeout: 15_000,
     });
 

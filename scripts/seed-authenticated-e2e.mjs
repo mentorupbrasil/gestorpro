@@ -528,7 +528,7 @@ try {
         id, tenant_id, price_table_id, billable_code, description, unit_price_cents,
         currency, technical_repeat_billable, created_at
       ) values (
-        ${priceItemId}, ${tenantId}, ${priceTableId}, 'E2E_EXAM',
+        ${priceItemId}, ${tenantId}, ${priceTableId}, 'EXAME_E2E',
         'Exame ocupacional fictício E2E', 15000, 'BRL', false, now()
       )
       on conflict (id) do update set unit_price_cents = excluded.unit_price_cents

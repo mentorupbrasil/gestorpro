@@ -1060,15 +1060,15 @@ export async function loadConclusionWorkspace(
       .eq("document_type", "aso")
       .in("id", templateIds);
     const asoId = new Set((asoTemplates ?? []).map((row) => row.id));
-    templateVersionId =
-      templateResult.data.find((row) => asoId.has(row.template_id))?.id ?? null;
+    templateVersionId = templateResult.data.find((row) => asoId.has(row.template_id))?.id ?? null;
   }
 
   const contractId = contractResult.data?.id ?? null;
-  const priceTableId =
-    (priceTableResult.data ?? []).find((row) => row.contract_id === contractId)?.id ??
-    (priceTableResult.data ?? [])[0]?.id ??
-    null;
+  const matchingTables = (priceTableResult.data ?? []).filter(
+    (row) => row.contract_id === contractId,
+  );
+  // Ambiguidade bloqueia seleção automática (sem fallback "primeira tabela").
+  const priceTableId = matchingTables.length === 1 ? (matchingTables[0]?.id ?? null) : null;
 
   return {
     billingDefaults: {

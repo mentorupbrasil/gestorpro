@@ -43,8 +43,8 @@ export function BootstrapOperationsPanel({
     >
       <p className="font-medium text-amber-950">{reason}</p>
       <p className="mt-1 text-sm text-amber-900">
-        Isso cria (se faltar): unidade SEDE, formulário de triagem aprovado, template ASO stub e
-        papéis operacionais na sua conta. Exige MFA (AAL2).
+        Isso cria (se faltar): unidade SEDE e rascunhos administrativos de triagem/ASO para
+        aprovação humana. Não concede papéis clínicos nem financeiro. Exige MFA (AAL2).
       </p>
       <form action={action} className="mt-3">
         <button className="gp-btn gp-btn-primary" disabled={pending} type="submit">

@@ -35,7 +35,10 @@ export function PublicCallBoard({
   const [linkMode, setLinkMode] = useState<"realtime" | "poll">("poll");
   const lastSpoken = useRef<string | null>(null);
   const voiceEnabledRef = useRef(voiceEnabled);
-  voiceEnabledRef.current = voiceEnabled;
+
+  useEffect(() => {
+    voiceEnabledRef.current = voiceEnabled;
+  }, [voiceEnabled]);
 
   useEffect(() => {
     let cancelled = false;

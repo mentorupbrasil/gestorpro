@@ -5,7 +5,11 @@ import { loadWorkspaceAuth } from "@/core/auth/load-workspace-auth";
 import { callEventListSchema, displayPanelListSchema } from "@/features/display/schemas";
 import { queueTicketListSchema } from "@/features/encounters/schemas";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
-import { ENCOUNTER_WORKER_EMBED, QUEUE_TICKET_DEFINITION_EMBED, QUEUE_TICKET_ENCOUNTER_EMBED } from "@/lib/supabase/embeds";
+import {
+  ENCOUNTER_WORKER_EMBED,
+  QUEUE_TICKET_DEFINITION_EMBED,
+  QUEUE_TICKET_ENCOUNTER_EMBED,
+} from "@/lib/supabase/embeds";
 import { PageHeader, Surface } from "@/components/ui/page-chrome";
 import { DisplayForms } from "./display-forms";
 

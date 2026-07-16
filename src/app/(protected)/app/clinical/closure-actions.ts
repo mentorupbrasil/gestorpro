@@ -12,6 +12,7 @@ import {
   createEncounterPriceSnapshot,
   issueInvoice,
 } from "@/features/finance/service";
+import { deriveBillableItemsFromEncounter } from "@/features/finance/derive-billable-items";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 import { getRequestId } from "@/lib/http/request-id";
 
@@ -114,7 +115,7 @@ export async function prepareAndSignAsoAction(
 
   revalidatePath("/app/clinical/conclusion");
   revalidatePath("/app/documents");
-  return { success: "ASO gerado e assinado (stub não-PHI)." };
+  return { success: "ASO gerado e assinado a partir do snapshot operacional." };
 }
 
 export async function prepareBillingAction(
@@ -142,12 +143,17 @@ export async function prepareBillingAction(
 
   const requestId = getRequestId(await headers());
   try {
+    const billableItems = await deriveBillableItemsFromEncounter({
+      encounterId: form.data.encounterId,
+      tenantId,
+    });
+
     const snapshotId = await createEncounterPriceSnapshot(
       {
         clinicalProtocolChanged: false,
         contractId: form.data.contractId,
         encounterId: form.data.encounterId,
-        items: [{ billableCode: "E2E_EXAM", technicalRepeat: false }],
+        items: billableItems,
         priceTableId: form.data.priceTableId,
         tenantId,
       },
@@ -157,14 +163,14 @@ export async function prepareBillingAction(
     await createBillingFromSnapshot({ snapshotId, tenantId }, requestId);
 
     const supabase = await createServerSupabaseClient();
-    const { data: items } = await supabase
+    const { data: billingRows } = await supabase
       .from("billing_items")
       .select("id")
       .eq("tenant_id", tenantId)
       .eq("encounter_id", form.data.encounterId)
       .eq("status", "open");
 
-    const billingItemIds = (items ?? []).map((item) => item.id).filter(Boolean) as string[];
+    const billingItemIds = (billingRows ?? []).map((item) => item.id).filter(Boolean) as string[];
     if (billingItemIds.length === 0) {
       return { error: "Nenhum item de faturamento gerado a partir do snapshot." };
     }

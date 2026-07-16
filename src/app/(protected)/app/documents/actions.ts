@@ -68,8 +68,8 @@ export async function createDocumentVersionAction(
     revalidatePath("/app/documents");
     if (result.renderStatus !== "rendered") {
       return {
-        success:
-          `Versão ${result.versionId.slice(0, 8)}… criada (pending). ${result.warning ?? ""}`.trim(),
+        error:
+          "Documento permanece pending: PDF não foi gravado no storage privado. Não assine nem conclua a etapa.",
       };
     }
     return { success: `Versão gerada e PDF privado gravado (${result.versionId.slice(0, 8)}…).` };

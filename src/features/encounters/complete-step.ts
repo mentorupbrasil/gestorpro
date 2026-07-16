@@ -1,10 +1,12 @@
 import "server-only";
 
+import { AppError } from "@/core/errors/app-error";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 import { transitionEncounterStep } from "./transition";
 
 /**
  * Completa (start→complete se necessário) uma etapa do encounter pelo step_type.
+ * Falhas de persistência/autorização/deps propagam — nunca best-effort.
  */
 export async function completeEncounterStepByType(input: {
   encounterId: string;
@@ -21,51 +23,57 @@ export async function completeEncounterStepByType(input: {
     .eq("step_type", input.stepType)
     .maybeSingle();
 
-  if (error || !step) return;
-  if (["completed", "cancelled"].includes(step.status)) return;
+  if (error) {
+    throw new AppError("INTERNAL_ERROR", "Não foi possível carregar a etapa do atendimento.", {
+      cause: error,
+      status: 500,
+    });
+  }
+
+  if (!step) {
+    throw new AppError(
+      "VALIDATION_FAILED",
+      `Etapa ${input.stepType} não encontrada no atendimento.`,
+      {
+        status: 404,
+      },
+    );
+  }
+
+  if (["completed", "cancelled"].includes(step.status)) {
+    return;
+  }
 
   let expectedVersion = step.version;
   let status = step.status;
 
   if (status === "pending" || status === "blocked" || status === "available") {
-    if (status === "blocked") {
-      // deps incompletas: tenta start mesmo assim; RPC valida
-    }
     if (status !== "in_progress") {
-      try {
-        await transitionEncounterStep(
-          {
-            action: "start",
-            encounterStepId: step.id,
-            expectedVersion,
-            idempotencyKey: `step:start:${input.encounterId}:${input.stepType}`,
-            tenantId: input.tenantId,
-          },
-          input.requestId,
-        );
-        expectedVersion += 1;
-        status = "in_progress";
-      } catch {
-        // se start falhar (deps), não força complete
-        return;
-      }
-    }
-  }
-
-  if (status === "in_progress" || status === "available" || status === "paused") {
-    try {
       await transitionEncounterStep(
         {
-          action: "complete",
+          action: "start",
           encounterStepId: step.id,
           expectedVersion,
-          idempotencyKey: `step:complete:${input.encounterId}:${input.stepType}`,
+          idempotencyKey: `step:start:${input.encounterId}:${input.stepType}`,
           tenantId: input.tenantId,
         },
         input.requestId,
       );
-    } catch {
-      // best-effort: caller ainda pode fechar depois
+      expectedVersion += 1;
+      status = "in_progress";
     }
+  }
+
+  if (status === "in_progress" || status === "available" || status === "paused") {
+    await transitionEncounterStep(
+      {
+        action: "complete",
+        encounterStepId: step.id,
+        expectedVersion,
+        idempotencyKey: `step:complete:${input.encounterId}:${input.stepType}`,
+        tenantId: input.tenantId,
+      },
+      input.requestId,
+    );
   }
 }

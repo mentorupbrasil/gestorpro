@@ -96,9 +96,7 @@ export default async function AccessPage() {
                       : null,
                   )
                   .filter(
-                    (
-                      item,
-                    ): item is { code: string; id: string; name: string; roleId: string } =>
+                    (item): item is { code: string; id: string; name: string; roleId: string } =>
                       Boolean(item),
                   );
                 return (

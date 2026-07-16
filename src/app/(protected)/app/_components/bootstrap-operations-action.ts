@@ -12,9 +12,11 @@ export type BootstrapOperationsState = { error?: string; success?: string };
 const logger = createOperationalLogger();
 
 export async function bootstrapTenantOperationsAction(
-  _state: BootstrapOperationsState,
-  _formData: FormData,
+  _prevState: BootstrapOperationsState,
+  formData: FormData,
 ): Promise<BootstrapOperationsState> {
+  void _prevState;
+  void formData;
   const selectedTenantId = (await cookies()).get("gestorpro_tenant")?.value;
   if (!selectedTenantId) return { error: "Selecione uma organização." };
 
@@ -23,11 +25,11 @@ export async function bootstrapTenantOperationsAction(
     const result = await bootstrapTenantOperations(selectedTenantId, requestId);
     const parts = [
       result.unitCreated ? "unidade criada" : null,
-      result.formCreated ? "formulário de triagem aprovado" : null,
-      result.asoCreated ? "template ASO aprovado" : null,
+      result.formCreated ? "rascunho de triagem (aprovação humana)" : null,
+      result.asoCreated ? "rascunho de template ASO (aprovação humana)" : null,
       result.rolesAssigned.length > 0
         ? `papéis: ${result.rolesAssigned.join(", ")}`
-        : "papéis operacionais já presentes",
+        : "sem self-grant clínico/financeiro",
     ].filter(Boolean);
 
     revalidatePath("/app");

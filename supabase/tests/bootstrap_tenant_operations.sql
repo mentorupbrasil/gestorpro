@@ -1,6 +1,6 @@
 begin;
 
-select plan(3);
+select plan(4);
 
 insert into auth.users (id, instance_id, aud, role, email, encrypted_password, created_at, updated_at)
 values
@@ -67,16 +67,29 @@ select ok(
   and exists (
     select 1 from public.triage_form_versions
     where tenant_id = 'c0000000-0000-4000-8000-000000000021'
-      and status = 'approved'
+      and status = 'draft'
   )
   and exists (
+    select 1 from public.document_template_versions version
+    join public.document_templates template
+      on template.id = version.template_id
+     and template.tenant_id = version.tenant_id
+    where version.tenant_id = 'c0000000-0000-4000-8000-000000000021'
+      and template.document_type = 'aso'
+      and version.status = 'draft'
+  ),
+  'bootstrap creates unit and draft clinical templates only'
+);
+
+select ok(
+  not exists (
     select 1
     from public.membership_roles mr
     join public.roles r on r.id = mr.role_id
     where mr.membership_id = 'c1000000-0000-4000-8000-000000000021'
-      and r.code = 'receptionist'
+      and r.code in ('receptionist', 'nursing', 'occupational_physician', 'finance', 'unit_manager')
   ),
-  'bootstrap creates unit, approved triage form and operational role'
+  'bootstrap does not self-grant clinical or finance roles'
 );
 
 reset role;

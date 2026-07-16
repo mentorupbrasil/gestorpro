@@ -18,8 +18,7 @@ export const SST_INCIDENT_COMPANY_EMBED = "companies!sst_incidents_company_tenan
 export const SST_EPI_WORKER_EMBED = "workers!sst_epi_worker_tenant_fk";
 export const SST_CIPA_COMPANY_EMBED = "companies!sst_cipa_company_tenant_fk";
 export const SST_CIPA_WORKER_EMBED = "workers!sst_cipa_worker_tenant_fk";
-export const APPOINTMENT_RESOURCE_EMBED =
-  "schedule_resources!appointments_resource_tenant_fk";
+export const APPOINTMENT_RESOURCE_EMBED = "schedule_resources!appointments_resource_tenant_fk";
 export const APPOINTMENT_REFERRAL_EMBED = "referrals!appointments_referral_tenant_fk";
 export const ENCOUNTER_EXAM_ORDERS_EMBED = "exam_orders!exam_orders_encounter_tenant_fk";
 export const QUEUE_TICKET_DEFINITION_EMBED =
