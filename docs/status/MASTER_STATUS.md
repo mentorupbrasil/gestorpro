@@ -2,22 +2,23 @@
 
 Atualizado em: 2026-07-16
 
-## Reauditoria V2 + lote P0 em andamento
+## Estado
 
 - Branch: `feat/p0-security-rpc-checkin` — PR #12 OPEN.
-- Gates locais do lote P0 (format/lint/typecheck/types/secrets/audit/test/scanner/build): **verdes**.
-- Correções P0 aplicadas no código: permissões por etapa, ASO snapshot PDF, billing derivado, bootstrap admin-only, CI anti-stub.
-- Ainda aberto: E2E ponta a ponta completo, DAG paralelo de exames, encerramento orquestrado RPC, apply DB humano, P1 portal/SST/eSocial.
+- Commits P0 deste ciclo: `1735f53`, `b3c6ecf`, `4af4919`.
+- Migrations `037`–`039` **aplicadas** no Postgres de teste autorizado.
+- Gates locais: format/lint/typecheck/types/secrets/audit/test(157)/build verdes na última validação.
 - Produção / merge `main`: **NO-GO**.
 
-| Fase                       | Estado         | Observação                                         |
-| -------------------------- | -------------- | -------------------------------------------------- |
-| 1 — Plataforma e segurança | P0_IN_PROGRESS | 037/038 no repo; apply DB pendente                 |
-| 3 — Agenda                 | P0_DB_APPLIED  | timezone + guards                                  |
-| 4 — Check-in / filas       | P0_PARTIAL     | check-in 029 existe; concorrência E2E pendente     |
-| 5 — Painel chamadas        | P1_PARTIAL     | Realtime ok; lint board corrigido                  |
-| 6 — Clínica                | P0_IN_PROGRESS | ASO real + permissões; E2E close profundo pendente |
-| 7 — Exames                 | P2_PARTIAL     | filas; DAG paralelo pendente                       |
-| 8–11                       | PARTIAL        | finance/portal endurecidos; GO humano              |
+| Fase                           | Estado        | Observação                                        |
+| ------------------------------ | ------------- | ------------------------------------------------- |
+| CI quality                     | IN_PROGRESS   | remoto reexecutando após fix CI                   |
+| Autorização etapas             | P0_DB_APPLIED | sem fallback `encounters.manage`                  |
+| ASO / billing                  | P0_CODE       | PDF snapshot + derive catálogo                    |
+| Bootstrap                      | P0_DB_APPLIED | admin-only, drafts, sem self-grant                |
+| Exames paralelos               | P0_DB_APPLIED | M2M `encounter_step_dependencies`                 |
+| Estações UI                    | P0_PARTIAL    | hide por permissão + cockpit                      |
+| E2E ponta a ponta 40 passos    | OPEN          | ainda navegação/estações; close profundo pendente |
+| Portal / SST / eSocial / carga | OPEN          | P1                                                |
 
 **Decisão:** `NO-GO` produção.

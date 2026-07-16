@@ -3,25 +3,17 @@
 ## Produção / merge
 
 - **NO-GO** até GO humano (`HUMAN_ACTIONS.md`).
-- Push direto na `main` continua proibido.
 
-## CI / engenharia (aberto nesta reauditoria)
-
-- Remoto: `quality` falhou em `format:check` (corrigido local; precisa push).
-- Local: `lint` (refs no painel público) e `types:supabase:check` (fingerprint 035/036).
-- ASO operacional ainda usa stub PDF.
-- Faturamento guiado ainda injeta `E2E_EXAM`.
-- `transition_encounter_step` ainda aceita fallback `encounters.manage` para etapas clínicas.
-- Bootstrap `036` ainda self-grant papéis clínicos/financeiros e aprova templates.
-
-## Aberto (humano)
+## Humano
 
 - Merge PR #12 → `main`
-- Apply migrations no Postgres de produção
-- Deploy produção + pentest/piloto
+- Apply `037`–`039` em preview/prod após GO (teste local já aplicou)
+- Pentest / validação médica-jurídica / piloto
 
-## Fechado nesta linha (engenharia histórica)
+## Engenharia ainda aberta
 
-- Allowlist RPC / check-in / papéis / agenda timezone (código na branch)
-- Embeds PGRST201 + E2E ocupacional navegação
-- Painel Realtime + heartbeat (com débito de lint atual)
+- E2E autenticado completo (40 passos + asserções DB) ainda não fechado
+- Motor PCMSO/protocolo versionado completo (cenários negativos amplos)
+- Encerramento orquestrado além da RPC 033 (workflow storage externo)
+- Painel P1 (redirect/arrived/ACK concurrência) incompleto vs spec
+- Portal/SST/eSocial/observabilidade/acessibilidade dedicada
