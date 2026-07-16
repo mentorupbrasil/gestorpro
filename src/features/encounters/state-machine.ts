@@ -119,7 +119,11 @@ export type CloseBlocker = {
     | "PENDING_EXAMS"
     | "MISSING_SNAPSHOT"
     | "MISSING_INVOICE"
-    | "FLOW_PAUSED";
+    | "FLOW_PAUSED"
+    | "DELIVERY_OPEN"
+    | "CRITICAL_ALERTS"
+    | "CANCELLED"
+    | "UNKNOWN";
   message: string;
 };
 

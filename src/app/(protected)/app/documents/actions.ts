@@ -101,7 +101,7 @@ export async function signDocumentVersionAction(
       {
         contentHash: form.data.contentHash,
         documentVersionId: form.data.documentVersionId,
-        method: "totp",
+        method: "mfa_session",
         tenantId: selectedTenantId,
       },
       getRequestId(await headers()),

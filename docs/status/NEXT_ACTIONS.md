@@ -1,7 +1,8 @@
 # Próximas ações
 
-1. Aguardar CI `quality` verde no PR #12 após push deste ciclo
-2. Agente: rodar `pnpm seed:e2e:auth` + E2E autenticado (`clinical-deep-flow` / `occupational-flow`) quando secrets locais permitirem
-3. Você: revisar PR #12; **não** merge/prod sem GO
-4. Você: após GO, apply `037`–`040` nos ambientes restantes
-5. Humano: ensaio de restore (backup) e registrar evidência em `TEST_RESULTS.md`
+1. Aplicar migration `041` no Postgres de teste autorizado (`pnpm migrate:upgrade` ou apply one)
+2. Configurar secrets do job `authenticated-e2e` no GitHub (URL real, usuário E2E, MFA, service role, PG*)
+3. Rodar `pnpm migrate:fresh` + `pnpm test:pgtap` em ambiente descartável e anexar evidência em `TEST_RESULTS.md`
+4. Você: revisar PR #12; **não** merge/prod sem GO
+5. Humano: ensaio de restore (backup) e registrar evidência
+6. Continuar fases 7–20 (template ASO verificável, billing executado, PCMSO autoritativo, portais, SST/eSocial)

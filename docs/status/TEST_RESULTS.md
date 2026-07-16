@@ -1,5 +1,18 @@
 # Resultados de testes e verificações
 
+## 2026-07-16 — Pós-auditoria (bloqueadores reais)
+
+- Branch: `feat/p0-security-rpc-checkin`
+- Base auditada: `7778240`
+- Migration nova: `202607160041_post_audit_close_docs_rpc.sql` (não edita 037–040)
+- `pnpm types:supabase:generate:offline` + `types:supabase:check`: passed
+- `pnpm typecheck` / `lint` / `security:secrets`: passed
+- `pnpm test`: **166 passed** (39 files) — inclui `post-audit-close-docs.test.ts`
+- Migrations fresh/upgrade em banco local: **não executadas nesta máquina** (sem Docker/Postgres/.env)
+- Jobs CI criados para fresh + upgrade + pgTAP + ui-smoke + authenticated-e2e (fail-closed sem secrets)
+- Skips autenticados no job auth: **proibidos** (`assert-e2e-no-skips.mjs`)
+- Produção: **NO-GO**
+
 ## 2026-07-16 — Display P1 (040) + ops/health + motor PCMSO
 
 - Branch: `feat/p0-security-rpc-checkin`

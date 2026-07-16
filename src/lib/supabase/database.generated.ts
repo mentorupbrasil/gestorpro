@@ -459,6 +459,7 @@ export type Database = {
           name: string;
           status: string;
           tenant_id: string;
+          timezone: string | null;
           updated_at: string;
         };
         Insert: {
@@ -468,6 +469,7 @@ export type Database = {
           name: string;
           status: string;
           tenant_id: string;
+          timezone?: string;
           updated_at: string;
         };
         Update: {
@@ -477,6 +479,7 @@ export type Database = {
           name?: string;
           status?: string;
           tenant_id?: string;
+          timezone?: string;
           updated_at?: string;
         };
         Relationships: [];
@@ -1021,8 +1024,10 @@ export type Database = {
           clinic_unit_id: string;
           code: string;
           created_at: string;
+          device_token_hash: string | null;
           id: string | null;
           name: string;
+          privacy_mode: string | null;
           status: string;
           tenant_id: string;
           updated_at: string;
@@ -1032,8 +1037,10 @@ export type Database = {
           clinic_unit_id: string;
           code: string;
           created_at: string;
+          device_token_hash?: string;
           id?: string;
           name: string;
+          privacy_mode?: string;
           status: string;
           tenant_id: string;
           updated_at: string;
@@ -1043,8 +1050,10 @@ export type Database = {
           clinic_unit_id?: string;
           code?: string;
           created_at?: string;
+          device_token_hash?: string;
           id?: string;
           name?: string;
+          privacy_mode?: string;
           status?: string;
           tenant_id?: string;
           updated_at?: string;
@@ -1240,10 +1249,15 @@ export type Database = {
           id: string | null;
           print_config: Json;
           rectification_reason: string | null;
+          render_failure_reason: string | null;
           render_status: string | null;
           snapshot_payload: Json;
           storage_bucket: string;
+          storage_mime_type: string | null;
           storage_path: string;
+          storage_size_bytes: number | null;
+          storage_verification_id: string | null;
+          storage_verified_at: string | null;
           tenant_id: string;
           version: number;
         };
@@ -1255,10 +1269,15 @@ export type Database = {
           id?: string;
           print_config: Json;
           rectification_reason?: string;
+          render_failure_reason?: string;
           render_status?: string;
           snapshot_payload: Json;
           storage_bucket: string;
+          storage_mime_type?: string;
           storage_path: string;
+          storage_size_bytes?: number;
+          storage_verification_id?: string;
+          storage_verified_at?: string;
           tenant_id: string;
           version: number;
         };
@@ -1270,10 +1289,15 @@ export type Database = {
           id?: string;
           print_config?: Json;
           rectification_reason?: string;
+          render_failure_reason?: string;
           render_status?: string;
           snapshot_payload?: Json;
           storage_bucket?: string;
+          storage_mime_type?: string;
           storage_path?: string;
+          storage_size_bytes?: number;
+          storage_verification_id?: string;
+          storage_verified_at?: string;
           tenant_id?: string;
           version?: number;
         };
@@ -1351,6 +1375,72 @@ export type Database = {
           updated_at?: string;
           version?: number;
           worker_id?: string;
+        };
+        Relationships: [];
+      };
+      encounter_closures: {
+        Row: {
+          aso_document_id: string | null;
+          aso_signature_id: string | null;
+          aso_version_id: string | null;
+          closed_at: string;
+          closed_by: string;
+          conclusion_id: string | null;
+          conclusion_version: number | null;
+          encounter_id: string;
+          encounter_version: number;
+          gates_checklist: Json;
+          gates_checklist_hash: string;
+          id: string | null;
+          idempotency_key: string;
+          invoice_id: string | null;
+          payment_policy: string;
+          price_snapshot_id: string | null;
+          request_id: string;
+          storage_content_hash: string;
+          tenant_id: string;
+        };
+        Insert: {
+          aso_document_id?: string;
+          aso_signature_id?: string;
+          aso_version_id?: string;
+          closed_at: string;
+          closed_by: string;
+          conclusion_id?: string;
+          conclusion_version?: number;
+          encounter_id: string;
+          encounter_version: number;
+          gates_checklist: Json;
+          gates_checklist_hash: string;
+          id?: string;
+          idempotency_key: string;
+          invoice_id?: string;
+          payment_policy: string;
+          price_snapshot_id?: string;
+          request_id: string;
+          storage_content_hash: string;
+          tenant_id: string;
+        };
+        Update: {
+          aso_document_id?: string;
+          aso_signature_id?: string;
+          aso_version_id?: string;
+          closed_at?: string;
+          closed_by?: string;
+          conclusion_id?: string;
+          conclusion_version?: number;
+          encounter_id?: string;
+          encounter_version?: number;
+          gates_checklist?: Json;
+          gates_checklist_hash?: string;
+          id?: string;
+          idempotency_key?: string;
+          invoice_id?: string;
+          payment_policy?: string;
+          price_snapshot_id?: string;
+          request_id?: string;
+          storage_content_hash?: string;
+          tenant_id?: string;
         };
         Relationships: [];
       };
@@ -3135,6 +3225,8 @@ export type Database = {
           signature_status: string | null;
           signed_at: string | null;
           tenant_id: string;
+          updated_at: string | null;
+          version: number | null;
         };
         Insert: {
           conclusion_code?: string;
@@ -3149,6 +3241,8 @@ export type Database = {
           signature_status?: string;
           signed_at?: string;
           tenant_id: string;
+          updated_at?: string;
+          version?: number;
         };
         Update: {
           conclusion_code?: string;
@@ -3163,6 +3257,8 @@ export type Database = {
           signature_status?: string;
           signed_at?: string;
           tenant_id?: string;
+          updated_at?: string;
+          version?: number;
         };
         Relationships: [];
       };
@@ -4422,6 +4518,7 @@ export type Database = {
       };
       spirometry_results: {
         Row: {
+          accepted_maneuver_id: string | null;
           calibration_id: string | null;
           completed_at: string | null;
           completed_by: string | null;
@@ -4438,6 +4535,7 @@ export type Database = {
           updated_at: string;
         };
         Insert: {
+          accepted_maneuver_id?: string;
           calibration_id?: string;
           completed_at?: string;
           completed_by?: string;
@@ -4454,6 +4552,7 @@ export type Database = {
           updated_at: string;
         };
         Update: {
+          accepted_maneuver_id?: string;
           calibration_id?: string;
           completed_at?: string;
           completed_by?: string;
@@ -4925,6 +5024,12 @@ export type Database = {
         };
         Returns: string;
       };
+      assert_canonical_public_rpc_overloads: {
+        Args: {
+          [_: string]: never;
+        };
+        Returns: undefined;
+      };
       assign_membership_role: {
         Args: {
           audit_request_id: string;
@@ -5264,7 +5369,11 @@ export type Database = {
         Args: {
           audit_request_id: string;
           content_hash_value: string;
+          failure_reason_value: string;
           render_status_value: string;
+          storage_mime_type_value: string;
+          storage_size_bytes_value: number;
+          storage_verification_id_value: string;
           target_document_version_id: string;
           target_tenant_id: string;
         };
@@ -5280,6 +5389,13 @@ export type Database = {
       get_display_panel_public_state: {
         Args: {
           device_token_value: string;
+        };
+        Returns: Json;
+      };
+      get_encounter_close_readiness: {
+        Args: {
+          target_encounter_id: string;
+          target_tenant_id: string;
         };
         Returns: Json;
       };

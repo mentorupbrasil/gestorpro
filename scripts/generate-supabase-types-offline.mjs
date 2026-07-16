@@ -69,7 +69,27 @@ function parseTables(migrationSql) {
     }
   }
 
+  parseAlterColumns(migrationSql, tables);
   return tables;
+}
+
+function parseAlterColumns(migrationSql, tables) {
+  const alterBlockPattern = /alter table public\.(\w+)\s+((?:add column[\s\S]*?)+);/gi;
+
+  for (const match of migrationSql.matchAll(alterBlockPattern)) {
+    const tableName = match[1];
+    const block = match[2];
+    const columnPattern = /add column(?: if not exists)?\s+(\w+)\s+([a-z][\w\[\]()]*)/gi;
+    for (const columnMatch of block.matchAll(columnPattern)) {
+      const [, columnName, columnType] = columnMatch;
+      const table = tables.get(tableName) ?? new Map();
+      table.set(columnName, {
+        nullable: true,
+        type: mapPgType(columnType),
+      });
+      tables.set(tableName, table);
+    }
+  }
 }
 
 function parseFunctions(migrationSql) {

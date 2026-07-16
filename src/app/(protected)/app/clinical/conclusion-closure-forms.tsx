@@ -3,8 +3,10 @@
 import { useActionState } from "react";
 import {
   closeEncounterAction,
+  deliverAsoAction,
+  generateAsoAction,
   prepareBillingAction,
-  prepareAndSignAsoAction,
+  signAsoAction,
   signConclusionAction,
   type ClosureFormState,
 } from "./closure-actions";
@@ -14,6 +16,7 @@ const initial: ClosureFormState = {};
 export function ConclusionClosureForms({
   canBill = false,
   canClose = false,
+  canDeliverDocuments = false,
   canManageDocuments = false,
   canSignConclusion = false,
   canSignDocuments = false,
@@ -25,10 +28,12 @@ export function ConclusionClosureForms({
   encounterId,
   encounterVersion = 1,
   priceTableId,
+  readiness = null,
   templateVersionId,
 }: {
   canBill?: boolean;
   canClose?: boolean;
+  canDeliverDocuments?: boolean;
   canManageDocuments?: boolean;
   canSignConclusion?: boolean;
   canSignDocuments?: boolean;
@@ -40,15 +45,27 @@ export function ConclusionClosureForms({
   encounterId?: string | undefined;
   encounterVersion?: number | undefined;
   priceTableId?: string | null | undefined;
+  readiness?: {
+    asoStatus: string;
+    billingStatus: string;
+    deliveryStatus: string;
+    invoiceStatus: string;
+    ready: boolean;
+    storageStatus: string;
+  } | null;
   templateVersionId?: string | null | undefined;
 }) {
   const [signState, signAction, signPending] = useActionState(signConclusionAction, initial);
-  const [asoState, asoAction, asoPending] = useActionState(prepareAndSignAsoAction, initial);
+  const [generateState, generateAction, generatePending] = useActionState(
+    generateAsoAction,
+    initial,
+  );
+  const [asoSignState, asoSignAction, asoSignPending] = useActionState(signAsoAction, initial);
+  const [deliverState, deliverAction, deliverPending] = useActionState(deliverAsoAction, initial);
   const [billState, billAction, billPending] = useActionState(prepareBillingAction, initial);
   const [closeState, closeAction, closePending] = useActionState(closeEncounterAction, initial);
 
-  const canEmitAso = canManageDocuments && canSignDocuments;
-  const closeBlocked = closeBlockers.length > 0;
+  const closeBlocked = closeBlockers.length > 0 || readiness?.ready === false;
 
   return (
     <section className="mt-4 grid gap-3 lg:grid-cols-2">
@@ -57,6 +74,12 @@ export function ConclusionClosureForms({
           <h2 className="text-base font-semibold text-amber-950">
             Cockpit de pendências do fechamento
           </h2>
+          {readiness ? (
+            <p className="mt-1 text-xs text-amber-900">
+              ASO={readiness.asoStatus} · storage={readiness.storageStatus} · entrega=
+              {readiness.deliveryStatus} · fatura={readiness.invoiceStatus}
+            </p>
+          ) : null}
           <ul className="mt-2 list-disc space-y-1 pl-5 text-sm text-amber-950">
             {closeBlockers.map((blocker) => (
               <li key={blocker.code}>{blocker.message}</li>
@@ -88,27 +111,97 @@ export function ConclusionClosureForms({
         </div>
       )}
 
-      {canEmitAso ? (
-        <form action={asoAction} className="gp-surface grid gap-3 p-4">
-          <h2 className="text-base font-semibold">2. Gerar e assinar ASO (AAL2)</h2>
+      {canManageDocuments ? (
+        <form action={generateAction} className="gp-surface grid gap-3 p-4">
+          <h2 className="text-base font-semibold">2a. Gerar ASO (operador documental)</h2>
           <p className="text-sm text-gp-text-muted">
-            PDF operacional gerado do snapshot imutável. Estação documental.
+            Exige <code>documents.manage</code>. Não assina. PDF + storage verificado no servidor.
           </p>
           <input name="encounterId" type="hidden" value={encounterId ?? ""} />
           <input name="templateVersionId" type="hidden" value={templateVersionId ?? ""} />
           <button
             className="gp-btn gp-btn-primary w-fit"
-            disabled={asoPending || !encounterId || !templateVersionId}
+            disabled={generatePending || !encounterId || !templateVersionId}
             type="submit"
           >
-            {asoPending ? "Emitindo…" : "Emitir e assinar ASO"}
+            {generatePending ? "Gerando…" : "Gerar versão ASO"}
           </button>
-          {asoState.error ? <p className="text-sm text-red-700">{asoState.error}</p> : null}
-          {asoState.success ? <p className="text-sm text-emerald-800">{asoState.success}</p> : null}
+          {generateState.error ? (
+            <p className="text-sm text-red-700">{generateState.error}</p>
+          ) : null}
+          {generateState.success ? (
+            <p className="text-sm text-emerald-800">{generateState.success}</p>
+          ) : null}
         </form>
       ) : (
         <div className="gp-surface p-4 text-sm text-gp-text-muted">
-          ASO oculto: exige <code>documents.manage</code> e <code>documents.sign</code>.
+          Geração ASO oculta: exige <code>documents.manage</code>.
+        </div>
+      )}
+
+      {canSignDocuments ? (
+        <form action={asoSignAction} className="gp-surface grid gap-3 p-4">
+          <h2 className="text-base font-semibold">2b. Assinar ASO (signatário)</h2>
+          <p className="text-sm text-gp-text-muted">
+            Exige <code>documents.sign</code> + AAL2. Recusa versão sem storage verificado.
+          </p>
+          <input name="encounterId" type="hidden" value={encounterId ?? ""} />
+          <button
+            className="gp-btn gp-btn-primary w-fit"
+            disabled={asoSignPending || !encounterId}
+            type="submit"
+          >
+            {asoSignPending ? "Assinando…" : "Assinar ASO vigente"}
+          </button>
+          {asoSignState.error ? <p className="text-sm text-red-700">{asoSignState.error}</p> : null}
+          {asoSignState.success ? (
+            <p className="text-sm text-emerald-800">{asoSignState.success}</p>
+          ) : null}
+        </form>
+      ) : (
+        <div className="gp-surface p-4 text-sm text-gp-text-muted">
+          Assinatura ASO oculta: exige <code>documents.sign</code>.
+        </div>
+      )}
+
+      {canDeliverDocuments ? (
+        <form action={deliverAction} className="gp-surface grid gap-3 p-4">
+          <h2 className="text-base font-semibold">2c. Registrar entrega</h2>
+          <p className="text-sm text-gp-text-muted">
+            Exige <code>documents.deliver</code>. Conclui a etapa de entrega.
+          </p>
+          <input name="encounterId" type="hidden" value={encounterId ?? ""} />
+          <label className="grid gap-1 text-sm">
+            Destinatário
+            <select className="gp-input" defaultValue="company" name="recipientType">
+              <option value="company">Empresa</option>
+              <option value="worker">Trabalhador</option>
+              <option value="internal">Interno</option>
+            </select>
+          </label>
+          <label className="grid gap-1 text-sm">
+            Canal
+            <select className="gp-input" defaultValue="portal" name="channel">
+              <option value="portal">Portal</option>
+              <option value="print">Impressão</option>
+              <option value="handoff">Entrega presencial</option>
+            </select>
+          </label>
+          <button
+            className="gp-btn gp-btn-primary w-fit"
+            disabled={deliverPending || !encounterId}
+            type="submit"
+          >
+            {deliverPending ? "Registrando…" : "Registrar entrega"}
+          </button>
+          {deliverState.error ? <p className="text-sm text-red-700">{deliverState.error}</p> : null}
+          {deliverState.success ? (
+            <p className="text-sm text-emerald-800">{deliverState.success}</p>
+          ) : null}
+        </form>
+      ) : (
+        <div className="gp-surface p-4 text-sm text-gp-text-muted">
+          Entrega oculta: exige <code>documents.deliver</code>.
         </div>
       )}
 
@@ -141,7 +234,7 @@ export function ConclusionClosureForms({
         <form action={closeAction} className="gp-surface grid gap-3 p-4">
           <h2 className="text-base font-semibold">4. Encerrar atendimento</h2>
           <p className="text-sm text-gp-text-muted">
-            Estação administrativa. Exige etapas fechadas, ASO assinado e fatura consolidada.
+            A RPC revalida todos os gates. A UI nunca encerra só com estado local.
           </p>
           <input name="encounterId" type="hidden" value={encounterId ?? ""} />
           <input name="expectedVersion" type="hidden" value={encounterVersion ?? 1} />

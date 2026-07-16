@@ -35,11 +35,19 @@ export type CreateDocumentVersionInput = z.input<typeof createDocumentVersionSch
 export const signDocumentVersionSchema = z.object({
   contentHash: z.string().trim().min(16),
   documentVersionId: z.string().uuid(),
-  method: z.enum(["password_reauth", "totp", "webauthn"]).default("totp"),
+  method: z.enum(["mfa_session", "password_reauth", "certificate_future"]).default("mfa_session"),
   tenantId: z.string().uuid(),
 });
 
 export type SignDocumentVersionInput = z.input<typeof signDocumentVersionSchema>;
+
+function mapLegacySignMethod(
+  method: SignDocumentVersionInput["method"] | "totp" | "webauthn" | undefined,
+): "mfa_session" | "password_reauth" | "certificate_future" {
+  if (method === "password_reauth") return "password_reauth";
+  if (method === "certificate_future" || method === "webauthn") return "certificate_future";
+  return "mfa_session";
+}
 
 async function loadOperationalAsoSnapshot(input: {
   encounterId: string;
@@ -363,10 +371,40 @@ export async function createGeneratedDocumentVersion(
       throw uploadError;
     }
 
-    const { error: finalizeError } = await supabase.rpc("finalize_document_version_render", {
+    const { data: storedObject, error: downloadError } = await admin.storage
+      .from(CLINICAL_PRIVATE_BUCKET)
+      .download(versionRow.storage_path);
+
+    if (downloadError || !storedObject) {
+      throw downloadError ?? new Error("storage object missing after upload");
+    }
+
+    const storedBytes = Buffer.from(await storedObject.arrayBuffer());
+    if (storedBytes.byteLength <= 0) {
+      throw new AppError("INTERNAL_ERROR", "Objeto no storage está vazio.", { status: 500 });
+    }
+
+    const storedHash = createHash("sha256").update(storedBytes).digest("hex");
+    if (storedHash !== contentHash) {
+      throw new AppError("INTERNAL_ERROR", "Hash do storage diverge do PDF gerado.", {
+        status: 500,
+      });
+    }
+
+    const mimeType = storedObject.type || "application/pdf";
+    if (mimeType !== "application/pdf") {
+      throw new AppError("INTERNAL_ERROR", "MIME do storage inválido para ASO.", { status: 500 });
+    }
+
+    const verificationId = `head:${versionId}:${storedBytes.byteLength}:${storedHash.slice(0, 12)}`;
+    const { error: finalizeError } = await admin.rpc("finalize_document_version_render", {
       audit_request_id: requestId,
       content_hash_value: contentHash,
+      failure_reason_value: null,
       render_status_value: "rendered",
+      storage_mime_type_value: mimeType,
+      storage_size_bytes_value: storedBytes.byteLength,
+      storage_verification_id_value: verificationId,
       target_document_version_id: versionId,
       target_tenant_id: context.tenantId,
     });
@@ -377,6 +415,24 @@ export async function createGeneratedDocumentVersion(
 
     renderStatus = "rendered";
   } catch (cause) {
+    try {
+      const admin = createAdminSupabaseClient();
+      await admin.rpc("finalize_document_version_render", {
+        audit_request_id: requestId,
+        content_hash_value: contentHash,
+        failure_reason_value:
+          cause instanceof Error ? cause.message.slice(0, 240) : "render_failed",
+        render_status_value: "failed",
+        storage_mime_type_value: null,
+        storage_size_bytes_value: null,
+        storage_verification_id_value: null,
+        target_document_version_id: versionId,
+        target_tenant_id: context.tenantId,
+      });
+    } catch {
+      // Best-effort failed status; surface original cause below.
+    }
+
     throw new AppError(
       "INTERNAL_ERROR",
       cause instanceof AppError && cause.message.includes("SUPABASE_SERVICE_ROLE_KEY")
@@ -396,17 +452,24 @@ export async function signDocumentVersion(input: SignDocumentVersionInput, reque
   requireAal2(context);
 
   const supabase = await createServerSupabaseClient();
+  const headersList = await import("next/headers").then((mod) => mod.headers());
+  const headerStore = await headersList;
   const { data, error } = await supabase.rpc("sign_document_version", {
+    aal_value: "aal2",
     audit_request_id: requestId,
-    content_hash_value: parsed.contentHash,
-    method_value: parsed.method,
+    ip_value: headerStore.get("x-forwarded-for")?.split(",")[0]?.trim() || null,
+    method_value: mapLegacySignMethod(parsed.method),
+    signed_hash_value: parsed.contentHash,
     target_document_version_id: parsed.documentVersionId,
     target_tenant_id: context.tenantId,
+    user_agent_value: headerStore.get("user-agent") ?? null,
   });
 
   if (error || typeof data !== "string") {
     const message = error?.message ?? "";
-    if (/pending|failed|hash|permission|aal2/i.test(message)) {
+    if (
+      /pending|failed|hash|permission|aal2|rendered|storage|vigente|revoked|template/i.test(message)
+    ) {
       throw new AppError("VALIDATION_FAILED", message || "Assinatura recusada.", {
         cause: error,
         status: 422,

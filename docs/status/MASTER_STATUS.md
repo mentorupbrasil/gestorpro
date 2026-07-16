@@ -1,28 +1,31 @@
 # Status mestre
 
-Atualizado em: 2026-07-16
+Atualizado em: 2026-07-16 (pós-auditoria)
 
 ## Estado
 
-- Branch: `feat/p0-security-rpc-checkin` — PR #12 OPEN.
-- Migrations `037`–`040` **aplicadas** no Postgres de teste autorizado.
-- Gates locais: format/lint/typecheck/types/secrets/test(163) verdes neste ciclo; build validado.
+- Branch: `feat/p0-security-rpc-checkin` — PR #12 OPEN (draft).
+- Head de partida desta rodada: `7778240` (igual ao auditado).
+- Migration `041` adicionada (não edita `037`–`040`).
+- Gates locais deste ciclo: typecheck / lint / test(**166**) / types / secrets verdes; format corrigido.
+- CI reestruturado: `quality`, `ui-smoke`, `db-migrations-fresh`, `db-migrations-upgrade`, `authenticated-e2e` (falha sem secrets — sem skip).
 - Produção / merge `main`: **NO-GO**.
 
-| Fase                        | Estado        | Observação                                          |
-| --------------------------- | ------------- | --------------------------------------------------- |
-| CI quality                  | IN_PROGRESS   | aguardar verde após push                            |
-| Autorização etapas          | P0_DB_APPLIED | sem fallback `encounters.manage`                    |
-| ASO / billing               | P0_CODE       | PDF snapshot + derive catálogo                      |
-| Bootstrap                   | P0_DB_APPLIED | admin-only, drafts, sem self-grant                  |
-| Exames paralelos            | P0_DB_APPLIED | M2M `encounter_step_dependencies`                   |
-| Painel P1 hardening         | P1_DB_APPLIED | redirect/versão/ACK fail-closed/revoke (`040`)      |
-| Motor PCMSO negativos       | P0_CODE       | expired/ambíguo/demissional/retorno + hash          |
-| Ops / health                | P1_PARTIAL    | `/app/operations` + health `?deep=1`                |
-| Estações UI                 | P0_PARTIAL    | hide por permissão + cockpit                        |
-| E2E ponta a ponta 40 passos | OPEN          | specs autenticados existem; close profundo pendente |
-| Portal empresa              | P1_SCAFFOLD   | sem portal trabalhador                              |
-| SST / eSocial               | P1_SCAFFOLD   | sandbox/incidentes; sem envio real                  |
-| Backup restore validado     | OPEN          | doc RPO/RTO; CI restore ainda não                   |
+| Fase                        | Estado        | Observação                                               |
+| --------------------------- | ------------- | -------------------------------------------------------- |
+| CI quality                  | CODE_READY    | jobs separados; auth E2E exige secrets                   |
+| Migrations fresh/upgrade    | CODE_READY    | script com modos; job CI com Postgres 16 + bootstrap     |
+| Autorização etapas          | P0_DB_APPLIED | sem fallback `encounters.manage`                         |
+| Close bypass                | P0_CODE_041   | transition não completa; `encounter_closures`            |
+| Documentos fail-closed      | P0_CODE_041   | finalize `service_role` + storage verify                 |
+| Close readiness UI          | P0_CODE       | RPC `get_encounter_close_readiness`; hardcodes removidos |
+| ASO papéis                  | P0_CODE       | generate / sign / deliver separados                      |
+| Bootstrap                   | P0_DB_APPLIED | admin-only                                               |
+| Exames paralelos            | P0_DB_APPLIED | M2M deps; cancelled não satisfaz                         |
+| Painel P1 hardening         | P1_DB_APPLIED | `040`                                                    |
+| E2E ponta a ponta 40 passos | OPEN          | job autenticado falha sem secrets (intencional)          |
+| Portal empresa              | P1_SCAFFOLD   | sem portal trabalhador                                   |
+| SST / eSocial               | P1_SCAFFOLD   | sandbox                                                  |
+| Backup restore validado     | OPEN          | doc RPO/RTO; evidência ainda não                         |
 
 **Decisão:** `NO-GO` produção.
