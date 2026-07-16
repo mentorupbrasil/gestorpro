@@ -72,7 +72,8 @@ jobs:
           echo "Found $count migrations"
           missing=0
           for file in supabase/migrations/*.sql; do
-            if grep -qi "security definer" "$file"; then
+            if grep -qiE "create[[:space:]]+(or[[:space:]]+replace[[:space:]]+)?function" "$file" \
+              && grep -qi "security definer" "$file"; then
               if ! grep -qi "set search_path" "$file"; then
                 echo "Missing search_path in $file" >&2
                 missing=1

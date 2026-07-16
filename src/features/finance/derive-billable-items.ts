@@ -10,7 +10,7 @@ export type DerivedBillableItem = {
 
 /**
  * Deriva itens faturáveis dos serviços realmente executados no atendimento.
- * Não aceita códigos inventados pelo cliente (ex.: E2E_EXAM).
+ * Não aceita códigos inventados pelo cliente (ex.: placeholders de teste).
  */
 export async function deriveBillableItemsFromEncounter(input: {
   encounterId: string;
