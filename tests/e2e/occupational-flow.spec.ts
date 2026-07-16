@@ -123,11 +123,15 @@ test.describe("authenticated occupational flow", () => {
     await expect(page.getByRole("cell", { name: "Trabalhador Fictício E2E" })).toBeVisible();
     await page.getByRole("cell", { name: "Trabalhador Fictício E2E" }).click();
     await page.getByRole("button", { name: "Check-in" }).click();
-    await expect(
-      page.getByText(
-        /Check-in realizado|snapshot|Não foi possível|Confirme o MFA|protocol|vínculo/i,
-      ),
-    ).toBeVisible({ timeout: 20_000 });
+    const checkInFeedback = page.getByText(/Check-in realizado|snapshot criado|Atendimento/i);
+    const checkInError = page.getByText(
+      /Não foi possível|Confirme o MFA|permission denied|protocol|vínculo ambíguo/i,
+    );
+    await expect(checkInFeedback.or(checkInError)).toBeVisible({ timeout: 20_000 });
+    if (await checkInError.isVisible().catch(() => false)) {
+      throw new Error(`Check-in falhou: ${await checkInError.innerText()}`);
+    }
+    await expect(checkInFeedback).toBeVisible();
 
     await page.goto("/app/clinical");
     await expect(page.getByRole("heading", { level: 1, name: "Estações clínicas" })).toBeVisible({

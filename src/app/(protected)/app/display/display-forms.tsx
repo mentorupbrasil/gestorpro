@@ -1,7 +1,12 @@
 "use client";
 
 import { useActionState } from "react";
-import { createCallEventAction, createDisplayPanelAction, type DisplayFormState } from "./actions";
+import {
+  createCallEventAction,
+  createDisplayPanelAction,
+  revokeDisplayPanelAction,
+  type DisplayFormState,
+} from "./actions";
 
 type Option = { id: string; name: string };
 
@@ -21,6 +26,10 @@ export function DisplayForms({
     initialState,
   );
   const [callState, callAction, callPending] = useActionState(createCallEventAction, initialState);
+  const [revokeState, revokeAction, revokePending] = useActionState(
+    revokeDisplayPanelAction,
+    initialState,
+  );
 
   return (
     <section className="mt-4 grid gap-3 lg:grid-cols-2">
@@ -54,6 +63,16 @@ export function DisplayForms({
         <h2 className="text-lg font-semibold">Chamar ticket</h2>
         <Select label="Painel" name="displayPanelId" options={panels} />
         <Select label="Ticket" name="queueTicketId" options={tickets} />
+        <Select
+          label="Destino (redirect)"
+          name="redirectPanelId"
+          options={panels}
+          required={false}
+        />
+        <label className="grid gap-1 text-sm font-medium">
+          Versão esperada da etapa (start/return/no_show)
+          <input className="gp-input" min={1} name="expectedVersion" type="number" />
+        </label>
         <label className="grid gap-1 text-sm font-medium">
           Ação
           <select className="gp-input" name="action" required>
@@ -71,6 +90,15 @@ export function DisplayForms({
         </button>
         <StateMessage state={callState} />
       </form>
+
+      <form action={revokeAction} className="grid gap-3 gp-surface p-4 lg:col-span-2">
+        <h2 className="text-lg font-semibold">Revogar painel</h2>
+        <Select label="Painel" name="displayPanelId" options={panels} />
+        <button className="gp-btn w-fit" disabled={revokePending} type="submit">
+          {revokePending ? "Revogando…" : "Revogar token e painel"}
+        </button>
+        <StateMessage state={revokeState} />
+      </form>
     </section>
   );
 }
@@ -79,15 +107,17 @@ function Select({
   label,
   name,
   options,
+  required = true,
 }: {
   label: string;
   name: string;
   options: readonly Option[];
+  required?: boolean;
 }) {
   return (
     <label className="grid gap-1 text-sm font-medium">
       {label}
-      <select className="gp-input" name={name} required>
+      <select className="gp-input" name={name} required={required}>
         <option value="">Selecione</option>
         {options.map((option) => (
           <option key={option.id} value={option.id}>

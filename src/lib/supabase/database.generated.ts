@@ -4987,6 +4987,8 @@ export type Database = {
         Args: {
           audit_request_id: string;
           call_action: string;
+          expected_version: number;
+          redirect_target_panel_id: string;
           target_display_panel_id: string;
           target_queue_ticket_id: string;
           target_tenant_id: string;
@@ -5573,6 +5575,14 @@ export type Database = {
           audit_request_id: string;
           resolved_note_value: string;
           target_pause_id: string;
+          target_tenant_id: string;
+        };
+        Returns: string;
+      };
+      revoke_display_panel: {
+        Args: {
+          audit_request_id: string;
+          target_display_panel_id: string;
           target_tenant_id: string;
         };
         Returns: string;

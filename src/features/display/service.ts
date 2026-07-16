@@ -8,6 +8,7 @@ import {
 import { resolveAuthorizationContext } from "@/core/auth/session";
 import { AppError } from "@/core/errors/app-error";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
+import { z } from "zod";
 import {
   createCallEventSchema,
   createDisplayPanelSchema,
@@ -55,6 +56,8 @@ export async function createCallEvent(input: CreateCallEventInput, requestId: st
   const { data, error } = await supabase.rpc("create_call_event", {
     audit_request_id: requestId,
     call_action: parsed.action,
+    expected_version: parsed.expectedVersion ?? null,
+    redirect_target_panel_id: parsed.redirectPanelId ?? null,
     target_display_panel_id: parsed.displayPanelId,
     target_queue_ticket_id: parsed.queueTicketId,
     target_tenant_id: context.tenantId,
@@ -67,6 +70,11 @@ export async function createCallEvent(input: CreateCallEventInput, requestId: st
         cause: error,
         status: 409,
       });
+    }
+    if (
+      /version conflict|expected version|redirect destination|arrived only|no_show/i.test(message)
+    ) {
+      throw new AppError("VALIDATION_FAILED", message, { cause: error, status: 422 });
     }
     throw new AppError("INTERNAL_ERROR", "Não foi possível criar a chamada.", {
       cause: error,
@@ -102,6 +110,33 @@ export async function createCallEvent(input: CreateCallEventInput, requestId: st
       });
     });
     void supabase.removeChannel(channel);
+  }
+
+  return data;
+}
+
+export async function revokeDisplayPanel(
+  input: { displayPanelId: string; tenantId: string },
+  requestId: string,
+) {
+  const displayPanelId = z.uuid().parse(input.displayPanelId);
+  const tenantId = z.uuid().parse(input.tenantId);
+  const context = await resolveAuthorizationContext(tenantId);
+  requireTenantOrUnitPermission(context, "display.manage");
+  requireAal2(context);
+
+  const supabase = await createServerSupabaseClient();
+  const { data, error } = await supabase.rpc("revoke_display_panel", {
+    audit_request_id: requestId,
+    target_display_panel_id: displayPanelId,
+    target_tenant_id: context.tenantId,
+  });
+
+  if (error || typeof data !== "string") {
+    throw new AppError("INTERNAL_ERROR", "Não foi possível revogar o painel.", {
+      cause: error,
+      status: 500,
+    });
   }
 
   return data;

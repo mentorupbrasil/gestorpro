@@ -57,6 +57,11 @@ export const workspaceNavigation: NavGroup[] = [
         label: "Painel de chamadas",
         anyOf: ["display.read", "display.manage"],
       },
+      {
+        href: "/app/operations",
+        label: "Pendências operacionais",
+        anyOf: ["audit.read", "tenant.manage", "integrations.read"],
+      },
     ],
   },
   {
@@ -98,6 +103,11 @@ export const workspaceNavigation: NavGroup[] = [
         href: "/app/portal",
         label: "Portal empresa",
         anyOf: ["company_portal.read", "company_portal.manage"],
+      },
+      {
+        href: "/app/sst",
+        label: "SST",
+        anyOf: ["sst.read", "sst.manage"],
       },
       {
         href: "/app/integrations",

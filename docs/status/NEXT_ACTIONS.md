@@ -1,7 +1,7 @@
 # Próximas ações
 
-1. Aguardar CI `quality` verde no PR #12 (migrations-integrity já passou)
-2. Agente: E2E autenticado profundo (check-in → triagem → exames → close) com seed
-3. Agente: expandir negativos RPC no banco (recepção vs triagem) via pgTAP
-4. Você: revisar PR #12; **não** merge/prod sem GO
-5. Você: após GO, apply `037`–`039` nos ambientes restantes
+1. Aguardar CI `quality` verde no PR #12 após push deste ciclo
+2. Agente: rodar `pnpm seed:e2e:auth` + E2E autenticado (`clinical-deep-flow` / `occupational-flow`) quando secrets locais permitirem
+3. Você: revisar PR #12; **não** merge/prod sem GO
+4. Você: após GO, apply `037`–`040` nos ambientes restantes
+5. Humano: ensaio de restore (backup) e registrar evidência em `TEST_RESULTS.md`
