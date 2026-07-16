@@ -2,6 +2,7 @@ import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { PageLoadError, describeSupabaseFailure } from "@/components/ui/page-load-error";
 import { loadWorkspaceAuth } from "@/core/auth/load-workspace-auth";
+import { loadExamOrderQueue } from "@/features/exams/queue";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 import { PageHeader, Surface } from "@/components/ui/page-chrome";
 import { DiagnosticExamForm } from "./diagnostic-form";
@@ -17,7 +18,7 @@ export default async function DiagnosticExamsPage() {
   const context = auth.context;
 
   const supabase = await createServerSupabaseClient();
-  const [resultsResult, versionsResult] = await Promise.all([
+  const [resultsResult, versionsResult, examQueue] = await Promise.all([
     supabase
       .from("diagnostic_exam_results")
       .select("id, exam_order_id, modality, status, current_version, requested_at, updated_at")
@@ -30,6 +31,10 @@ export default async function DiagnosticExamsPage() {
       .eq("tenant_id", context.tenantId)
       .order("created_at", { ascending: false })
       .limit(40),
+    loadExamOrderQueue({
+      resultTypes: ["imaging", "clinical", "other"],
+      tenantId: context.tenantId,
+    }),
   ]);
 
   if (resultsResult.error || versionsResult.error) {
@@ -97,7 +102,7 @@ export default async function DiagnosticExamsPage() {
           </div>
         )}
 
-        <DiagnosticExamForm />
+        <DiagnosticExamForm examOrderOptions={examQueue} />
       </Surface>
     </div>
   );

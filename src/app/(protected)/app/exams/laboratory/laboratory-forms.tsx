@@ -7,7 +7,15 @@ import {
   type LaboratoryFormState,
 } from "./actions";
 
-export function LaboratoryForms() {
+type QueueOption = { id: string; label: string };
+
+export function LaboratoryForms({
+  orderItemOptions = [],
+  sampleOptions = [],
+}: {
+  orderItemOptions?: readonly QueueOption[];
+  sampleOptions?: readonly QueueOption[];
+}) {
   const [sampleState, sampleAction, samplePending] = useActionState(
     recordLaboratorySampleAction,
     {} as LaboratoryFormState,
@@ -21,12 +29,26 @@ export function LaboratoryForms() {
     <div className="mt-6 grid gap-4 lg:grid-cols-2">
       <form action={sampleAction} className="space-y-3 gp-surface p-4">
         <h3 className="font-semibold">Evento de amostra</h3>
-        <input
-          className="gp-input font-mono"
-          name="sampleId"
-          placeholder="laboratory_sample_id"
-          required
-        />
+        {sampleOptions.length > 0 ? (
+          <label className="grid gap-1 text-sm">
+            Amostra na fila
+            <select className="gp-input" name="sampleId" required>
+              <option value="">Selecione</option>
+              {sampleOptions.map((option) => (
+                <option key={option.id} value={option.id}>
+                  {option.label}
+                </option>
+              ))}
+            </select>
+          </label>
+        ) : (
+          <input
+            className="gp-input font-mono"
+            name="sampleId"
+            placeholder="laboratory_sample_id"
+            required
+          />
+        )}
         <select className="gp-input" defaultValue="collected" name="eventType">
           <option value="collected">collected</option>
           <option value="received">received</option>
@@ -46,12 +68,26 @@ export function LaboratoryForms() {
 
       <form action={resultAction} className="space-y-3 gp-surface p-4">
         <h3 className="font-semibold">Resultado laboratorial</h3>
-        <input
-          className="gp-input font-mono"
-          name="orderItemId"
-          placeholder="laboratory_order_item_id"
-          required
-        />
+        {orderItemOptions.length > 0 ? (
+          <label className="grid gap-1 text-sm">
+            Item de pedido na fila
+            <select className="gp-input" name="orderItemId" required>
+              <option value="">Selecione</option>
+              {orderItemOptions.map((option) => (
+                <option key={option.id} value={option.id}>
+                  {option.label}
+                </option>
+              ))}
+            </select>
+          </label>
+        ) : (
+          <input
+            className="gp-input font-mono"
+            name="orderItemId"
+            placeholder="laboratory_order_item_id"
+            required
+          />
+        )}
         <input className="gp-input" name="resultValue" placeholder="Valor" required />
         <select className="gp-input" defaultValue="resulted" name="status">
           <option value="resulted">resulted</option>

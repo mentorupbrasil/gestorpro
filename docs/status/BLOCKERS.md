@@ -5,17 +5,18 @@
 - **NO-GO** até GO humano (`HUMAN_ACTIONS.md`).
 - Push direto na `main` continua proibido (branch protection humana).
 
-## Aberto
+## Aberto (humano)
 
-- E2E clínico profundo (ASO assinado → faturamento), além da navegação já verde
-- Painel público de chamadas com Realtime / voz
-- P2 exames (lab/ECG etc. estações completas) e portal IDOR ampliado
+- Merge PR #12 → `main`
+- Apply migrations no Postgres de produção
+- Deploy produção + pentest/piloto
 
-## Fechado nesta linha (DB + código)
+## Fechado nesta linha (engenharia)
 
-- Allowlist RPC (`028`)
-- Check-in transacional (`029`)
-- Papéis sem clínico automático no `tenant_admin` (`030`)
-- Agenda AAL2/unidade/referral (`031`)
-- Transição de etapa + call_event + display RPC (`032`)
-- Embeds PGRST201 + E2E ocupacional autenticado (navegação + check-in)
+- Allowlist RPC / check-in / papéis / agenda timezone
+- Transição + call_event + display
+- Embeds PGRST201 + E2E ocupacional navegação
+- Fechamento guiado na conclusão (ASO + billing + close)
+- Painel Realtime + heartbeat
+- Exames por fila
+- Portal IDOR overview ampliado

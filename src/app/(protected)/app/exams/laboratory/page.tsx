@@ -18,43 +18,52 @@ export default async function LaboratoryPage() {
   const context = auth.context;
 
   const supabase = await createServerSupabaseClient();
-  const [ordersResult, samplesResult, resultsResult, laboratoriesResult] = await Promise.all([
-    supabase
-      .from("laboratory_orders")
-      .select("id, status, barcode_value, created_at, external_laboratories(name)")
-      .eq("tenant_id", context.tenantId)
-      .order("created_at", { ascending: false })
-      .limit(30),
-    supabase
-      .from("laboratory_samples")
-      .select("id, sample_code, sample_type, status, collected_at, received_at")
-      .eq("tenant_id", context.tenantId)
-      .order("created_at", { ascending: false })
-      .limit(30),
-    supabase
-      .from("laboratory_results")
-      .select("id, status, version, critical_flag, critical_confirmed_at, created_at")
-      .eq("tenant_id", context.tenantId)
-      .order("created_at", { ascending: false })
-      .limit(30),
-    supabase
-      .from("external_laboratories")
-      .select("id, name, status")
-      .eq("tenant_id", context.tenantId)
-      .order("name"),
-  ]);
+  const [ordersResult, samplesResult, resultsResult, laboratoriesResult, orderItemsResult] =
+    await Promise.all([
+      supabase
+        .from("laboratory_orders")
+        .select("id, status, barcode_value, created_at, external_laboratories(name)")
+        .eq("tenant_id", context.tenantId)
+        .order("created_at", { ascending: false })
+        .limit(30),
+      supabase
+        .from("laboratory_samples")
+        .select("id, sample_code, sample_type, status, collected_at, received_at")
+        .eq("tenant_id", context.tenantId)
+        .order("created_at", { ascending: false })
+        .limit(30),
+      supabase
+        .from("laboratory_results")
+        .select("id, status, version, critical_flag, critical_confirmed_at, created_at")
+        .eq("tenant_id", context.tenantId)
+        .order("created_at", { ascending: false })
+        .limit(30),
+      supabase
+        .from("external_laboratories")
+        .select("id, name, status")
+        .eq("tenant_id", context.tenantId)
+        .order("name"),
+      supabase
+        .from("laboratory_order_items")
+        .select("id, status, laboratory_orders(barcode_value, status)")
+        .eq("tenant_id", context.tenantId)
+        .in("status", ["ordered", "collected", "processing", "resulted"])
+        .order("created_at", { ascending: false })
+        .limit(40),
+    ]);
 
   if (
     ordersResult.error ||
     samplesResult.error ||
     resultsResult.error ||
-    laboratoriesResult.error
+    laboratoriesResult.error ||
+    orderItemsResult.error
   ) {
     return (
       <PageLoadError
         title="Laboratório"
         detail={describeSupabaseFailure(
-          [ordersResult, samplesResult, resultsResult, laboratoriesResult],
+          [ordersResult, samplesResult, resultsResult, laboratoriesResult, orderItemsResult],
           "Não foi possível carregar laboratório.",
         )}
       />
@@ -65,6 +74,7 @@ export default async function LaboratoryPage() {
   const samples = samplesResult.data ?? [];
   const results = resultsResult.data ?? [];
   const laboratories = laboratoriesResult.data ?? [];
+  const orderItems = orderItemsResult.data ?? [];
   const criticalOpen = results.filter(
     (result) => result.critical_flag && !result.critical_confirmed_at,
   ).length;
@@ -108,7 +118,19 @@ export default async function LaboratoryPage() {
         </Panel>
       </section>
 
-      <LaboratoryForms />
+      <LaboratoryForms
+        orderItemOptions={orderItems.map((item) => {
+          const order = readEmbeddedRelation(item.laboratory_orders);
+          return {
+            id: item.id,
+            label: `${order?.barcode_value ?? item.id.slice(0, 8)} · ${item.status}`,
+          };
+        })}
+        sampleOptions={samples.map((sample) => ({
+          id: sample.id,
+          label: `${sample.sample_code} · ${sample.sample_type} · ${sample.status}`,
+        }))}
+      />
     </div>
   );
 }

@@ -476,6 +476,63 @@ try {
         device_token_hash = encode(digest(${deviceToken}, 'sha256'), 'hex'),
         updated_at = now()
     `;
+
+    const templateId = "d2a00000-0000-4000-8000-000000000001";
+    const templateVersionId = "d2a10000-0000-4000-8000-000000000001";
+    const contractId = "d2b00000-0000-4000-8000-000000000001";
+    const priceTableId = "d2b10000-0000-4000-8000-000000000001";
+    const priceItemId = "d2b20000-0000-4000-8000-000000000001";
+
+    await tx`
+      insert into public.document_templates (
+        id, tenant_id, code, name, document_type, status
+      ) values (
+        ${templateId}, ${tenantId}, 'ASO_E2E', 'ASO E2E fictício', 'aso', 'active'
+      )
+      on conflict (id) do update set status = 'active', name = excluded.name
+    `;
+
+    await tx`
+      insert into public.document_template_versions (
+        id, tenant_id, template_id, version, status, layout_payload, variable_schema, preview_fixture
+      ) values (
+        ${templateVersionId}, ${tenantId}, ${templateId}, 1, 'approved',
+        '{"pages":1,"kind":"aso_stub_e2e"}'::jsonb,
+        '{}'::jsonb,
+        '{}'::jsonb
+      )
+      on conflict (id) do update set status = 'approved'
+    `;
+
+    await tx`
+      insert into public.commercial_contracts (
+        id, tenant_id, company_id, code, name, status, starts_on, billing_rules, created_at
+      ) values (
+        ${contractId}, ${tenantId}, ${companyId}, 'CTR_E2E', 'Contrato E2E fictício',
+        'active', current_date - 30, '{}'::jsonb, now()
+      )
+      on conflict (id) do update set status = 'active', name = excluded.name
+    `;
+
+    await tx`
+      insert into public.commercial_price_tables (
+        id, tenant_id, contract_id, version, status, effective_from, created_at
+      ) values (
+        ${priceTableId}, ${tenantId}, ${contractId}, 1, 'approved', current_date - 30, now()
+      )
+      on conflict (id) do update set status = 'approved'
+    `;
+
+    await tx`
+      insert into public.commercial_price_items (
+        id, tenant_id, price_table_id, billable_code, description, unit_price_cents,
+        currency, technical_repeat_billable, created_at
+      ) values (
+        ${priceItemId}, ${tenantId}, ${priceTableId}, 'E2E_EXAM',
+        'Exame ocupacional fictício E2E', 15000, 'BRL', false, now()
+      )
+      on conflict (id) do update set unit_price_cents = excluded.unit_price_cents
+    `;
   });
 
   console.log("Authenticated E2E seed and fictitious operational scenario are ready.");

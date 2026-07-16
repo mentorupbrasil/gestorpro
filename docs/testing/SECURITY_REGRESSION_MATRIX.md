@@ -8,7 +8,8 @@
 | último admin bloqueado           | DB           | `42501`                    | migration pronta; DB pendente         |
 | autoelevação/papel indevido      | DB           | DML/RPC negado             | RPC P0.5 no repo; DB apply pendente   |
 | strip último tenant_admin        | DB           | `42501`                    | `revoke_membership_role`; apply pend. |
-| IDOR documento/atendimento       | app/DB       | recurso carregado e negado | funções prontas; integração pendente  |
+| IDOR documento/atendimento       | app/DB       | recurso carregado e negado | funções prontas; pgTAP overview ampliado |
+| IDOR portal overview cross-co.   | DB           | P0002 / deny               | `portal_idor_hardening.sql` +1           |
 | usuário bloqueado mantém acesso  | Auth/RLS     | contexto e queries negados | checkpoint antigo; repetir            |
 | URL assinada expirada            | storage      | negado e auditado          | futuro I                              |
 | segredo no repo/bundle/log       | supply chain | zero achado                | scanner dedicado pendente             |

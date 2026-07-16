@@ -25,6 +25,7 @@ export default async function PublicPanelPage({ searchParams }: Props) {
 
   let sessionId: string | null = null;
   let panelName = "";
+  let channelName = "panel";
   let recentCalls: Array<{ createdAt: string; room: string | null; ticketCode: string | null }> =
     [];
   let activeCall: {
@@ -39,6 +40,7 @@ export default async function PublicPanelPage({ searchParams }: Props) {
     sessionId = await registerDisplaySession(token, label);
     const state = await loadDisplayPublicState(token);
     panelName = state.panelName;
+    channelName = state.channelName;
     activeCall = state.activeCall ?? null;
     recentCalls = state.recentCalls.map((call) => ({
       createdAt: call.createdAt,
@@ -64,9 +66,11 @@ export default async function PublicPanelPage({ searchParams }: Props) {
 
   return (
     <PublicCallBoard
+      channelName={channelName}
       deviceToken={token}
       initialState={{
         activeCall,
+        channelName,
         panelName,
         recentCalls,
       }}

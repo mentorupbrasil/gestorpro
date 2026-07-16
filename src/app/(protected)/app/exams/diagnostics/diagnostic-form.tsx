@@ -3,7 +3,13 @@
 import { useActionState } from "react";
 import { saveDiagnosticExamAction, type DiagnosticFormState } from "./actions";
 
-export function DiagnosticExamForm() {
+type QueueOption = { id: string; label: string };
+
+export function DiagnosticExamForm({
+  examOrderOptions = [],
+}: {
+  examOrderOptions?: readonly QueueOption[];
+}) {
   const [state, action, pending] = useActionState(
     saveDiagnosticExamAction,
     {} as DiagnosticFormState,
@@ -12,12 +18,26 @@ export function DiagnosticExamForm() {
   return (
     <form action={action} className="mt-4 space-y-3 gp-surface p-4">
       <h3 className="font-semibold">Registrar / atualizar resultado</h3>
-      <input
-        className="gp-input font-mono"
-        name="examOrderId"
-        placeholder="exam_order_id (uuid)"
-        required
-      />
+      {examOrderOptions.length > 0 ? (
+        <label className="grid gap-1 text-sm">
+          Pedido na fila
+          <select className="gp-input" name="examOrderId" required>
+            <option value="">Selecione</option>
+            {examOrderOptions.map((option) => (
+              <option key={option.id} value={option.id}>
+                {option.label}
+              </option>
+            ))}
+          </select>
+        </label>
+      ) : (
+        <input
+          className="gp-input font-mono"
+          name="examOrderId"
+          placeholder="exam_order_id (uuid)"
+          required
+        />
+      )}
       <select className="gp-input" defaultValue="ecg" name="modality">
         <option value="ecg">ECG</option>
         <option value="eeg">EEG</option>

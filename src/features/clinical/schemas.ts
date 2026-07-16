@@ -299,6 +299,7 @@ export const conclusionQueueRowSchema = consultationQueueRowSchema.extend({
         physician_credential_id: z.string().uuid(),
         restrictions: z.union([z.array(z.string()), z.record(z.string(), z.unknown())]).optional(),
         signature_status: z.string(),
+        version: z.number().int().positive().optional().default(1),
       }),
     )
     .default([]),
@@ -321,6 +322,14 @@ export const conclusionQueueRowSchema = consultationQueueRowSchema.extend({
       }),
     )
     .default([]),
+  referrals: embeddedOneSchema(
+    z.object({
+      companies: embeddedOneSchema(z.object({ legal_name: z.string() })).nullable().optional(),
+      company_id: z.string().uuid().optional(),
+      occupational_exam_type: z.string().nullable().optional(),
+    }),
+  ).nullable().optional(),
+  version: z.number().int().positive().optional().default(1),
 });
 
 export const conclusionQueueListSchema = z.array(conclusionQueueRowSchema);
@@ -333,6 +342,7 @@ export const conclusionWorkspaceRecordSchema = z.object({
   physician_credential_id: z.string().uuid(),
   restrictions: z.union([z.array(z.string()), z.record(z.string(), z.unknown())]).optional(),
   signature_status: z.string(),
+  version: z.number().int().positive().default(1),
 });
 
 export const triageSummarySchema = z.object({

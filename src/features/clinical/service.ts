@@ -143,6 +143,13 @@ export type ConclusionQueueItem = {
 };
 
 export type ConclusionWorkspace = {
+  billingDefaults: {
+    companyId: string | null;
+    contractId: string | null;
+    priceTableId: string | null;
+    templateVersionId: string | null;
+  };
+  encounterVersion: number | null;
   physicians: readonly PhysicianOption[];
   professionalName: string;
   queue: readonly ConclusionQueueItem[];
@@ -150,6 +157,7 @@ export type ConclusionWorkspace = {
   selectedRecord: {
     conclusionCode: ConclusionCode;
     conclusionId: string;
+    conclusionVersion: number;
     encounterId: string;
     notes: string | null;
     physicianCredentialId: string;
@@ -475,6 +483,22 @@ export async function saveTriageRecord(input: SaveTriageRecordInput, requestId: 
     throw new AppError("INTERNAL_ERROR", "Não foi possível salvar a triagem.", { status: 500 });
   }
 
+  if (parsed.closeRecord) {
+    const { completeEncounterStepByType } = await import("@/features/encounters/complete-step");
+    await completeEncounterStepByType({
+      encounterId: parsed.encounterId,
+      requestId,
+      stepType: "reception",
+      tenantId: context.tenantId,
+    });
+    await completeEncounterStepByType({
+      encounterId: parsed.encounterId,
+      requestId,
+      stepType: "triage",
+      tenantId: context.tenantId,
+    });
+  }
+
   return data;
 }
 
@@ -795,10 +819,11 @@ export async function loadConclusionWorkspace(
             `
             id,
             status,
+            version,
             checked_in_at,
             clinic_unit_id,
             workers!encounters_worker_tenant_fk(full_name),
-            referrals(occupational_exam_type, companies!referrals_company_tenant_fk(legal_name)),
+            referrals(occupational_exam_type, company_id, companies!referrals_company_tenant_fk(legal_name)),
             clinic_units(name),
             encounter_steps(step_type, status, id),
             queue_tickets(priority, status, queue_definitions(name)),
@@ -818,7 +843,8 @@ export async function loadConclusionWorkspace(
               physician_credential_id,
               restrictions,
               notes,
-              signature_status
+              signature_status,
+              version
             )
           `,
           )
@@ -857,7 +883,9 @@ export async function loadConclusionWorkspace(
     .filter((row) => {
       const consultation = row.medical_consultations[0];
       const conclusion = row.medical_conclusions[0];
-      return consultation?.status === "closed" && !conclusion;
+      if (consultation?.status !== "closed") return false;
+      if (!conclusion) return true;
+      return ["prepared", "draft", "pending_signature"].includes(conclusion.signature_status);
     })
     .map((row) => mapConclusionQueueRow(row, physicianCredential))
     .sort((left, right) => {
@@ -869,6 +897,8 @@ export async function loadConclusionWorkspace(
 
   let selectedRecord: ConclusionWorkspace["selectedRecord"] = null;
   let selectedEncounter: ConclusionQueueItem | null = null;
+  let encounterVersion: number | null = null;
+  let companyId: string | null = null;
 
   if (selectedEncounterId) {
     const encounterRow = queueRows.find((row) => row.id === selectedEncounterId);
@@ -876,6 +906,8 @@ export async function loadConclusionWorkspace(
 
     if (encounterRow) {
       selectedEncounter = mapConclusionQueueRow(encounterRow, physicianCredential);
+      encounterVersion = encounterRow.version ?? 1;
+      companyId = encounterRow.referrals?.company_id ?? null;
       const consultation = encounterRow.medical_consultations[0];
       const latestVersion = consultation?.medical_consultation_versions?.find(
         (version) => version.version === consultation.current_version,
@@ -893,10 +925,11 @@ export async function loadConclusionWorkspace(
           `
           id,
           status,
+          version,
           checked_in_at,
           clinic_unit_id,
           workers!encounters_worker_tenant_fk(full_name),
-          referrals(occupational_exam_type, companies!referrals_company_tenant_fk(legal_name)),
+          referrals(occupational_exam_type, company_id, companies!referrals_company_tenant_fk(legal_name)),
           clinic_units(name),
           encounter_steps(step_type, status, id),
           queue_tickets(priority, status, queue_definitions(name)),
@@ -916,7 +949,8 @@ export async function loadConclusionWorkspace(
             physician_credential_id,
             restrictions,
             notes,
-            signature_status
+            signature_status,
+            version
           )
         `,
         )
@@ -932,6 +966,8 @@ export async function loadConclusionWorkspace(
 
       const parsedEncounter = conclusionQueueRowSchema.parse(encounterResult.data);
       encounterUnitId = parsedEncounter.clinic_unit_id;
+      encounterVersion = parsedEncounter.version ?? 1;
+      companyId = parsedEncounter.referrals?.company_id ?? null;
       selectedEncounter = mapConclusionQueueRow(parsedEncounter, physicianCredential);
       const consultation = parsedEncounter.medical_consultations[0];
       const latestVersion = consultation?.medical_consultation_versions?.find(
@@ -956,7 +992,7 @@ export async function loadConclusionWorkspace(
     const conclusionResult = await supabase
       .from("medical_conclusions")
       .select(
-        "id, encounter_id, physician_credential_id, conclusion_code, restrictions, notes, signature_status",
+        "id, encounter_id, physician_credential_id, conclusion_code, restrictions, notes, signature_status, version",
       )
       .eq("tenant_id", context.tenantId)
       .eq("encounter_id", selectedEncounterId)
@@ -974,6 +1010,7 @@ export async function loadConclusionWorkspace(
       selectedRecord = {
         conclusionCode: record.conclusion_code as ConclusionCode,
         conclusionId: record.id,
+        conclusionVersion: record.version,
         encounterId: record.encounter_id,
         notes: record.notes,
         physicianCredentialId: record.physician_credential_id,
@@ -983,7 +1020,64 @@ export async function loadConclusionWorkspace(
     }
   }
 
+  const [contractResult, priceTableResult, templateResult] = await Promise.all([
+    companyId
+      ? supabase
+          .from("commercial_contracts")
+          .select("id")
+          .eq("tenant_id", context.tenantId)
+          .eq("company_id", companyId)
+          .eq("status", "active")
+          .order("created_at", { ascending: false })
+          .limit(1)
+          .maybeSingle()
+      : Promise.resolve({ data: null, error: null }),
+    companyId
+      ? supabase
+          .from("commercial_price_tables")
+          .select("id, status, contract_id")
+          .eq("tenant_id", context.tenantId)
+          .in("status", ["approved", "active"])
+          .order("created_at", { ascending: false })
+          .limit(5)
+      : Promise.resolve({ data: [], error: null }),
+    supabase
+      .from("document_template_versions")
+      .select("id, template_id, status")
+      .eq("tenant_id", context.tenantId)
+      .eq("status", "approved")
+      .order("version", { ascending: false })
+      .limit(20),
+  ]);
+
+  let templateVersionId: string | null = null;
+  if (templateResult.data?.length) {
+    const templateIds = templateResult.data.map((row) => row.template_id);
+    const { data: asoTemplates } = await supabase
+      .from("document_templates")
+      .select("id")
+      .eq("tenant_id", context.tenantId)
+      .eq("document_type", "aso")
+      .in("id", templateIds);
+    const asoId = new Set((asoTemplates ?? []).map((row) => row.id));
+    templateVersionId =
+      templateResult.data.find((row) => asoId.has(row.template_id))?.id ?? null;
+  }
+
+  const contractId = contractResult.data?.id ?? null;
+  const priceTableId =
+    (priceTableResult.data ?? []).find((row) => row.contract_id === contractId)?.id ??
+    (priceTableResult.data ?? [])[0]?.id ??
+    null;
+
   return {
+    billingDefaults: {
+      companyId,
+      contractId,
+      priceTableId,
+      templateVersionId,
+    },
+    encounterVersion,
     physicians,
     professionalName: profileResult.data?.display_name ?? "Profissional",
     queue,
@@ -1114,6 +1208,16 @@ export async function saveMedicalConsultation(
     throw new AppError("INTERNAL_ERROR", "Não foi possível salvar a consulta.", { status: 500 });
   }
 
+  if (parsed.closeRecord) {
+    const { completeEncounterStepByType } = await import("@/features/encounters/complete-step");
+    await completeEncounterStepByType({
+      encounterId: parsed.encounterId,
+      requestId,
+      stepType: "consultation",
+      tenantId: context.tenantId,
+    });
+  }
+
   return data;
 }
 
@@ -1233,6 +1337,14 @@ export async function createMedicalConclusion(
       status: 500,
     });
   }
+
+  const { completeEncounterStepByType } = await import("@/features/encounters/complete-step");
+  await completeEncounterStepByType({
+    encounterId: parsed.encounterId,
+    requestId,
+    stepType: "conclusion",
+    tenantId: context.tenantId,
+  });
 
   return data;
 }

@@ -1,6 +1,6 @@
 begin;
 
-select plan(4);
+select plan(5);
 
 insert into auth.users (id, instance_id, aud, role, email, encrypted_password, created_at, updated_at)
 values
@@ -106,6 +106,17 @@ select is(
   ),
   false,
   'sem linha de portal + membership, helper retorna false'
+);
+
+-- Ampliação: overview cross-company deve negar empresa inexistente no tenant
+select throws_ok(
+  $$select public.get_company_portal_overview(
+    'c0000000-0000-4000-8000-000000000021',
+    'c4000000-0000-4000-8000-000000000099'
+  )$$,
+  'P0002',
+  'company not found',
+  'overview IDOR: empresa fora do tenant'
 );
 
 select * from finish();

@@ -42,6 +42,24 @@ export async function signMedicalConclusion(
       status: 500,
     });
   }
+
+  const conclusion = await supabase
+    .from("medical_conclusions")
+    .select("encounter_id")
+    .eq("tenant_id", context.tenantId)
+    .eq("id", parsed.conclusionId)
+    .maybeSingle();
+
+  if (conclusion.data?.encounter_id) {
+    const { completeEncounterStepByType } = await import("@/features/encounters/complete-step");
+    await completeEncounterStepByType({
+      encounterId: conclusion.data.encounter_id,
+      requestId,
+      stepType: "conclusion",
+      tenantId: context.tenantId,
+    });
+  }
+
   return data;
 }
 

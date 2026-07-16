@@ -5,9 +5,8 @@ import { loadWorkspaceAuth } from "@/core/auth/load-workspace-auth";
 import {
   audiometryCalibrationListSchema,
   audiometryResultListSchema,
-  examOrderListSchema,
 } from "@/features/exams/schemas";
-import { EXAM_ORDER_CATALOG_EMBED } from "@/lib/supabase/embeds";
+import { loadExamOrderQueue } from "@/features/exams/queue";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 import { PageHeader } from "@/components/ui/page-chrome";
 import { AudiometryForms } from "./audiometry-forms";
@@ -23,12 +22,11 @@ export default async function AudiometryPage() {
   const context = auth.context;
 
   const supabase = await createServerSupabaseClient();
-  const [ordersResult, resultsResult, calibrationsResult] = await Promise.all([
-    supabase
-      .from("exam_orders")
-      .select(`id, encounter_id, status, ${EXAM_ORDER_CATALOG_EMBED}(name)`)
-      .eq("tenant_id", context.tenantId)
-      .in("status", ["ordered", "collected"]),
+  const [queueOrders, resultsResult, calibrationsResult] = await Promise.all([
+    loadExamOrderQueue({
+      resultTypes: ["audiometry"],
+      tenantId: context.tenantId,
+    }),
     supabase
       .from("audiometry_results")
       .select("id, exam_order_id, status, current_version")
@@ -41,22 +39,21 @@ export default async function AudiometryPage() {
       .eq("status", "valid"),
   ]);
 
-  if (ordersResult.error || resultsResult.error || calibrationsResult.error) {
+  if (resultsResult.error || calibrationsResult.error) {
     return (
       <PageLoadError
         title="Audiometria"
         detail={describeSupabaseFailure(
-          [ordersResult, resultsResult, calibrationsResult],
+          [resultsResult, calibrationsResult],
           "Não foi possível carregar audiometria.",
         )}
       />
     );
   }
 
-  const parsedOrders = examOrderListSchema.safeParse(ordersResult.data);
   const parsedResults = audiometryResultListSchema.safeParse(resultsResult.data);
   const parsedCalibrations = audiometryCalibrationListSchema.safeParse(calibrationsResult.data);
-  if (!parsedOrders.success || !parsedResults.success || !parsedCalibrations.success) {
+  if (!parsedResults.success || !parsedCalibrations.success) {
     return (
       <PageLoadError
         title="Audiometria"
@@ -64,7 +61,6 @@ export default async function AudiometryPage() {
       />
     );
   }
-  const orders = parsedOrders.data;
   const results = parsedResults.data;
   const calibrations = parsedCalibrations.data;
 
@@ -81,10 +77,7 @@ export default async function AudiometryPage() {
           id: calibration.id,
           name: `${calibration.equipment_name} ${calibration.equipment_serial} · válido até ${calibration.valid_until}`,
         }))}
-        orders={orders.map((order) => ({
-          id: order.id,
-          name: `${order.exam_catalog?.name ?? "Exame"} · ${order.status}`,
-        }))}
+        orders={queueOrders.map((order) => ({ id: order.id, name: order.label }))}
         results={results.map((result) => ({
           id: result.id,
           name: `${result.exam_order_id} · ${result.status} · v${result.current_version}`,

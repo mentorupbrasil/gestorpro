@@ -1,5 +1,16 @@
 # Resultados de testes e verificações
 
+## 2026-07-16 — Fechamento operacional (Lotes A–D)
+
+- Branch: `feat/p0-security-rpc-checkin`
+- Conclusão: versões reais + formulários ASO/billing/close
+- Transitions após complete de triagem/consulta/conclusão
+- Painel: Realtime `display:{channel}` + `/api/display/heartbeat` + voz pt-BR
+- Exames: selects de fila (lab items/samples, diagnostics queue, audiometry queue)
+- Portal: `portal_idor_hardening.sql` plan(5) + overview cross-company
+- Spec E2E `clinical-close-flow.spec.ts` (estações + seções de fechamento)
+- Produção: **NO-GO**
+
 ## 2026-07-15 — E2E ocupacional + PGRST201 embeds
 
 - Branch: `feat/p0-security-rpc-checkin`

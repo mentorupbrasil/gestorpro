@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { getBrowserSupabaseClient } from "@/lib/supabase/browser";
 
 type PublicState = {
   activeCall?: {
@@ -9,6 +10,7 @@ type PublicState = {
     createdAt: string;
     payload: Record<string, unknown>;
   } | null;
+  channelName?: string;
   panelName: string;
   recentCalls: Array<{
     createdAt: string;
@@ -18,33 +20,40 @@ type PublicState = {
 };
 
 export function PublicCallBoard({
+  channelName,
   deviceToken,
   initialState,
   sessionId,
 }: {
+  channelName: string;
   deviceToken: string;
   initialState: PublicState;
   sessionId: string;
 }) {
   const [state, setState] = useState(initialState);
   const [voiceEnabled, setVoiceEnabled] = useState(true);
+  const [linkMode, setLinkMode] = useState<"realtime" | "poll">("poll");
   const lastSpoken = useRef<string | null>(null);
+  const voiceEnabledRef = useRef(voiceEnabled);
+  voiceEnabledRef.current = voiceEnabled;
 
   useEffect(() => {
-    const timer = window.setInterval(async () => {
+    let cancelled = false;
+
+    async function refreshState() {
       try {
         const response = await fetch("/api/display/state", {
           body: JSON.stringify({ deviceToken, sessionId }),
           headers: { "content-type": "application/json" },
           method: "POST",
         });
-        if (!response.ok) return;
+        if (!response.ok || cancelled) return;
         const next = (await response.json()) as PublicState & { ok: boolean };
         setState(next);
 
         const voiceText = String(next.activeCall?.payload?.voiceText ?? "");
         const callId = next.activeCall?.callEventId ?? null;
-        if (voiceEnabled && voiceText && callId && callId !== lastSpoken.current) {
+        if (voiceEnabledRef.current && voiceText && callId && callId !== lastSpoken.current) {
           lastSpoken.current = callId;
           if ("speechSynthesis" in window) {
             const utterance = new SpeechSynthesisUtterance(voiceText);
@@ -64,12 +73,43 @@ export function PublicCallBoard({
           });
         }
       } catch {
-        // reconciliação periódica; falha pontual não derruba o painel
+        // reconciliação periódica
       }
-    }, 2500);
+    }
 
-    return () => window.clearInterval(timer);
-  }, [deviceToken, sessionId, voiceEnabled]);
+    void refreshState();
+
+    const supabase = getBrowserSupabaseClient();
+    let subscribed = false;
+    const channel = supabase
+      .channel(`display:${channelName}`)
+      .on("broadcast", { event: "call_updated" }, () => {
+        void refreshState();
+      })
+      .subscribe((status: string) => {
+        subscribed = status === "SUBSCRIBED";
+        if (!cancelled) setLinkMode(subscribed ? "realtime" : "poll");
+      });
+
+    const pollTimer = window.setInterval(() => {
+      void refreshState();
+    }, 8_000);
+
+    const heartbeatTimer = window.setInterval(() => {
+      void fetch("/api/display/heartbeat", {
+        body: JSON.stringify({ deviceToken, sessionId }),
+        headers: { "content-type": "application/json" },
+        method: "POST",
+      });
+    }, 20_000);
+
+    return () => {
+      cancelled = true;
+      window.clearInterval(pollTimer);
+      window.clearInterval(heartbeatTimer);
+      void supabase.removeChannel(channel);
+    };
+  }, [channelName, deviceToken, sessionId]);
 
   const ticketCode = String(state.activeCall?.payload?.ticketCode ?? "—");
   const room = String(state.activeCall?.payload?.room ?? "Atendimento");
@@ -81,44 +121,41 @@ export function PublicCallBoard({
           <p className="text-sm uppercase tracking-[0.2em] text-white/50">Painel de chamadas</p>
           <h1 className="text-2xl font-semibold">{state.panelName}</h1>
         </div>
-        <button
-          className="rounded border border-white/20 px-3 py-1.5 text-sm"
-          onClick={() => setVoiceEnabled((value) => !value)}
-          type="button"
-        >
-          Voz {voiceEnabled ? "on" : "off"}
-        </button>
+        <div className="flex items-center gap-3">
+          <span className="text-xs text-white/40">
+            {linkMode === "realtime" ? "Realtime" : "Poll"}
+          </span>
+          <button
+            className="rounded border border-white/20 px-3 py-1.5 text-sm"
+            onClick={() => setVoiceEnabled((value) => !value)}
+            type="button"
+          >
+            Voz {voiceEnabled ? "on" : "off"}
+          </button>
+        </div>
       </header>
 
-      <main className="grid gap-6 px-6 py-10 lg:grid-cols-[1.4fr_1fr]">
-        <section className="rounded-2xl border border-white/10 bg-white/5 p-8">
-          <p className="text-sm uppercase tracking-[0.18em] text-emerald-300/80">Chamada ativa</p>
-          <p className="mt-6 text-7xl font-bold tracking-tight">{ticketCode}</p>
-          <p className="mt-4 text-3xl text-white/80">{room}</p>
-          {!state.activeCall ? (
-            <p className="mt-8 text-lg text-white/50">Aguardando próxima chamada…</p>
-          ) : null}
-        </section>
-
-        <section className="rounded-2xl border border-white/10 bg-white/5 p-6">
-          <h2 className="text-lg font-medium text-white/80">Últimas chamadas</h2>
-          <ul className="mt-4 space-y-3 text-sm">
-            {state.recentCalls.length === 0 ? (
-              <li className="text-white/50">Sem histórico recente.</li>
-            ) : (
-              state.recentCalls.map((call) => (
-                <li
-                  className="flex items-center justify-between border-b border-white/10 pb-2"
-                  key={`${call.ticketCode}-${call.createdAt}`}
-                >
-                  <span className="font-semibold">{call.ticketCode ?? "—"}</span>
-                  <span className="text-white/50">{call.room ?? ""}</span>
-                </li>
-              ))
-            )}
-          </ul>
-        </section>
+      <main className="mx-auto grid max-w-5xl gap-8 px-6 py-16 text-center">
+        <p className="text-sm uppercase tracking-[0.3em] text-emerald-300/80">Chamada atual</p>
+        <p className="text-7xl font-semibold tracking-tight">{ticketCode}</p>
+        <p className="text-3xl text-white/80">{room}</p>
       </main>
+
+      <section className="border-t border-white/10 px-6 py-6">
+        <h2 className="mb-3 text-sm uppercase tracking-wide text-white/50">Recentes</h2>
+        <ul className="grid gap-2 text-left text-sm text-white/80 md:grid-cols-3">
+          {state.recentCalls.map((call) => (
+            <li
+              className="rounded border border-white/10 px-3 py-2"
+              key={`${call.createdAt}-${call.ticketCode}`}
+            >
+              <span className="font-medium">{call.ticketCode ?? "—"}</span>
+              <span className="mx-2 text-white/40">·</span>
+              <span>{call.room ?? "Sala"}</span>
+            </li>
+          ))}
+        </ul>
+      </section>
     </div>
   );
 }

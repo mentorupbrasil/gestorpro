@@ -56,12 +56,16 @@ export default async function ConclusionStationPage({ searchParams }: Props) {
         selectedRecord={workspace.selectedRecord}
       />
       <ConclusionClosureForms
+        companyId={workspace.billingDefaults.companyId}
         conclusionId={workspace.selectedRecord?.conclusionId}
-        conclusionVersion={1}
+        conclusionVersion={workspace.selectedRecord?.conclusionVersion ?? 1}
+        contractId={workspace.billingDefaults.contractId}
         encounterId={
           workspace.selectedRecord?.encounterId ?? workspace.selectedEncounter?.encounterId
         }
-        encounterVersion={1}
+        encounterVersion={workspace.encounterVersion ?? 1}
+        priceTableId={workspace.billingDefaults.priceTableId}
+        templateVersionId={workspace.billingDefaults.templateVersionId}
       />
     </div>
   );

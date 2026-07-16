@@ -74,5 +74,35 @@ export async function createCallEvent(input: CreateCallEventInput, requestId: st
     });
   }
 
+  const panelResult = await supabase
+    .from("display_panels")
+    .select("channel_name")
+    .eq("tenant_id", context.tenantId)
+    .eq("id", parsed.displayPanelId)
+    .maybeSingle();
+
+  if (panelResult.data?.channel_name) {
+    const channelName = panelResult.data.channel_name;
+    const channel = supabase.channel(`display:${channelName}`);
+    await new Promise<void>((resolve) => {
+      const timeout = setTimeout(() => resolve(), 1500);
+      channel.subscribe((status) => {
+        if (status === "SUBSCRIBED") {
+          void channel
+            .send({
+              event: "call_updated",
+              payload: { callEventId: data },
+              type: "broadcast",
+            })
+            .finally(() => {
+              clearTimeout(timeout);
+              resolve();
+            });
+        }
+      });
+    });
+    void supabase.removeChannel(channel);
+  }
+
   return data;
 }
