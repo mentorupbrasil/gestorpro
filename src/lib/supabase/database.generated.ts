@@ -4901,6 +4901,13 @@ export type Database = {
         };
         Returns: string;
       };
+      bootstrap_tenant_operations: {
+        Args: {
+          audit_request_id: string;
+          target_tenant_id: string;
+        };
+        Returns: Json;
+      };
       check_in_appointment: {
         Args: {
           audit_request_id: string;

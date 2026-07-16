@@ -8,7 +8,7 @@ Atualizado em: 2026-07-16
 - Produção e merge na `main`: não autorizados (HUMAN_ACTIONS).
 - **Branch atual:** `feat/p0-security-rpc-checkin`.
 - P0–P3 engenharia na branch: check-in, clínica guiada (ASO/billing/close), painel Realtime, exames por fila, portal IDOR ampliado.
-- `035`: bootstrap — admin com MFA pode autoatribuir papéis operacionais (não `tenant_admin`).
+- `035`/`036`: bootstrap operacional (self-roles + unidade/triagem/ASO/papéis).
 
 | Fase                       | Estado        | Observação                                     |
 | -------------------------- | ------------- | ---------------------------------------------- |

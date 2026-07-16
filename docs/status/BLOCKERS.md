@@ -13,8 +13,8 @@
 
 ## Operacional (tenant real / preview)
 
-- Conta só com `tenant_admin` não abre check-in até conceder papel operacional + criar unidade.
-- Após `035`: autoatribuição operacional na tela Acessos (exige MFA AAL2).
+- Conta só com `tenant_admin` / tenant vazio: check-in e triagem não operam até bootstrap (`036`) ou setup manual.
+- Após `035`/`036` + deploy: botão **Inicializar operação** (MFA) cria unidade, formulário de triagem, ASO stub e papéis.
 
 ## Fechado nesta linha (engenharia)
 
@@ -26,3 +26,4 @@
 - Exames por fila
 - Portal IDOR overview ampliado
 - Bootstrap self-grant operacional (`035`)
+- Bootstrap tenant ops (`036`: unidade + triagem + ASO + papéis)

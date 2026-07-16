@@ -5,7 +5,10 @@ import { PageLoadError } from "@/components/ui/page-load-error";
 import { PageHeader } from "@/components/ui/page-chrome";
 import { loadWorkspaceAuth } from "@/core/auth/load-workspace-auth";
 import { AppError } from "@/core/errors/app-error";
+import { resolveAuthorizationContext } from "@/core/auth/session";
 import { loadTriageWorkspace } from "@/features/clinical/service";
+import { createServerSupabaseClient } from "@/lib/supabase/server";
+import { BootstrapOperationsPanel } from "../../_components/bootstrap-operations-panel";
 import { TriageStation } from "../triage-station";
 
 type Props = { searchParams?: Promise<{ encounter?: string }> };
@@ -40,6 +43,15 @@ export default async function TriageStationPage({ searchParams }: Props) {
     );
   }
 
+  const context = await resolveAuthorizationContext(selectedTenantId);
+  const supabase = await createServerSupabaseClient();
+  const { count: unitCount } = await supabase
+    .from("clinic_units")
+    .select("id", { count: "exact", head: true })
+    .eq("tenant_id", selectedTenantId)
+    .eq("status", "active");
+  const needsBootstrap = !workspace.formVersion.id || (unitCount ?? 0) === 0;
+
   return (
     <div>
       <PageHeader
@@ -47,6 +59,16 @@ export default async function TriageStationPage({ searchParams }: Props) {
         eyebrow="Enfermagem"
         title="Estação de triagem"
       />
+      {needsBootstrap ? (
+        <BootstrapOperationsPanel
+          canBootstrap={context.permissions.has("roles.manage")}
+          reason={
+            !workspace.formVersion.id
+              ? "Este tenant ainda não tem formulário de triagem aprovado — a estação não funciona sem isso."
+              : "Não há unidade clínica ativa — a fila fica vazia até existir unidade."
+          }
+        />
+      ) : null}
       <TriageStation
         formVersionId={workspace.formVersion.id}
         formVersionLabel={workspace.formVersion.label}

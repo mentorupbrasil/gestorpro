@@ -4,6 +4,8 @@ import { redirect } from "next/navigation";
 import { PageLoadError } from "@/components/ui/page-load-error";
 import { PageHeader, Surface } from "@/components/ui/page-chrome";
 import { loadWorkspaceAuth } from "@/core/auth/load-workspace-auth";
+import { createServerSupabaseClient } from "@/lib/supabase/server";
+import { BootstrapOperationsPanel } from "../_components/bootstrap-operations-panel";
 
 export default async function ClinicalHubPage() {
   const selectedTenantId = (await cookies()).get("gestorpro_tenant")?.value;
@@ -15,6 +17,20 @@ export default async function ClinicalHubPage() {
   }
 
   const permissions = auth.context.permissions;
+  const supabase = await createServerSupabaseClient();
+  const [{ count: unitCount }, { count: formCount }] = await Promise.all([
+    supabase
+      .from("clinic_units")
+      .select("id", { count: "exact", head: true })
+      .eq("tenant_id", selectedTenantId)
+      .eq("status", "active"),
+    supabase
+      .from("triage_form_versions")
+      .select("id", { count: "exact", head: true })
+      .eq("tenant_id", selectedTenantId)
+      .eq("status", "approved"),
+  ]);
+  const needsBootstrap = (unitCount ?? 0) === 0 || (formCount ?? 0) === 0;
   const stations = [
     {
       href: "/app/clinical/triage",
@@ -47,6 +63,12 @@ export default async function ClinicalHubPage() {
         eyebrow="Clínica ocupacional"
         title="Estações clínicas"
       />
+      {needsBootstrap ? (
+        <BootstrapOperationsPanel
+          canBootstrap={permissions.has("roles.manage")}
+          reason="Tenant sem unidade e/ou formulário de triagem aprovado — as estações abrem, mas não operam."
+        />
+      ) : null}
       <div className="mt-4 grid gap-3 md:grid-cols-3">
         {stations.map((station) => (
           <Surface className="p-4" key={station.href}>
