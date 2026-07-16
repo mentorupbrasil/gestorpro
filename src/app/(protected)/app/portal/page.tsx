@@ -7,6 +7,7 @@ import { hasTenantOrUnitPermission, requirePermission } from "@/core/auth/author
 import { resolveAuthorizationContext } from "@/core/auth/session";
 import { PageLoadError, describeSupabaseFailure } from "@/components/ui/page-load-error";
 import { loadCompanyPortalOverview } from "@/features/portal/service";
+import { PORTAL_USER_COMPANY_EMBED } from "@/lib/supabase/embeds";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 import { PageHeader, Surface } from "@/components/ui/page-chrome";
 import { PortalAdminForms } from "./portal-admin-forms";
@@ -49,7 +50,7 @@ export default async function CompanyPortalPage({ searchParams }: PortalPageProp
       : Promise.resolve({ data: [], error: null }),
     supabase
       .from("company_portal_users")
-      .select("company_id, companies(legal_name)")
+      .select(`company_id, ${PORTAL_USER_COMPANY_EMBED}(legal_name)`)
       .eq("tenant_id", context.tenantId)
       .eq("user_id", context.userId)
       .eq("status", "active"),

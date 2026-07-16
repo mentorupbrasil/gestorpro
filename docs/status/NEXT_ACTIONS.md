@@ -1,7 +1,6 @@
 # Próximas ações
 
-1. Abrir/atualizar PR da branch `feat/p0-security-rpc-checkin` e esperar checks CI
-2. Seed + E2E autenticado do fluxo ocupacional completo
-3. Painel público (device auth, Realtime privado, voz pt-BR)
-4. Assinatura ASO AAL2 + encerramento orquestrado
-5. Sem merge/`main`/produção — **NO-GO**
+1. Acompanhar checks CI da PR #12 após push dos fixes PGRST201/E2E
+2. Aprofundar E2E clínico (triagem → consulta → ASO AAL2 → fechamento/faturamento)
+3. Painel público (Realtime privado, heartbeat estável, voz pt-BR)
+4. Sem merge/`main`/produção — **NO-GO**

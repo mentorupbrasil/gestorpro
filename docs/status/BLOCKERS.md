@@ -7,10 +7,9 @@
 
 ## Aberto
 
-- E2E autenticado completo do percurso ocupacional (empresa → ASO → faturamento)
-- Painel público de chamadas com auth de dispositivo / heartbeat / voz
-- P2 exames (lab/ECG etc. estações completas) e P3 ASO assinado + portal IDOR ampliado
-- CI remoto desta branch ainda sem evidência até abrir/atualizar PR
+- E2E clínico profundo (ASO assinado → faturamento), além da navegação já verde
+- Painel público de chamadas com Realtime / voz
+- P2 exames (lab/ECG etc. estações completas) e portal IDOR ampliado
 
 ## Fechado nesta linha (DB + código)
 
@@ -19,3 +18,4 @@
 - Papéis sem clínico automático no `tenant_admin` (`030`)
 - Agenda AAL2/unidade/referral (`031`)
 - Transição de etapa + call_event + display RPC (`032`)
+- Embeds PGRST201 + E2E ocupacional autenticado (navegação + check-in)

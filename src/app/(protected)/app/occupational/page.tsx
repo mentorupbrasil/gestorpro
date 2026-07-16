@@ -9,6 +9,7 @@ import {
   workerListSchema,
 } from "@/features/occupational/schemas";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
+import { PCMSO_VERSION_COMPANY_EMBED } from "@/lib/supabase/embeds";
 import { PageHeader, Surface } from "@/components/ui/page-chrome";
 import { CompanyForm } from "./company-form";
 import { ExamCatalogForm } from "./exam-catalog-form";
@@ -25,7 +26,7 @@ export default async function OccupationalPage() {
   const selectedTenantId = (await cookies()).get("gestorpro_tenant")?.value;
   if (!selectedTenantId) redirect("/select-tenant");
 
-  const auth = await loadWorkspaceAuth(selectedTenantId, "occupational.read");
+  const auth = await loadWorkspaceAuth(selectedTenantId, "occupational.read", "tenantOrUnit");
   if ("error" in auth) {
     return <PageLoadError title="Empresas, trabalhadores e PCMSO" detail={auth.error} />;
   }
@@ -46,7 +47,9 @@ export default async function OccupationalPage() {
         .order("full_name"),
       supabase
         .from("pcmso_versions")
-        .select("id, version_number, valid_from, valid_until, status, companies(legal_name)")
+        .select(
+          `id, version_number, valid_from, valid_until, status, ${PCMSO_VERSION_COMPANY_EMBED}(legal_name)`,
+        )
         .eq("tenant_id", context.tenantId)
         .order("valid_from", { ascending: false }),
       supabase

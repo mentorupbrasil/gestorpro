@@ -5,6 +5,16 @@ import { PageLoadError, describeSupabaseFailure } from "@/components/ui/page-loa
 import { loadWorkspaceAuth } from "@/core/auth/load-workspace-auth";
 import { encounterListSchema, queueTicketListSchema } from "@/features/encounters/schemas";
 import { embeddedOneSchema } from "@/lib/supabase/relations";
+import {
+  APPOINTMENT_REFERRAL_EMBED,
+  APPOINTMENT_RESOURCE_EMBED,
+  ENCOUNTER_EXAM_ORDERS_EMBED,
+  ENCOUNTER_WORKER_EMBED,
+  QUEUE_TICKET_DEFINITION_EMBED,
+  QUEUE_TICKET_ENCOUNTER_EMBED,
+  REFERRAL_COMPANY_EMBED,
+  REFERRAL_WORKER_EMBED,
+} from "@/lib/supabase/embeds";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 import { PageHeader, Surface } from "@/components/ui/page-chrome";
 import { ReceptionStation } from "./reception-station";
@@ -44,21 +54,23 @@ export default async function CheckInPage() {
     supabase
       .from("appointments")
       .select(
-        "id, starts_at, ends_at, status, schedule_resources(name), referrals(id, occupational_exam_type, workers(full_name), companies(trade_name, legal_name))",
+        `id, starts_at, ends_at, status, ${APPOINTMENT_RESOURCE_EMBED}(name), ${APPOINTMENT_REFERRAL_EMBED}(id, occupational_exam_type, ${REFERRAL_WORKER_EMBED}(full_name), ${REFERRAL_COMPANY_EMBED}(trade_name, legal_name))`,
       )
       .eq("tenant_id", context.tenantId)
       .in("status", ["scheduled", "confirmed"])
       .order("starts_at"),
     supabase
       .from("encounters")
-      .select("id, status, checked_in_at, workers(full_name), exam_orders(id)")
+      .select(
+        `id, status, checked_in_at, ${ENCOUNTER_WORKER_EMBED}(full_name), ${ENCOUNTER_EXAM_ORDERS_EMBED}(id)`,
+      )
       .eq("tenant_id", context.tenantId)
       .order("checked_in_at", { ascending: false })
       .limit(30),
     supabase
       .from("queue_tickets")
       .select(
-        "id, status, priority, created_at, queue_definitions(name), encounters(workers(full_name))",
+        `id, status, priority, created_at, ${QUEUE_TICKET_DEFINITION_EMBED}(name), ${QUEUE_TICKET_ENCOUNTER_EMBED}(${ENCOUNTER_WORKER_EMBED}(full_name))`,
       )
       .eq("tenant_id", context.tenantId)
       .in("status", ["waiting", "called", "in_service"])

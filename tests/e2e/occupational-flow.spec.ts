@@ -46,22 +46,47 @@ function generateTotp(secret: string, timestamp = Date.now()) {
 
 async function ensureAal2(page: import("@playwright/test").Page) {
   await page.goto("/app/security");
-  const already = await page
-    .getByText("MFA ativado")
-    .isVisible()
-    .catch(() => false);
-  if (already) return;
-  if (await page.getByRole("button", { name: "Gerar QR Code" }).isVisible()) {
-    await page.getByRole("button", { name: "Gerar QR Code" }).click();
-    const secret = await page.getByTestId("totp-secret").innerText();
-    await page.getByLabel("Código do autenticador").fill(generateTotp(secret));
-    await page.getByRole("button", { name: "Confirmar MFA" }).click();
-    await expect(page.getByText("MFA ativado com sucesso.")).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Segurança da conta" })).toBeVisible();
+
+  if (
+    await page
+      .getByText("Sua sessão já está confirmada para ações críticas.")
+      .isVisible()
+      .catch(() => false)
+  ) {
+    return;
   }
+
+  const confirmSession = page.getByRole("button", { name: "Confirmar sessão" });
+  if (await confirmSession.isVisible().catch(() => false)) {
+    const storedSecret = process.env.E2E_TOTP_SECRET;
+    if (!storedSecret) {
+      throw new Error(
+        "MFA já cadastrado em aal1. Rode pnpm seed:e2e:auth (limpa fatores) ou defina E2E_TOTP_SECRET.",
+      );
+    }
+    await page.getByLabel("Código do autenticador").fill(generateTotp(storedSecret));
+    await confirmSession.click();
+    await expect(page.getByText(/Sessão reforçada com MFA|já está confirmada/i)).toBeVisible({
+      timeout: 15_000,
+    });
+    return;
+  }
+
+  const enrollButton = page.getByRole("button", { name: "Gerar QR Code" });
+  await expect(enrollButton).toBeVisible();
+  await enrollButton.click();
+  const secretLocator = page.getByTestId("totp-secret");
+  await expect(secretLocator).toBeVisible({ timeout: 20_000 });
+  const secret = (await secretLocator.innerText()).trim();
+  await page.getByLabel("Código do autenticador").fill(generateTotp(secret));
+  await page.getByRole("button", { name: "Confirmar MFA" }).click();
+  await expect(page.getByText("MFA ativado com sucesso.")).toBeVisible({ timeout: 15_000 });
 }
 
 test.describe("authenticated occupational flow", () => {
   test.skip(!authEnabled, "Set E2E_AUTH_ENABLED=1 and seed Supabase test user.");
+  test.setTimeout(120_000);
 
   test("navegação operacional ponta a ponta com check-in elegível", async ({ page }) => {
     if (!authEmail || !authPassword) {
@@ -79,16 +104,22 @@ test.describe("authenticated occupational flow", () => {
     await ensureAal2(page);
 
     await page.goto("/app/occupational");
-    await expect(page.getByText("Empresa Exemplo E2E Ltda. — DADO FICTÍCIO")).toBeVisible();
-    await expect(page.getByText("Trabalhador Fictício E2E")).toBeVisible();
+    await expect(
+      page.getByRole("cell", { name: /Empresa Exemplo E2E Ltda\. — DADO FICTÍCIO/ }),
+    ).toBeVisible();
+    await expect(page.getByRole("cell", { name: /Trabalhador Fictício E2E/ })).toBeVisible();
 
     await page.goto("/app/scheduling");
-    await expect(page.getByText("Sala de demonstração E2E")).toBeVisible();
+    await expect(page.getByRole("heading", { name: "Encaminhamentos e agenda" })).toBeVisible();
+    await expect(page.getByRole("option", { name: /Sala de demonstração E2E/ })).toBeAttached();
+    await expect(page.getByRole("option", { name: /Trabalhador Fictício E2E/ }).first()).toBeAttached();
 
     await page.goto("/app/check-in");
-    await expect(page.getByRole("heading", { name: "Estação operacional" })).toBeVisible();
-    await expect(page.getByText("Trabalhador Fictício E2E")).toBeVisible();
-    await page.getByText("Trabalhador Fictício E2E").first().click();
+    await expect(page.getByRole("heading", { name: "Estação operacional" })).toBeVisible({
+      timeout: 15_000,
+    });
+    await expect(page.getByRole("cell", { name: "Trabalhador Fictício E2E" })).toBeVisible();
+    await page.getByRole("cell", { name: "Trabalhador Fictício E2E" }).click();
     await page.getByRole("button", { name: "Check-in" }).click();
     await expect(
       page.getByText(
@@ -97,30 +128,38 @@ test.describe("authenticated occupational flow", () => {
     ).toBeVisible({ timeout: 20_000 });
 
     await page.goto("/app/clinical");
-    await expect(
-      page.getByRole("heading", { name: /Estações clínicas|Triagem|Clínica/i }),
-    ).toBeVisible();
+    await expect(page.getByRole("heading", { level: 1, name: "Estações clínicas" })).toBeVisible({
+      timeout: 15_000,
+    });
 
     await page.goto("/app/exams/diagnostics");
-    await expect(page.getByRole("heading", { name: /ECG, EEG e radiologia/i })).toBeVisible();
+    await expect(page.getByRole("heading", { level: 1, name: /ECG|EEG|radiologia/i })).toBeVisible({
+      timeout: 15_000,
+    });
 
     await page.goto("/app/exams/laboratory");
-    await expect(page.getByRole("heading", { name: /Laboratório/i })).toBeVisible();
+    await expect(page.getByRole("heading", { level: 1, name: /Laboratório/i })).toBeVisible({
+      timeout: 15_000,
+    });
 
     await page.goto("/app/documents");
-    await expect(page.getByRole("heading", { name: /Templates|Documentos/i })).toBeVisible();
+    await expect(page.getByRole("heading", { level: 1, name: /Templates|Documentos/i })).toBeVisible({
+      timeout: 15_000,
+    });
 
     await page.goto("/app/finance");
     await expect(
-      page.getByRole("heading", { name: /Financeiro|Contratos|faturamento/i }),
-    ).toBeVisible();
+      page.getByRole("heading", { level: 1, name: /Financeiro|Contratos|faturamento/i }),
+    ).toBeVisible({ timeout: 15_000 });
 
     await page.goto("/app/display");
-    await expect(page.getByRole("heading", { name: /Painel|Chamada/i })).toBeVisible();
+    await expect(page.getByRole("heading", { level: 1, name: /Painel|Chamada/i })).toBeVisible({
+      timeout: 15_000,
+    });
 
     await page.goto("/painel?token=e2e-public-display-token-ficticio-001");
     await expect(
-      page.getByText(/Painel E2E|Painel de chamadas|Dispositivo não autorizado/i),
+      page.getByText(/Painel E2E|Painel de chamadas|Dispositivo não autorizado/i).first(),
     ).toBeVisible({
       timeout: 15_000,
     });

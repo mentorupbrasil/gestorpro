@@ -1,5 +1,13 @@
 # Resultados de testes e verificações
 
+## 2026-07-15 — E2E ocupacional + PGRST201 embeds
+
+- Branch: `feat/p0-security-rpc-checkin`
+- `pnpm seed:e2e:auth`: ok (roles tenant-wide, MFA limpo, PCMSO `on conflict do nothing`)
+- `pnpm test:e2e -- tests/e2e/occupational-flow.spec.ts`: **1 passed** (~23s)
+  - login → select-tenant E2E → MFA enroll/aal2 → occupational → scheduling → check-in → clinical → exams → documents → finance → display → painel público
+- Correção: hints PostgREST em `src/lib/supabase/embeds.ts` (PCMSO, referrals, appointments, encounters, filas, finance, SST, portal)
+
 ## 2026-07-14 — P0+P1 apply DB + suite local
 
 - Branch: `feat/p0-security-rpc-checkin`
@@ -8,7 +16,7 @@
 - `pnpm test`: **137 passed** (34 files)
 - `pnpm typecheck` / `lint` / `format:check` / `types:supabase:check` / scanner destrutivo: **passed**
 - Typegen offline regenerado (132 tables / 81 functions)
-- E2E autenticado ponta a ponta ocupacional: **ainda pendente**
+- E2E autenticado ponta a ponta ocupacional: **ainda pendente (superseded 2026-07-15)**
 
 ## 2026-07-14 — P0 security/check-in/roles/timezone (código)
 

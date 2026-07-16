@@ -3,6 +3,11 @@ import { redirect } from "next/navigation";
 import { PageLoadError, describeSupabaseFailure } from "@/components/ui/page-load-error";
 import { loadWorkspaceAuth } from "@/core/auth/load-workspace-auth";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
+import {
+  BILLING_ITEM_COMPANY_EMBED,
+  INVOICE_COMPANY_EMBED,
+  PORTAL_USER_COMPANY_EMBED,
+} from "@/lib/supabase/embeds";
 import { readEmbeddedRelation } from "@/lib/supabase/relations";
 import { PageHeader, Surface } from "@/components/ui/page-chrome";
 import { FinanceWorkspaceForms } from "./finance-forms";
@@ -56,19 +61,21 @@ export default async function FinancePage() {
       .limit(40),
     supabase
       .from("billing_items")
-      .select("id, company_id, description, amount_cents, billable, status, companies(legal_name)")
+      .select(
+        `id, company_id, description, amount_cents, billable, status, ${BILLING_ITEM_COMPANY_EMBED}(legal_name)`,
+      )
       .eq("tenant_id", context.tenantId)
       .order("created_at", { ascending: false })
       .limit(40),
     supabase
       .from("invoices")
-      .select("id, status, total_cents, due_on, issued_at, companies(legal_name)")
+      .select(`id, status, total_cents, due_on, issued_at, ${INVOICE_COMPANY_EMBED}(legal_name)`)
       .eq("tenant_id", context.tenantId)
       .order("created_at", { ascending: false })
       .limit(40),
     supabase
       .from("company_portal_users")
-      .select("id, status, companies(legal_name), user_profiles(display_name)")
+      .select(`id, status, ${PORTAL_USER_COMPANY_EMBED}(legal_name), user_profiles(display_name)`)
       .eq("tenant_id", context.tenantId)
       .order("created_at", { ascending: false })
       .limit(40),

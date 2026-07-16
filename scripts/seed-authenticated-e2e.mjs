@@ -222,7 +222,8 @@ try {
       on conflict do nothing
     `;
 
-    // Papéis operacionais na unidade (tenant_admin não tem clínico após P0)
+    // Papéis operacionais tenant-wide (dados ocupacionais/agenda são RLS tenant;
+    // unit_manager etc. com clinic_unit_id null habilita has_tenant_permission)
     for (const roleCode of [
       "unit_manager",
       "receptionist",
@@ -235,7 +236,7 @@ try {
     ]) {
       await tx`
         insert into public.membership_roles (membership_id, role_id, clinic_unit_id)
-        select ${membershipId}, role.id, ${unitId}
+        select ${membershipId}, role.id, null
         from public.roles role
         where role.tenant_id is null and role.code = ${roleCode}
         on conflict do nothing
@@ -299,11 +300,7 @@ try {
         ${pcmsoVersionId}, ${tenantId}, ${companyId}, ${pcmsoProgramId}, 1,
         current_date - 30, 'approved', now() - interval '1 day', 'e2e-pcmso-hash'
       )
-      on conflict (id) do update set
-        status = 'approved',
-        approved_at = coalesce(public.pcmso_versions.approved_at, now()),
-        valid_from = current_date - 30,
-        updated_at = now()
+      on conflict (id) do nothing
     `;
 
     await tx`

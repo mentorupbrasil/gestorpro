@@ -3,6 +3,12 @@ import { redirect } from "next/navigation";
 import { PageLoadError, describeSupabaseFailure } from "@/components/ui/page-load-error";
 import { loadWorkspaceAuth } from "@/core/auth/load-workspace-auth";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
+import {
+  SST_CIPA_COMPANY_EMBED,
+  SST_CIPA_WORKER_EMBED,
+  SST_EPI_WORKER_EMBED,
+  SST_INCIDENT_COMPANY_EMBED,
+} from "@/lib/supabase/embeds";
 import { readEmbeddedRelation } from "@/lib/supabase/relations";
 import { PageHeader, Surface } from "@/components/ui/page-chrome";
 import { SstWorkspaceForms } from "./sst-forms";
@@ -34,20 +40,24 @@ export default async function SstPage() {
         .limit(80),
       supabase
         .from("sst_incidents")
-        .select("id, incident_type, severity, status, occurred_at, companies(legal_name)")
+        .select(
+          `id, incident_type, severity, status, occurred_at, ${SST_INCIDENT_COMPANY_EMBED}(legal_name)`,
+        )
         .eq("tenant_id", context.tenantId)
         .order("occurred_at", { ascending: false })
         .limit(30),
       supabase
         .from("sst_epi_issues")
-        .select("id, epi_code, epi_name, status, issued_at, workers(full_name)")
+        .select(
+          `id, epi_code, epi_name, status, issued_at, ${SST_EPI_WORKER_EMBED}(full_name)`,
+        )
         .eq("tenant_id", context.tenantId)
         .order("issued_at", { ascending: false })
         .limit(30),
       supabase
         .from("sst_cipa_memberships")
         .select(
-          "id, role_label, status, mandate_starts_on, workers(full_name), companies(legal_name)",
+          `id, role_label, status, mandate_starts_on, ${SST_CIPA_WORKER_EMBED}(full_name), ${SST_CIPA_COMPANY_EMBED}(legal_name)`,
         )
         .eq("tenant_id", context.tenantId)
         .order("created_at", { ascending: false })

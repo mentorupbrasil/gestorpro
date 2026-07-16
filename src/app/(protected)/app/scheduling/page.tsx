@@ -8,6 +8,7 @@ import {
   scheduleResourceListSchema,
 } from "@/features/scheduling/schemas";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
+import { REFERRAL_COMPANY_EMBED, REFERRAL_WORKER_EMBED, APPOINTMENT_RESOURCE_EMBED } from "@/lib/supabase/embeds";
 import { PageHeader, Surface } from "@/components/ui/page-chrome";
 import { SchedulingForms } from "./scheduling-forms";
 
@@ -15,7 +16,7 @@ export default async function SchedulingPage() {
   const selectedTenantId = (await cookies()).get("gestorpro_tenant")?.value;
   if (!selectedTenantId) redirect("/select-tenant");
 
-  const auth = await loadWorkspaceAuth(selectedTenantId, "schedule.read");
+  const auth = await loadWorkspaceAuth(selectedTenantId, "schedule.read", "tenantOrUnit");
   if ("error" in auth) {
     return <PageLoadError title="Encaminhamentos e agenda" detail={auth.error} />;
   }
@@ -47,7 +48,9 @@ export default async function SchedulingPage() {
       .order("full_name"),
     supabase
       .from("referrals")
-      .select("id, occupational_exam_type, status, companies(legal_name), workers(full_name)")
+      .select(
+        `id, occupational_exam_type, status, ${REFERRAL_COMPANY_EMBED}(legal_name), ${REFERRAL_WORKER_EMBED}(full_name)`,
+      )
       .eq("tenant_id", context.tenantId)
       .order("created_at", { ascending: false }),
     supabase
@@ -57,7 +60,7 @@ export default async function SchedulingPage() {
       .order("name"),
     supabase
       .from("appointments")
-      .select("id, starts_at, ends_at, status, schedule_resources(name)")
+      .select(`id, starts_at, ends_at, status, ${APPOINTMENT_RESOURCE_EMBED}(name)`)
       .eq("tenant_id", context.tenantId)
       .order("starts_at", { ascending: true }),
   ]);

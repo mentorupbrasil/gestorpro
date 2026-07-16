@@ -26,9 +26,12 @@ export default async function SelectTenantPage({
     .eq("status", "active");
 
   if (membershipsError) throw new Error("Não foi possível carregar os vínculos autorizados.");
+  const showAutomatedTenants = process.env.E2E_AUTH_ENABLED === "1";
   const tenantOptions = tenantOptionListSchema
     .parse(memberships)
-    .filter((membership) => !isAutomatedTestTenant(membership.tenants));
+    .filter(
+      (membership) => showAutomatedTenants || !isAutomatedTestTenant(membership.tenants),
+    );
 
   return (
     <main className="mx-auto max-w-3xl px-6 py-16">
