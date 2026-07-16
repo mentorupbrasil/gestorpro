@@ -1,30 +1,31 @@
 # Status mestre
 
-Atualizado em: 2026-07-13
+Atualizado em: 2026-07-16 (pós-auditoria)
 
-## Reauditoria V2
+## Estado
 
-- Fase A — Reauditoria e correção da fundação: `PARTIAL / IN_PROGRESS`.
-- Os checkpoints históricos das Fases 1–11 permanecem preservados, mas não equivalem a aceite técnico pelos gates do Plano Mestre V2.
-- Produção e merge na `main`: não autorizados.
-- Primeira unidade: contenção de DML/RPC, escopo por unidade, AAL2 no banco, último admin, supply chain e documentos obrigatórios concluídos localmente.
-- Gate ainda aberto: typegen oficial remoto (offline ativo), PostgreSQL/RLS real da base consolidada, integridade composta, E2E autenticado, CI/PR remoto.
+- Branch: `feat/p0-security-rpc-checkin` — PR #12 OPEN (draft).
+- Head de partida desta rodada: `7778240` (igual ao auditado).
+- Migration `041` adicionada (não edita `037`–`040`).
+- Gates locais deste ciclo: typecheck / lint / test(**166**) / types / secrets verdes; format corrigido.
+- CI reestruturado: `quality`, `ui-smoke`, `db-migrations-fresh`, `db-migrations-upgrade`, `authenticated-e2e` (falha sem secrets — sem skip).
+- Produção / merge `main`: **NO-GO**.
 
-| Fase                         | Estado                | Observação                                        |
-| ---------------------------- | --------------------- | ------------------------------------------------- |
-| 0 — Fundação documental      | TECHNICALLY_COMPLETED | auditoria aprovada; ADRs permanecem PROPOSTA      |
-| 1 — Plataforma e segurança   | REAUDIT_IN_PROGRESS   | CLI instalada; typegen/schema real ainda pendente |
-| 2 — Domínio ocupacional      | CHECKPOINT_PUBLISHED  | revisão final posterior solicitada                |
-| 3 — Encaminhamentos e agenda | CHECKPOINT_PUBLISHED  | revisão final posterior solicitada                |
-| 4 — Check-in, etapas e filas | CHECKPOINT_PUBLISHED  | revisão final posterior solicitada                |
-| 5 — Painel de chamadas       | CHECKPOINT_PUBLISHED  | revisão final posterior solicitada                |
-| 6 — Triagem e consulta       | CHECKPOINT_PUBLISHED  | validação clínica futura                          |
-| 7 — Exames complementares    | CHECKPOINT_PUBLISHED  | validação profissional futura                     |
-| 8 — Documentos               | CHECKPOINT_PUBLISHED  | modelos/assinatura dependem de humanos            |
-| 9 — Financeiro e portal      | CHECKPOINT_PUBLISHED  | validação contábil/jurídica futura                |
-| 10 — Integrações             | CHECKPOINT_PUBLISHED  | eSocial oficial consultado; sem envio real        |
-| 11 — Produção e piloto       | CHECKPOINT_PUBLISHED  | relatório NO-GO publicado; revisão geral iniciada |
+| Fase                        | Estado        | Observação                                               |
+| --------------------------- | ------------- | -------------------------------------------------------- |
+| CI quality                  | CODE_READY    | jobs separados; auth E2E exige secrets                   |
+| Migrations fresh/upgrade    | CODE_READY    | script com modos; job CI com Postgres 16 + bootstrap     |
+| Autorização etapas          | P0_DB_APPLIED | sem fallback `encounters.manage`                         |
+| Close bypass                | P0_CODE_041   | transition não completa; `encounter_closures`            |
+| Documentos fail-closed      | P0_CODE_041   | finalize `service_role` + storage verify                 |
+| Close readiness UI          | P0_CODE       | RPC `get_encounter_close_readiness`; hardcodes removidos |
+| ASO papéis                  | P0_CODE       | generate / sign / deliver separados                      |
+| Bootstrap                   | P0_DB_APPLIED | admin-only                                               |
+| Exames paralelos            | P0_DB_APPLIED | M2M deps; cancelled não satisfaz                         |
+| Painel P1 hardening         | P1_DB_APPLIED | `040`                                                    |
+| E2E ponta a ponta 40 passos | OPEN          | job autenticado falha sem secrets (intencional)          |
+| Portal empresa              | P1_SCAFFOLD   | sem portal trabalhador                                   |
+| SST / eSocial               | P1_SCAFFOLD   | sandbox                                                  |
+| Backup restore validado     | OPEN          | doc RPO/RTO; evidência ainda não                         |
 
-Revisão geral pós-checkpoints: `IN_PROGRESS`. Primeira unidade visual validada; seed fictício e E2E integrado preparados, com execução autenticada externa pendente. Ver [GENERAL_AUDIT_20260713.md](GENERAL_AUDIT_20260713.md).
-
-Branch remota atual: `main`. Em 2026-07-13, os históricos divergentes foram unidos por merge sem conflitos, validados localmente e publicados sem força; as três branches auxiliares remotas foram removidas somente após comprovação de ancestralidade integral.
+**Decisão:** `NO-GO` produção.

@@ -1,7 +1,12 @@
 "use client";
 
 import { useActionState } from "react";
-import { createCallEventAction, createDisplayPanelAction, type DisplayFormState } from "./actions";
+import {
+  createCallEventAction,
+  createDisplayPanelAction,
+  revokeDisplayPanelAction,
+  type DisplayFormState,
+} from "./actions";
 
 type Option = { id: string; name: string };
 
@@ -21,49 +26,56 @@ export function DisplayForms({
     initialState,
   );
   const [callState, callAction, callPending] = useActionState(createCallEventAction, initialState);
+  const [revokeState, revokeAction, revokePending] = useActionState(
+    revokeDisplayPanelAction,
+    initialState,
+  );
 
   return (
-    <section className="mt-8 grid gap-6 lg:grid-cols-2">
-      <form action={panelAction} className="grid gap-3 border-t border-slate-200 pt-5">
+    <section className="mt-4 grid gap-3 lg:grid-cols-2">
+      <form action={panelAction} className="grid gap-3 gp-surface p-4">
         <h2 className="text-lg font-semibold">Painel</h2>
         <Select label="Unidade" name="clinicUnitId" options={clinicUnits} />
         <label className="grid gap-1 text-sm font-medium">
           Código
-          <input
-            className="rounded border border-slate-300 px-3 py-2 uppercase"
-            name="code"
-            required
-          />
+          <input className="gp-input uppercase" name="code" required />
         </label>
         <label className="grid gap-1 text-sm font-medium">
           Nome
-          <input className="rounded border border-slate-300 px-3 py-2" name="name" required />
+          <input className="gp-input" name="name" required />
         </label>
         <label className="grid gap-1 text-sm font-medium">
           Canal privado
-          <input
-            className="rounded border border-slate-300 px-3 py-2"
-            name="channelName"
-            required
-          />
+          <input className="gp-input" name="channelName" required />
         </label>
-        <button
-          className="w-fit rounded bg-emerald-800 px-4 py-2 font-semibold text-white disabled:opacity-60"
-          disabled={panelPending}
-          type="submit"
-        >
+        <button className="gp-btn gp-btn-primary w-fit" disabled={panelPending} type="submit">
           {panelPending ? "Criando…" : "Criar painel"}
         </button>
         <StateMessage state={panelState} />
+        {panelState.deviceToken ? (
+          <p className="break-all text-xs text-gp-text-muted">
+            Token do dispositivo: {panelState.deviceToken}
+          </p>
+        ) : null}
       </form>
 
-      <form action={callAction} className="grid gap-3 border-t border-slate-200 pt-5">
+      <form action={callAction} className="grid gap-3 gp-surface p-4">
         <h2 className="text-lg font-semibold">Chamar ticket</h2>
         <Select label="Painel" name="displayPanelId" options={panels} />
         <Select label="Ticket" name="queueTicketId" options={tickets} />
+        <Select
+          label="Destino (redirect)"
+          name="redirectPanelId"
+          options={panels}
+          required={false}
+        />
+        <label className="grid gap-1 text-sm font-medium">
+          Versão esperada da etapa (start/return/no_show)
+          <input className="gp-input" min={1} name="expectedVersion" type="number" />
+        </label>
         <label className="grid gap-1 text-sm font-medium">
           Ação
-          <select className="rounded border border-slate-300 px-3 py-2" name="action" required>
+          <select className="gp-input" name="action" required>
             <option value="call">Chamar</option>
             <option value="recall">Rechamar</option>
             <option value="arrived">Compareceu</option>
@@ -73,14 +85,19 @@ export function DisplayForms({
             <option value="redirect">Redirecionar</option>
           </select>
         </label>
-        <button
-          className="w-fit rounded bg-emerald-800 px-4 py-2 font-semibold text-white disabled:opacity-60"
-          disabled={callPending}
-          type="submit"
-        >
+        <button className="gp-btn gp-btn-primary w-fit" disabled={callPending} type="submit">
           {callPending ? "Chamando…" : "Persistir chamada"}
         </button>
         <StateMessage state={callState} />
+      </form>
+
+      <form action={revokeAction} className="grid gap-3 gp-surface p-4 lg:col-span-2">
+        <h2 className="text-lg font-semibold">Revogar painel</h2>
+        <Select label="Painel" name="displayPanelId" options={panels} />
+        <button className="gp-btn w-fit" disabled={revokePending} type="submit">
+          {revokePending ? "Revogando…" : "Revogar token e painel"}
+        </button>
+        <StateMessage state={revokeState} />
       </form>
     </section>
   );
@@ -90,15 +107,17 @@ function Select({
   label,
   name,
   options,
+  required = true,
 }: {
   label: string;
   name: string;
   options: readonly Option[];
+  required?: boolean;
 }) {
   return (
     <label className="grid gap-1 text-sm font-medium">
       {label}
-      <select className="rounded border border-slate-300 px-3 py-2" name={name} required>
+      <select className="gp-input" name={name} required={required}>
         <option value="">Selecione</option>
         {options.map((option) => (
           <option key={option.id} value={option.id}>

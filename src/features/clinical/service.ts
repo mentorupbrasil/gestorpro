@@ -1,8 +1,14 @@
 import "server-only";
 
-import { requireAal2, requirePermission, requireUnitPermission } from "@/core/auth/authorization";
+import {
+  requireAal2,
+  requireTenantOrUnitPermission,
+  requireUnitPermission,
+  hasTenantOrUnitPermission,
+} from "@/core/auth/authorization";
 import { resolveAuthorizationContext } from "@/core/auth/session";
 import { AppError } from "@/core/errors/app-error";
+import { recordSensitiveRead } from "@/features/audit/sensitive-read";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 import {
   approvedTriageFormVersionSchema,
@@ -23,11 +29,18 @@ import {
   type CreateMedicalConclusionInput,
   type SaveMedicalConsultationInput,
   type SaveTriageRecordInput,
+  createClinicalAlertSchema,
+  acknowledgeClinicalAlertSchema,
+  createConsultationAddendumSchema,
+  pauseEncounterFlowSchema,
+  resolveEncounterFlowPauseSchema,
+  type CreateClinicalAlertInput,
+  type AcknowledgeClinicalAlertInput,
+  type CreateConsultationAddendumInput,
+  type PauseEncounterFlowInput,
+  type ResolveEncounterFlowPauseInput,
 } from "./schemas";
-import {
-  buildConclusionBlockers,
-  countPendingRequiredExams,
-} from "./conclusion-payload";
+import { buildConclusionBlockers, countPendingRequiredExams } from "./conclusion-payload";
 import {
   consultationInputFromStored,
   parseConsultationVersionPayload,
@@ -130,6 +143,13 @@ export type ConclusionQueueItem = {
 };
 
 export type ConclusionWorkspace = {
+  billingDefaults: {
+    companyId: string | null;
+    contractId: string | null;
+    priceTableId: string | null;
+    templateVersionId: string | null;
+  };
+  encounterVersion: number | null;
   physicians: readonly PhysicianOption[];
   professionalName: string;
   queue: readonly ConclusionQueueItem[];
@@ -137,6 +157,7 @@ export type ConclusionWorkspace = {
   selectedRecord: {
     conclusionCode: ConclusionCode;
     conclusionId: string;
+    conclusionVersion: number;
     encounterId: string;
     notes: string | null;
     physicianCredentialId: string;
@@ -197,7 +218,7 @@ export async function loadTriageWorkspace(
   selectedEncounterId?: string,
 ): Promise<TriageWorkspace> {
   const context = await resolveAuthorizationContext(tenantId);
-  requirePermission(context, "clinical.read");
+  requireTenantOrUnitPermission(context, "clinical.read");
 
   const unitIds = Array.from(context.clinicUnitIds);
   const supabase = await createServerSupabaseClient();
@@ -222,8 +243,8 @@ export async function loadTriageWorkspace(
             status,
             checked_in_at,
             clinic_unit_id,
-            workers(full_name),
-            referrals(occupational_exam_type, companies(legal_name)),
+            workers!encounters_worker_tenant_fk(full_name),
+            referrals(occupational_exam_type, companies!referrals_company_tenant_fk(legal_name)),
             clinic_units(name),
             encounter_steps(step_type, status, id),
             queue_tickets(priority, status, queue_definitions(name)),
@@ -280,8 +301,8 @@ export async function loadTriageWorkspace(
           status,
           checked_in_at,
           clinic_unit_id,
-          workers(full_name),
-          referrals(occupational_exam_type, companies(legal_name)),
+          workers!encounters_worker_tenant_fk(full_name),
+          referrals(occupational_exam_type, companies!referrals_company_tenant_fk(legal_name)),
           clinic_units(name),
           encounter_steps(step_type, status, id),
           queue_tickets(priority, status, queue_definitions(name)),
@@ -371,7 +392,7 @@ export async function loadTriageWorkspace(
 export async function saveTriageRecord(input: SaveTriageRecordInput, requestId: string) {
   const parsed = saveTriageRecordSchema.parse(input);
   const context = await resolveAuthorizationContext(parsed.tenantId);
-  requirePermission(context, "triage.manage");
+  requireTenantOrUnitPermission(context, "triage.manage");
   requireAal2(context);
 
   const supabase = await createServerSupabaseClient();
@@ -411,7 +432,7 @@ export async function saveTriageRecord(input: SaveTriageRecordInput, requestId: 
   }
 
   if (existingRecord.data?.status === "closed" && !parsed.closeRecord) {
-    requirePermission(context, "clinical.reopen");
+    requireUnitPermission(context, encounterResult.data.clinic_unit_id, "clinical.reopen");
   }
 
   const profileResult = await supabase
@@ -462,6 +483,22 @@ export async function saveTriageRecord(input: SaveTriageRecordInput, requestId: 
     throw new AppError("INTERNAL_ERROR", "Não foi possível salvar a triagem.", { status: 500 });
   }
 
+  if (parsed.closeRecord) {
+    const { completeEncounterStepByType } = await import("@/features/encounters/complete-step");
+    await completeEncounterStepByType({
+      encounterId: parsed.encounterId,
+      requestId,
+      stepType: "reception",
+      tenantId: context.tenantId,
+    });
+    await completeEncounterStepByType({
+      encounterId: parsed.encounterId,
+      requestId,
+      stepType: "triage",
+      tenantId: context.tenantId,
+    });
+  }
+
   return data;
 }
 
@@ -484,8 +521,9 @@ function mapConsultationQueueRow(
       occupationalExamTypeLabels[row.referrals?.occupational_exam_type ?? ""] ??
       row.referrals?.occupational_exam_type ??
       "Exame ocupacional",
-    pendingExams: row.exam_orders.filter((order) => !["resulted", "cancelled"].includes(order.status))
-      .length,
+    pendingExams: row.exam_orders.filter(
+      (order) => !["resulted", "cancelled"].includes(order.status),
+    ).length,
     priority: ticket?.priority ?? null,
     queueName: ticket?.queue_definitions?.name ?? null,
     status: row.status,
@@ -499,9 +537,10 @@ function mapConsultationQueueRow(
 export async function loadConsultationWorkspace(
   tenantId: string,
   selectedEncounterId?: string,
+  requestId?: string,
 ): Promise<ConsultationWorkspace> {
   const context = await resolveAuthorizationContext(tenantId);
-  requirePermission(context, "clinical.read");
+  requireTenantOrUnitPermission(context, "clinical.read");
 
   const unitIds = Array.from(context.clinicUnitIds);
   const supabase = await createServerSupabaseClient();
@@ -511,7 +550,7 @@ export async function loadConsultationWorkspace(
     supabase
       .from("clinical_professional_credentials")
       .select(
-        "id, council_code, registration_number, user_id, user_profiles(display_name)",
+        "id, council_code, council_region, professional_role, registration_number, user_id, user_profiles(display_name)",
       )
       .eq("tenant_id", context.tenantId)
       .eq("professional_role", "physician")
@@ -526,14 +565,14 @@ export async function loadConsultationWorkspace(
             status,
             checked_in_at,
             clinic_unit_id,
-            workers(full_name),
-            referrals(occupational_exam_type, companies(legal_name)),
+            workers!encounters_worker_tenant_fk(full_name),
+            referrals(occupational_exam_type, companies!referrals_company_tenant_fk(legal_name)),
             clinic_units(name),
             encounter_steps(step_type, status, id),
             queue_tickets(priority, status, queue_definitions(name)),
             triage_records(id, status, current_version, triage_record_versions(version, payload)),
             medical_consultations(id, status, current_version, physician_credential_id),
-            exam_orders(id, status, exam_catalog(name))
+            exam_orders(id, status, exam_catalog!exam_orders_exam_catalog_tenant_fk(name))
           `,
           )
           .eq("tenant_id", context.tenantId)
@@ -609,14 +648,14 @@ export async function loadConsultationWorkspace(
           status,
           checked_in_at,
           clinic_unit_id,
-          workers(full_name),
-          referrals(occupational_exam_type, companies(legal_name)),
+          workers!encounters_worker_tenant_fk(full_name),
+          referrals(occupational_exam_type, companies!referrals_company_tenant_fk(legal_name)),
           clinic_units(name),
           encounter_steps(step_type, status, id),
           queue_tickets(priority, status, queue_definitions(name)),
           triage_records(id, status, current_version, triage_record_versions(version, payload)),
           medical_consultations(id, status, current_version, physician_credential_id),
-          exam_orders(id, status, exam_catalog(name))
+          exam_orders(id, status, exam_catalog!exam_orders_exam_catalog_tenant_fk(name))
         `,
         )
         .eq("tenant_id", context.tenantId)
@@ -689,6 +728,16 @@ export async function loadConsultationWorkspace(
     }
   }
 
+  if (selectedEncounterId && requestId) {
+    await recordSensitiveRead({
+      action: "chart.viewed",
+      entityId: selectedEncounterId,
+      entityType: "encounter",
+      requestId,
+      tenantId: context.tenantId,
+    });
+  }
+
   return {
     physicians,
     professionalName: profileResult.data?.display_name ?? "Profissional",
@@ -747,7 +796,7 @@ export async function loadConclusionWorkspace(
   selectedEncounterId?: string,
 ): Promise<ConclusionWorkspace> {
   const context = await resolveAuthorizationContext(tenantId);
-  requirePermission(context, "clinical.read");
+  requireTenantOrUnitPermission(context, "clinical.read");
 
   const unitIds = Array.from(context.clinicUnitIds);
   const supabase = await createServerSupabaseClient();
@@ -757,7 +806,7 @@ export async function loadConclusionWorkspace(
     supabase
       .from("clinical_professional_credentials")
       .select(
-        "id, council_code, council_region, registration_number, user_id, user_profiles(display_name)",
+        "id, council_code, council_region, professional_role, registration_number, user_id, user_profiles(display_name)",
       )
       .eq("tenant_id", context.tenantId)
       .eq("professional_role", "physician")
@@ -770,10 +819,11 @@ export async function loadConclusionWorkspace(
             `
             id,
             status,
+            version,
             checked_in_at,
             clinic_unit_id,
-            workers(full_name),
-            referrals(occupational_exam_type, companies(legal_name)),
+            workers!encounters_worker_tenant_fk(full_name),
+            referrals(occupational_exam_type, company_id, companies!referrals_company_tenant_fk(legal_name)),
             clinic_units(name),
             encounter_steps(step_type, status, id),
             queue_tickets(priority, status, queue_definitions(name)),
@@ -785,7 +835,7 @@ export async function loadConclusionWorkspace(
               physician_credential_id,
               medical_consultation_versions(version, assessment, plan)
             ),
-            exam_orders(id, status, exam_catalog(name)),
+            exam_orders(id, status, exam_catalog!exam_orders_exam_catalog_tenant_fk(name)),
             encounter_flow_pauses(id, status),
             medical_conclusions(
               id,
@@ -793,7 +843,8 @@ export async function loadConclusionWorkspace(
               physician_credential_id,
               restrictions,
               notes,
-              signature_status
+              signature_status,
+              version
             )
           `,
           )
@@ -832,7 +883,9 @@ export async function loadConclusionWorkspace(
     .filter((row) => {
       const consultation = row.medical_consultations[0];
       const conclusion = row.medical_conclusions[0];
-      return consultation?.status === "closed" && !conclusion;
+      if (consultation?.status !== "closed") return false;
+      if (!conclusion) return true;
+      return ["prepared", "draft", "pending_signature"].includes(conclusion.signature_status);
     })
     .map((row) => mapConclusionQueueRow(row, physicianCredential))
     .sort((left, right) => {
@@ -844,6 +897,8 @@ export async function loadConclusionWorkspace(
 
   let selectedRecord: ConclusionWorkspace["selectedRecord"] = null;
   let selectedEncounter: ConclusionQueueItem | null = null;
+  let encounterVersion: number | null = null;
+  let companyId: string | null = null;
 
   if (selectedEncounterId) {
     const encounterRow = queueRows.find((row) => row.id === selectedEncounterId);
@@ -851,6 +906,8 @@ export async function loadConclusionWorkspace(
 
     if (encounterRow) {
       selectedEncounter = mapConclusionQueueRow(encounterRow, physicianCredential);
+      encounterVersion = encounterRow.version ?? 1;
+      companyId = encounterRow.referrals?.company_id ?? null;
       const consultation = encounterRow.medical_consultations[0];
       const latestVersion = consultation?.medical_consultation_versions?.find(
         (version) => version.version === consultation.current_version,
@@ -868,10 +925,11 @@ export async function loadConclusionWorkspace(
           `
           id,
           status,
+          version,
           checked_in_at,
           clinic_unit_id,
-          workers(full_name),
-          referrals(occupational_exam_type, companies(legal_name)),
+          workers!encounters_worker_tenant_fk(full_name),
+          referrals(occupational_exam_type, company_id, companies!referrals_company_tenant_fk(legal_name)),
           clinic_units(name),
           encounter_steps(step_type, status, id),
           queue_tickets(priority, status, queue_definitions(name)),
@@ -883,7 +941,7 @@ export async function loadConclusionWorkspace(
             physician_credential_id,
             medical_consultation_versions(version, assessment, plan)
           ),
-          exam_orders(id, status, exam_catalog(name)),
+          exam_orders(id, status, exam_catalog!exam_orders_exam_catalog_tenant_fk(name)),
           encounter_flow_pauses(id, status),
           medical_conclusions(
             id,
@@ -891,7 +949,8 @@ export async function loadConclusionWorkspace(
             physician_credential_id,
             restrictions,
             notes,
-            signature_status
+            signature_status,
+            version
           )
         `,
         )
@@ -907,6 +966,8 @@ export async function loadConclusionWorkspace(
 
       const parsedEncounter = conclusionQueueRowSchema.parse(encounterResult.data);
       encounterUnitId = parsedEncounter.clinic_unit_id;
+      encounterVersion = parsedEncounter.version ?? 1;
+      companyId = parsedEncounter.referrals?.company_id ?? null;
       selectedEncounter = mapConclusionQueueRow(parsedEncounter, physicianCredential);
       const consultation = parsedEncounter.medical_consultations[0];
       const latestVersion = consultation?.medical_consultation_versions?.find(
@@ -931,7 +992,7 @@ export async function loadConclusionWorkspace(
     const conclusionResult = await supabase
       .from("medical_conclusions")
       .select(
-        "id, encounter_id, physician_credential_id, conclusion_code, restrictions, notes, signature_status",
+        "id, encounter_id, physician_credential_id, conclusion_code, restrictions, notes, signature_status, version",
       )
       .eq("tenant_id", context.tenantId)
       .eq("encounter_id", selectedEncounterId)
@@ -949,6 +1010,7 @@ export async function loadConclusionWorkspace(
       selectedRecord = {
         conclusionCode: record.conclusion_code as ConclusionCode,
         conclusionId: record.id,
+        conclusionVersion: record.version,
         encounterId: record.encounter_id,
         notes: record.notes,
         physicianCredentialId: record.physician_credential_id,
@@ -958,7 +1020,64 @@ export async function loadConclusionWorkspace(
     }
   }
 
+  const [contractResult, priceTableResult, templateResult] = await Promise.all([
+    companyId
+      ? supabase
+          .from("commercial_contracts")
+          .select("id")
+          .eq("tenant_id", context.tenantId)
+          .eq("company_id", companyId)
+          .eq("status", "active")
+          .order("created_at", { ascending: false })
+          .limit(1)
+          .maybeSingle()
+      : Promise.resolve({ data: null, error: null }),
+    companyId
+      ? supabase
+          .from("commercial_price_tables")
+          .select("id, status, contract_id")
+          .eq("tenant_id", context.tenantId)
+          .in("status", ["approved", "active"])
+          .order("created_at", { ascending: false })
+          .limit(5)
+      : Promise.resolve({ data: [], error: null }),
+    supabase
+      .from("document_template_versions")
+      .select("id, template_id, status")
+      .eq("tenant_id", context.tenantId)
+      .eq("status", "approved")
+      .order("version", { ascending: false })
+      .limit(20),
+  ]);
+
+  let templateVersionId: string | null = null;
+  if (templateResult.data?.length) {
+    const templateIds = templateResult.data.map((row) => row.template_id);
+    const { data: asoTemplates } = await supabase
+      .from("document_templates")
+      .select("id")
+      .eq("tenant_id", context.tenantId)
+      .eq("document_type", "aso")
+      .in("id", templateIds);
+    const asoId = new Set((asoTemplates ?? []).map((row) => row.id));
+    templateVersionId = templateResult.data.find((row) => asoId.has(row.template_id))?.id ?? null;
+  }
+
+  const contractId = contractResult.data?.id ?? null;
+  const matchingTables = (priceTableResult.data ?? []).filter(
+    (row) => row.contract_id === contractId,
+  );
+  // Ambiguidade bloqueia seleção automática (sem fallback "primeira tabela").
+  const priceTableId = matchingTables.length === 1 ? (matchingTables[0]?.id ?? null) : null;
+
   return {
+    billingDefaults: {
+      companyId,
+      contractId,
+      priceTableId,
+      templateVersionId,
+    },
+    encounterVersion,
     physicians,
     professionalName: profileResult.data?.display_name ?? "Profissional",
     queue,
@@ -973,7 +1092,7 @@ export async function saveMedicalConsultation(
 ) {
   const parsed = closeMedicalConsultationSchema.parse(input);
   const context = await resolveAuthorizationContext(parsed.tenantId);
-  requirePermission(context, "consultations.manage");
+  requireTenantOrUnitPermission(context, "consultations.manage");
   requireAal2(context);
 
   const supabase = await createServerSupabaseClient();
@@ -1026,7 +1145,7 @@ export async function saveMedicalConsultation(
   }
 
   if (existingConsultation.data?.status === "closed" && !parsed.closeRecord) {
-    requirePermission(context, "clinical.reopen");
+    requireUnitPermission(context, encounterResult.data.clinic_unit_id, "clinical.reopen");
   }
 
   const credentialResult = await supabase
@@ -1089,6 +1208,16 @@ export async function saveMedicalConsultation(
     throw new AppError("INTERNAL_ERROR", "Não foi possível salvar a consulta.", { status: 500 });
   }
 
+  if (parsed.closeRecord) {
+    const { completeEncounterStepByType } = await import("@/features/encounters/complete-step");
+    await completeEncounterStepByType({
+      encounterId: parsed.encounterId,
+      requestId,
+      stepType: "consultation",
+      tenantId: context.tenantId,
+    });
+  }
+
   return data;
 }
 
@@ -1137,10 +1266,23 @@ export async function createMedicalConclusion(
 ) {
   const parsed = createMedicalConclusionSchema.parse(input);
   const context = await resolveAuthorizationContext(parsed.tenantId);
-  requirePermission(context, "conclusions.manage");
+  requireTenantOrUnitPermission(context, "conclusions.manage");
   requireAal2(context);
 
   const supabase = await createServerSupabaseClient();
+  const encounterResult = await supabase
+    .from("encounters")
+    .select("id, clinic_unit_id, status")
+    .eq("tenant_id", context.tenantId)
+    .eq("id", parsed.encounterId)
+    .maybeSingle();
+
+  if (encounterResult.error || !encounterResult.data) {
+    throw new AppError("VALIDATION_FAILED", "Atendimento não encontrado.", { status: 404 });
+  }
+
+  requireUnitPermission(context, encounterResult.data.clinic_unit_id, "conclusions.manage");
+
   const { data, error } = await supabase.rpc("create_medical_conclusion", {
     audit_request_id: requestId,
     conclusion_code_value: parsed.conclusionCode,
@@ -1191,6 +1333,157 @@ export async function createMedicalConclusion(
       });
     }
     throw new AppError("INTERNAL_ERROR", "Não foi possível preparar a conclusão médica.", {
+      cause: error,
+      status: 500,
+    });
+  }
+
+  const { completeEncounterStepByType } = await import("@/features/encounters/complete-step");
+  await completeEncounterStepByType({
+    encounterId: parsed.encounterId,
+    requestId,
+    stepType: "conclusion",
+    tenantId: context.tenantId,
+  });
+
+  return data;
+}
+
+function requireClinicalFlowPermission(context: Parameters<typeof hasTenantOrUnitPermission>[0]) {
+  if (
+    !hasTenantOrUnitPermission(context, "triage.manage") &&
+    !hasTenantOrUnitPermission(context, "consultations.manage")
+  ) {
+    throw new AppError("PERMISSION_DENIED", "Sem permissão clínica para esta operação.", {
+      status: 403,
+    });
+  }
+}
+
+export async function createClinicalAlert(input: CreateClinicalAlertInput, requestId: string) {
+  const parsed = createClinicalAlertSchema.parse(input);
+  const context = await resolveAuthorizationContext(parsed.tenantId);
+  requireClinicalFlowPermission(context);
+  requireAal2(context);
+
+  const supabase = await createServerSupabaseClient();
+  const { data, error } = await supabase.rpc("create_clinical_alert", {
+    audit_request_id: requestId,
+    message_value: parsed.message,
+    severity_value: parsed.severity,
+    source_type_value: parsed.sourceType,
+    target_encounter_id: parsed.encounterId,
+    target_tenant_id: context.tenantId,
+  });
+
+  if (error || typeof data !== "string") {
+    throw new AppError("INTERNAL_ERROR", "Não foi possível criar alerta clínico.", {
+      cause: error,
+      status: 500,
+    });
+  }
+
+  return data;
+}
+
+export async function acknowledgeClinicalAlert(
+  input: AcknowledgeClinicalAlertInput,
+  requestId: string,
+) {
+  const parsed = acknowledgeClinicalAlertSchema.parse(input);
+  const context = await resolveAuthorizationContext(parsed.tenantId);
+  requireClinicalFlowPermission(context);
+  requireAal2(context);
+
+  const supabase = await createServerSupabaseClient();
+  const { data, error } = await supabase.rpc("acknowledge_clinical_alert", {
+    audit_request_id: requestId,
+    note_value: parsed.note,
+    target_alert_id: parsed.alertId,
+    target_tenant_id: context.tenantId,
+  });
+
+  if (error || typeof data !== "string") {
+    throw new AppError("INTERNAL_ERROR", "Não foi possível reconhecer alerta.", {
+      cause: error,
+      status: 500,
+    });
+  }
+
+  return data;
+}
+
+export async function createConsultationAddendum(
+  input: CreateConsultationAddendumInput,
+  requestId: string,
+) {
+  const parsed = createConsultationAddendumSchema.parse(input);
+  const context = await resolveAuthorizationContext(parsed.tenantId);
+  requireTenantOrUnitPermission(context, "consultations.manage");
+  requireAal2(context);
+
+  const supabase = await createServerSupabaseClient();
+  const { data, error } = await supabase.rpc("create_consultation_addendum", {
+    audit_request_id: requestId,
+    note_value: parsed.note,
+    reason_value: parsed.reason,
+    target_consultation_id: parsed.consultationId,
+    target_tenant_id: context.tenantId,
+  });
+
+  if (error || typeof data !== "string") {
+    throw new AppError("INTERNAL_ERROR", "Não foi possível registrar adendo.", {
+      cause: error,
+      status: 500,
+    });
+  }
+
+  return data;
+}
+
+export async function pauseEncounterFlow(input: PauseEncounterFlowInput, requestId: string) {
+  const parsed = pauseEncounterFlowSchema.parse(input);
+  const context = await resolveAuthorizationContext(parsed.tenantId);
+  requireClinicalFlowPermission(context);
+  requireAal2(context);
+
+  const supabase = await createServerSupabaseClient();
+  const { data, error } = await supabase.rpc("pause_encounter_flow", {
+    audit_request_id: requestId,
+    reason_value: parsed.reason,
+    target_encounter_id: parsed.encounterId,
+    target_tenant_id: context.tenantId,
+  });
+
+  if (error || typeof data !== "string") {
+    throw new AppError("INTERNAL_ERROR", "Não foi possível pausar o fluxo.", {
+      cause: error,
+      status: 500,
+    });
+  }
+
+  return data;
+}
+
+export async function resolveEncounterFlowPause(
+  input: ResolveEncounterFlowPauseInput,
+  requestId: string,
+) {
+  const parsed = resolveEncounterFlowPauseSchema.parse(input);
+  const context = await resolveAuthorizationContext(parsed.tenantId);
+  requireClinicalFlowPermission(context);
+  requireAal2(context);
+
+  const supabase = await createServerSupabaseClient();
+  const { data, error } = await supabase.rpc("resolve_encounter_flow_pause", {
+    audit_request_id: requestId,
+    resolved_note_value: parsed.resolvedNote,
+    target_pause_id: parsed.pauseId,
+    target_tenant_id: context.tenantId,
+  });
+
+  if (error || typeof data !== "string") {
+    throw new AppError("INTERNAL_ERROR", "Não foi possível retomar o fluxo.", {
       cause: error,
       status: 500,
     });

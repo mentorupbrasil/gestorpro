@@ -3,7 +3,8 @@ name: CI
 on:
   pull_request:
   push:
-    branches-ignore: [main]
+    branches: [main]
+  workflow_dispatch:
 
 permissions:
   contents: read
@@ -11,7 +12,7 @@ permissions:
 jobs:
   quality:
     runs-on: ubuntu-latest
-    timeout-minutes: 20
+    timeout-minutes: 30
     steps:
       - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
       - uses: pnpm/action-setup@b906affcce14559ad1aafd4ab0e942779e9f58b1 # v4
@@ -29,6 +30,249 @@ jobs:
       - run: pnpm security:secrets
       - run: pnpm audit --audit-level high
       - run: pnpm test
+      - name: Scan destructive migrations
+        run: node scripts/scan-destructive-migrations.mjs
+      - name: Assert no operational ASO stub / E2E_EXAM billing
+        run: |
+          set -euo pipefail
+          if grep -R -n "buildNonPhiDocumentStubPdf" src/features/documents/service.ts src/app; then
+            echo "Operational ASO stub still referenced" >&2
+            exit 1
+          fi
+          if grep -R -n "E2E_EXAM" src/app src/features; then
+            echo "E2E_EXAM still used in operational code" >&2
+            exit 1
+          fi
+          if grep -n "and not public.has_unit_permission(encounter_record.clinic_unit_id, 'encounters.manage')" supabase/migrations/202607160037_p0_strict_step_permissions.sql; then
+            echo "encounters.manage fallback still present in 037" >&2
+            exit 1
+          fi
+          if ! grep -n "NEVER mark encounter completed here" supabase/migrations/202607160041_post_audit_close_docs_rpc.sql; then
+            echo "041 must remove transition auto-complete" >&2
+            exit 1
+          fi
+          if ! grep -n "create table public.encounter_closures" supabase/migrations/202607160041_post_audit_close_docs_rpc.sql; then
+            echo "041 must create encounter_closures" >&2
+            exit 1
+          fi
+          if grep -n "hasConsolidatedInvoice: false" "src/app/(protected)/app/clinical/conclusion/page.tsx"; then
+            echo "conclusion page must not hardcode close readiness" >&2
+            exit 1
+          fi
+      - run: pnpm build
+
+  ui-smoke:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    needs: quality
+    steps:
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
+      - uses: pnpm/action-setup@b906affcce14559ad1aafd4ab0e942779e9f58b1 # v4
+        with:
+          version: 11.7.0
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+        with:
+          node-version: 24
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
       - run: pnpm build
       - run: pnpm exec playwright install --with-deps chromium
-      - run: pnpm test:e2e
+      - name: UI smoke (public pages only)
+        run: pnpm test:e2e:smoke
+        env:
+          E2E_AUTH_ENABLED: "0"
+
+  db-migrations-fresh:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    needs: quality
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_PASSWORD: postgres
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 10
+    steps:
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
+      - uses: pnpm/action-setup@b906affcce14559ad1aafd4ab0e942779e9f58b1 # v4
+        with:
+          version: 11.7.0
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+        with:
+          node-version: 24
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - name: Bootstrap auth/storage stubs
+        env:
+          PGDATABASE: postgres
+          PGHOST: localhost
+          PGPASSWORD: postgres
+          PGPORT: 5432
+          PGUSER: postgres
+          PGSSL: "0"
+        run: pnpm db:bootstrap:ci
+      - name: Apply migrations (fresh)
+        env:
+          MIGRATE_MODE: fresh
+          PGDATABASE: postgres
+          PGHOST: localhost
+          PGPASSWORD: postgres
+          PGPORT: 5432
+          PGUSER: postgres
+          PGSSL: "0"
+        run: pnpm migrate:fresh
+      - name: Run pgTAP suite
+        env:
+          PGDATABASE: postgres
+          PGHOST: localhost
+          PGPASSWORD: postgres
+          PGPORT: 5432
+          PGUSER: postgres
+          PGSSL: "0"
+        run: pnpm test:pgtap
+      - name: Upload migration evidence
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: migration-fresh-evidence
+          path: artifacts/
+          if-no-files-found: warn
+
+  db-migrations-upgrade:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    needs: quality
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_PASSWORD: postgres
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 10
+    steps:
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
+      - uses: pnpm/action-setup@b906affcce14559ad1aafd4ab0e942779e9f58b1 # v4
+        with:
+          version: 11.7.0
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+        with:
+          node-version: 24
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - name: Bootstrap + apply through 040 then upgrade 041+
+        env:
+          PGDATABASE: postgres
+          PGHOST: localhost
+          PGPASSWORD: postgres
+          PGPORT: 5432
+          PGUSER: postgres
+          PGSSL: "0"
+        run: |
+          set -euo pipefail
+          pnpm db:bootstrap:ci
+          # Simulate previous version: apply all except latest, then upgrade
+          node -e "
+            const {readdirSync,renameSync,mkdirSync}=require('fs');
+            mkdirSync('supabase/migrations/_held',{recursive:true});
+            for (const f of readdirSync('supabase/migrations').filter(n=>n.endsWith('.sql')).sort()) {
+              if (f >= '202607160041') renameSync('supabase/migrations/'+f,'supabase/migrations/_held/'+f);
+            }
+          "
+          MIGRATE_MODE=fresh node scripts/apply-all-migrations.mjs
+          node -e "
+            const {readdirSync,renameSync}=require('fs');
+            for (const f of readdirSync('supabase/migrations/_held')) {
+              renameSync('supabase/migrations/_held/'+f,'supabase/migrations/'+f);
+            }
+          "
+          MIGRATE_MODE=upgrade node scripts/apply-all-migrations.mjs
+          pnpm test:pgtap
+      - name: Upload upgrade evidence
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: migration-upgrade-evidence
+          path: artifacts/
+          if-no-files-found: warn
+
+  authenticated-e2e:
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    needs: [quality, db-migrations-fresh]
+    steps:
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
+      - uses: pnpm/action-setup@b906affcce14559ad1aafd4ab0e942779e9f58b1 # v4
+        with:
+          version: 11.7.0
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+        with:
+          node-version: 24
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - name: Require authenticated E2E secrets
+        env:
+          E2E_AUTH_ENABLED: ${{ secrets.E2E_AUTH_ENABLED }}
+          E2E_AUTH_EMAIL: ${{ secrets.E2E_AUTH_EMAIL }}
+          E2E_AUTH_PASSWORD: ${{ secrets.E2E_AUTH_PASSWORD }}
+          NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
+          NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+        run: |
+          set -euo pipefail
+          missing=0
+          for key in E2E_AUTH_ENABLED E2E_AUTH_EMAIL E2E_AUTH_PASSWORD NEXT_PUBLIC_SUPABASE_URL NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY SUPABASE_SERVICE_ROLE_KEY; do
+            if [ -z "${!key:-}" ]; then
+              echo "Missing required secret/env: $key" >&2
+              missing=1
+            fi
+          done
+          if [ "$E2E_AUTH_ENABLED" != "1" ]; then
+            echo "E2E_AUTH_ENABLED must be 1 for authenticated-e2e" >&2
+            missing=1
+          fi
+          case "$NEXT_PUBLIC_SUPABASE_URL" in
+            ""|*placeholder*|http://127.0.0.1:54321|http://localhost:54321)
+              echo "NEXT_PUBLIC_SUPABASE_URL must be a real disposable/test project (not placeholder)" >&2
+              missing=1
+              ;;
+          esac
+          if [ "$missing" -ne 0 ]; then
+            echo "authenticated-e2e refuses to run without real credentials (no silent skip)." >&2
+            exit 1
+          fi
+      - run: pnpm build
+        env:
+          NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
+          NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+      - run: pnpm exec playwright install --with-deps chromium
+      - name: Authenticated E2E (fail on skips)
+        env:
+          E2E_AUTH_ENABLED: "1"
+          E2E_AUTH_EMAIL: ${{ secrets.E2E_AUTH_EMAIL }}
+          E2E_AUTH_PASSWORD: ${{ secrets.E2E_AUTH_PASSWORD }}
+          E2E_TOTP_SECRET: ${{ secrets.E2E_TOTP_SECRET }}
+          NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
+          NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+          PGHOST: ${{ secrets.PGHOST }}
+          PGPORT: ${{ secrets.PGPORT }}
+          PGUSER: ${{ secrets.PGUSER }}
+          PGPASSWORD: ${{ secrets.PGPASSWORD }}
+          PGDATABASE: ${{ secrets.PGDATABASE }}
+        run: |
+          set -euo pipefail
+          pnpm seed:e2e:auth
+          pnpm test:e2e:auth -- --reporter=json --output=artifacts/e2e-auth-results.json
+          node scripts/assert-e2e-no-skips.mjs artifacts/e2e-auth-results.json

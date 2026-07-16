@@ -12,12 +12,31 @@ export const createDisplayPanelSchema = z.object({
   tenantId: z.uuid(),
 });
 
-export const createCallEventSchema = z.object({
-  action: z.enum(["call", "recall", "arrived", "start", "return", "no_show", "redirect"]),
-  displayPanelId: z.uuid(),
-  queueTicketId: z.uuid(),
-  tenantId: z.uuid(),
-});
+export const createCallEventSchema = z
+  .object({
+    action: z.enum(["call", "recall", "arrived", "start", "return", "no_show", "redirect"]),
+    displayPanelId: z.uuid(),
+    expectedVersion: z.number().int().positive().optional(),
+    queueTicketId: z.uuid(),
+    redirectPanelId: z.uuid().optional(),
+    tenantId: z.uuid(),
+  })
+  .superRefine((value, ctx) => {
+    if (value.action === "redirect" && !value.redirectPanelId) {
+      ctx.addIssue({
+        code: "custom",
+        message: "Redirect exige painel de destino.",
+        path: ["redirectPanelId"],
+      });
+    }
+    if (["start", "return", "no_show"].includes(value.action) && value.expectedVersion == null) {
+      ctx.addIssue({
+        code: "custom",
+        message: "Ação exige versão esperada da etapa.",
+        path: ["expectedVersion"],
+      });
+    }
+  });
 
 export const displayPanelListSchema = z.array(
   z.object({

@@ -41,18 +41,14 @@ export function SchedulingForms({
   );
 
   return (
-    <section className="mt-8 grid gap-6 lg:grid-cols-3">
-      <form action={referralAction} className="grid gap-3 border-t border-slate-200 pt-5">
+    <section className="mt-4 grid gap-3 lg:grid-cols-3">
+      <form action={referralAction} className="grid gap-3 gp-surface p-4">
         <h2 className="text-lg font-semibold">Novo encaminhamento</h2>
         <Select label="Empresa" name="companyId" options={companies} />
         <Select label="Trabalhador" name="workerId" options={workers} />
         <label className="grid gap-1 text-sm font-medium">
           Tipo ocupacional
-          <select
-            className="rounded border border-slate-300 px-3 py-2"
-            name="occupationalExamType"
-            required
-          >
+          <select className="gp-input" name="occupationalExamType" required>
             <option value="admission">Admissional</option>
             <option value="periodic">Periódico</option>
             <option value="dismissal">Demissional</option>
@@ -62,11 +58,7 @@ export function SchedulingForms({
         </label>
         <label className="grid gap-1 text-sm font-medium">
           Validade
-          <input
-            className="rounded border border-slate-300 px-3 py-2"
-            name="validUntil"
-            type="date"
-          />
+          <input className="gp-input" name="validUntil" type="date" />
         </label>
         <SubmitButton
           disabled={referralPending}
@@ -76,16 +68,12 @@ export function SchedulingForms({
         <StateMessage state={referralState} />
       </form>
 
-      <form action={resourceAction} className="grid gap-3 border-t border-slate-200 pt-5">
+      <form action={resourceAction} className="grid gap-3 gp-surface p-4">
         <h2 className="text-lg font-semibold">Recurso de agenda</h2>
         <Select label="Unidade" name="clinicUnitId" options={clinicUnits} />
         <label className="grid gap-1 text-sm font-medium">
           Tipo
-          <select
-            className="rounded border border-slate-300 px-3 py-2"
-            name="resourceType"
-            required
-          >
+          <select className="gp-input" name="resourceType" required>
             <option value="room">Sala</option>
             <option value="professional">Profissional</option>
             <option value="equipment">Equipamento</option>
@@ -94,50 +82,32 @@ export function SchedulingForms({
         </label>
         <label className="grid gap-1 text-sm font-medium">
           Código
-          <input
-            className="rounded border border-slate-300 px-3 py-2 uppercase"
-            name="code"
-            required
-          />
+          <input className="gp-input uppercase" name="code" required />
         </label>
         <label className="grid gap-1 text-sm font-medium">
           Nome
-          <input className="rounded border border-slate-300 px-3 py-2" name="name" required />
+          <input className="gp-input" name="name" required />
         </label>
         <SubmitButton disabled={resourcePending} label="Criar recurso" pendingLabel="Criando…" />
         <StateMessage state={resourceState} />
       </form>
 
-      <form action={appointmentAction} className="grid gap-3 border-t border-slate-200 pt-5">
+      <form action={appointmentAction} className="grid gap-3 gp-surface p-4">
         <h2 className="text-lg font-semibold">Agendar</h2>
         <Select label="Unidade" name="clinicUnitId" options={clinicUnits} />
         <Select label="Recurso" name="resourceId" options={resources} />
         <Select label="Encaminhamento" name="referralId" options={referrals} optional />
         <label className="grid gap-1 text-sm font-medium">
           Início
-          <input
-            className="rounded border border-slate-300 px-3 py-2"
-            name="startsAt"
-            type="datetime-local"
-            required
-          />
+          <input className="gp-input" name="startsAt" type="datetime-local" required />
         </label>
         <label className="grid gap-1 text-sm font-medium">
           Fim
-          <input
-            className="rounded border border-slate-300 px-3 py-2"
-            name="endsAt"
-            type="datetime-local"
-            required
-          />
+          <input className="gp-input" name="endsAt" type="datetime-local" required />
         </label>
         <label className="grid gap-1 text-sm font-medium">
           Preparo
-          <textarea
-            className="rounded border border-slate-300 px-3 py-2"
-            name="preparationInstructions"
-            rows={3}
-          />
+          <textarea className="gp-input" name="preparationInstructions" rows={3} />
         </label>
         <SubmitButton disabled={appointmentPending} label="Agendar" pendingLabel="Agendando…" />
         <StateMessage state={appointmentState} />
@@ -160,11 +130,7 @@ function Select({
   return (
     <label className="grid gap-1 text-sm font-medium">
       {label}
-      <select
-        className="rounded border border-slate-300 px-3 py-2"
-        name={name}
-        required={!optional}
-      >
+      <select className="gp-input" name={name} required={!optional}>
         <option value="">{optional ? "Sem vínculo" : "Selecione"}</option>
         {options.map((option) => (
           <option key={option.id} value={option.id}>
@@ -186,11 +152,7 @@ function SubmitButton({
   pendingLabel: string;
 }) {
   return (
-    <button
-      className="w-fit rounded bg-emerald-800 px-4 py-2 font-semibold text-white disabled:opacity-60"
-      disabled={disabled}
-      type="submit"
-    >
+    <button className="gp-btn gp-btn-primary w-fit" disabled={disabled} type="submit">
       {disabled ? pendingLabel : label}
     </button>
   );

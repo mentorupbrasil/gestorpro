@@ -18,7 +18,7 @@ export function TotpChallengeForm({ factorId }: TotpChallengeFormProps) {
       <label className="grid gap-1 text-sm font-medium">
         Código do autenticador
         <input
-          className="rounded border border-slate-300 px-3 py-2"
+          className="gp-input"
           inputMode="numeric"
           maxLength={6}
           name="code"
@@ -26,11 +26,7 @@ export function TotpChallengeForm({ factorId }: TotpChallengeFormProps) {
           required
         />
       </label>
-      <button
-        className="rounded bg-emerald-800 px-4 py-2 font-semibold text-white disabled:opacity-60"
-        disabled={pending}
-        type="submit"
-      >
+      <button className="gp-btn gp-btn-primary" disabled={pending} type="submit">
         {pending ? "Confirmando…" : "Confirmar sessão"}
       </button>
       {state.error ? (

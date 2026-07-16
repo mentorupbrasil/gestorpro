@@ -1,33 +1,34 @@
 # Bloqueios
 
-## Fase A — governança remota
+## Produção / merge
 
-- O repositório público permanece bloqueio de produção e exige ação humana para torná-lo privado e revisar acessos, apps, chaves, tokens, webhooks, Vercel, Supabase e histórico de segredos.
-- O cliente `gh` e um conector GitHub autenticado não estão disponíveis nesta sessão. PR e CI podem ser inventariados pelas evidências locais/públicas acessíveis, mas converter PR em draft ou atualizar sua descrição exige ferramenta autenticada.
+- **NO-GO** até GO humano (`HUMAN_ACTIONS.md`).
 
-## P0.1 — triagem operacional
+## Humano
 
-- Migration `202607140002` aplicada no Supabase autorizado (2026-07-13).
-- Checklist UI manual ainda pendente (`pnpm dev`).
+- Merge PR #12 → `main` (somente após GO)
+- Apply `037`–`041` em preview/prod após GO (teste local histórico: `037`–`040`; `041` nova nesta rodada)
+- Configurar secrets CI para `authenticated-e2e` (sem skip silencioso)
+- Pentest / validação médica-jurídica / piloto
+- Restore de backup ensaiado com evidência em `TEST_RESULTS.md`
 
-## P0.2 — consulta operacional
+## Engenharia ainda aberta (fora do mínimo desta rodada)
 
-- Migration `202607140003` aplicada no Supabase autorizado (2026-07-13).
-- Checklist UI manual pendente.
+- E2E autenticado completo 40 passos com personas por papel (job existe; exige secrets reais)
+- Portal trabalhador dedicado
+- SST expandido (CAT/PPP/LTCAT) e eSocial com transporte real
+- Workflow durável `closure_workflows` além de `encounter_closures`
+- Motor PCMSO autoritativo único versionado + revalidação no check-in
+- Permissões por modalidade de exame
+- Observabilidade APM/Sentry
+- Acessibilidade dedicada / carga / pentest
+- Evidência local de migrations fresh/upgrade (depende de Postgres descartável; job CI criado)
 
-## P0.3 — conclusão operacional
+## Fechado nesta rodada (código)
 
-- Código e testes unitários entregues (2026-07-13).
-- Migration `202607140004_grant_operational_rpcs.sql` aplicada.
-- Checklist UI manual pendente (`/app/clinical?conclusion=<encounter_id>` + MFA).
-
-## Fase A — typegen e PostgreSQL
-- Docker/PostgreSQL local continuam indisponíveis; a migration de hardening e os testes de bypass não puderam ser executados em banco real nesta sessão.
-- Em 2026-07-12, um projeto Supabase de teste autorizado foi validado via Session Pooler: migration aplicada, RLS real testado, isolamento tenant A/B confirmado, membership bloqueada perde acesso e auditoria append-only bloqueia mutação.
-- Em 2026-07-12, MFA/TOTP e E2E autenticado real foram validados no mesmo ambiente Supabase autorizado.
-
-Os bloqueios de banco/RLS real, MFA/AAL2 e E2E autenticado foram removidos apenas para o checkpoint antigo. A Fase A não pode ser aceita enquanto typegen, hardening/RLS real, integridade composta e E2E autenticado da nova base permanecerem pendentes.
-
-## Fase A — integridade multi-tenant
-
-- As FKs atuais são predominantemente simples por `id`. Constraints compostas exigem aplicação/validação em banco descartável para não introduzir migration que falhe sobre dados existentes desconhecidos.
+- Bypass de `transition_encounter_step` → `completed` removido (`041`)
+- `encounter_closures` + close idempotente sem early-return cego
+- `finalize_document_version_render` somente `service_role` + verificação de storage
+- `get_encounter_close_readiness` + UI sem hardcodes de invoice/ASO/steps
+- Separação geração / assinatura / entrega de ASO na UI
+- CI: `ui-smoke` vs `authenticated-e2e` (falha sem secrets) + migrations fresh/upgrade + pgTAP runner

@@ -1,8 +1,15 @@
 import "server-only";
 
-import { requireAal2, requirePermission } from "@/core/auth/authorization";
+import { requireAal2, requireTenantOrUnitPermission } from "@/core/auth/authorization";
+import {
+  requirePermissionOnExamOrder,
+  requirePermissionOnExamResult,
+  requirePermissionOnLaboratoryOrderItem,
+  requirePermissionOnLaboratorySample,
+} from "@/core/auth/unit-scope";
 import { resolveAuthorizationContext } from "@/core/auth/session";
 import { AppError } from "@/core/errors/app-error";
+import { EXAM_ORDER_CATALOG_EMBED } from "@/lib/supabase/embeds";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 import { readEmbeddedRelation } from "@/lib/supabase/relations";
 import {
@@ -43,10 +50,11 @@ import { assertProfessionalConclusion, validateVisualAcuityPayload } from "./vis
 export async function startVisualAcuityExam(input: StartVisualAcuityExamInput, requestId: string) {
   const parsed = startVisualAcuityExamSchema.parse(input);
   const context = await resolveAuthorizationContext(parsed.tenantId);
-  requirePermission(context, "exams.manage");
+  requireTenantOrUnitPermission(context, "exams.manage");
   requireAal2(context);
 
   const supabase = await createServerSupabaseClient();
+  await requirePermissionOnExamOrder(supabase, context, parsed.examOrderId, "exams.manage");
   const { data, error } = await supabase.rpc("start_visual_acuity_exam", {
     audit_request_id: requestId,
     target_exam_order_id: parsed.examOrderId,
@@ -69,12 +77,19 @@ export async function saveVisualAcuityResult(
 ) {
   const parsed = saveVisualAcuityResultSchema.parse(input);
   const context = await resolveAuthorizationContext(parsed.tenantId);
-  requirePermission(context, "exams.manage");
+  requireTenantOrUnitPermission(context, "exams.manage");
   requireAal2(context);
   validateVisualAcuityPayload(parsed.payload);
   assertProfessionalConclusion(parsed.professionalConclusion);
 
   const supabase = await createServerSupabaseClient();
+  await requirePermissionOnExamResult(
+    supabase,
+    context,
+    "visual_acuity_results",
+    parsed.resultId,
+    "exams.manage",
+  );
   const { data, error } = await supabase.rpc("save_visual_acuity_result", {
     audit_request_id: requestId,
     binocular_value: parsed.payload.binocular,
@@ -104,10 +119,11 @@ export async function saveVisualAcuityResult(
 export async function startAudiometryExam(input: StartAudiometryExamInput, requestId: string) {
   const parsed = startAudiometryExamSchema.parse(input);
   const context = await resolveAuthorizationContext(parsed.tenantId);
-  requirePermission(context, "exams.manage");
+  requireTenantOrUnitPermission(context, "exams.manage");
   requireAal2(context);
 
   const supabase = await createServerSupabaseClient();
+  await requirePermissionOnExamOrder(supabase, context, parsed.examOrderId, "exams.manage");
   const { data, error } = await supabase.rpc("start_audiometry_exam", {
     audit_request_id: requestId,
     target_exam_order_id: parsed.examOrderId,
@@ -127,13 +143,20 @@ export async function startAudiometryExam(input: StartAudiometryExamInput, reque
 export async function saveAudiometryResult(input: SaveAudiometryResultInput, requestId: string) {
   const parsed = saveAudiometryResultSchema.parse(input);
   const context = await resolveAuthorizationContext(parsed.tenantId);
-  requirePermission(context, "exams.manage");
+  requireTenantOrUnitPermission(context, "exams.manage");
   requireAal2(context);
   validateAudiometryThresholds(parsed.thresholds);
   assertAuditoryRest(parsed.restReported.hours);
   assertProfessionalConclusion(parsed.professionalConclusion);
 
   const supabase = await createServerSupabaseClient();
+  await requirePermissionOnExamResult(
+    supabase,
+    context,
+    "audiometry_results",
+    parsed.resultId,
+    "exams.manage",
+  );
   const { data, error } = await supabase.rpc("save_audiometry_result", {
     audit_request_id: requestId,
     booth_value: parsed.booth,
@@ -170,13 +193,14 @@ export async function saveAudiometryResult(input: SaveAudiometryResultInput, req
 export async function startSpirometryExam(input: StartSpirometryExamInput, requestId: string) {
   const parsed = startSpirometryExamSchema.parse(input);
   const context = await resolveAuthorizationContext(parsed.tenantId);
-  requirePermission(context, "exams.manage");
+  requireTenantOrUnitPermission(context, "exams.manage");
   requireAal2(context);
 
   const supabase = await createServerSupabaseClient();
+  await requirePermissionOnExamOrder(supabase, context, parsed.examOrderId, "exams.manage");
   const { data: order, error: orderError } = await supabase
     .from("exam_orders")
-    .select("id, exam_catalog(result_type)")
+    .select(`id, ${EXAM_ORDER_CATALOG_EMBED}(result_type)`)
     .eq("tenant_id", context.tenantId)
     .eq("id", parsed.examOrderId)
     .maybeSingle();
@@ -211,7 +235,7 @@ export async function saveSpirometryManeuver(
 ) {
   const parsed = saveSpirometryManeuverSchema.parse(input);
   const context = await resolveAuthorizationContext(parsed.tenantId);
-  requirePermission(context, "exams.manage");
+  requireTenantOrUnitPermission(context, "exams.manage");
   requireAal2(context);
   validateSpirometryQuality(parsed.qualityGrade);
   assertAcceptedManeuver({
@@ -221,6 +245,13 @@ export async function saveSpirometryManeuver(
   const percentages = computeSpirometryPercentages(parsed.measuredValues, parsed.predictedValues);
 
   const supabase = await createServerSupabaseClient();
+  await requirePermissionOnExamResult(
+    supabase,
+    context,
+    "spirometry_results",
+    parsed.resultId,
+    "exams.manage",
+  );
   const { data, error } = await supabase.rpc("save_spirometry_maneuver", {
     accept_maneuver: parsed.acceptManeuver,
     attempt_number_value: parsed.attemptNumber,
@@ -260,7 +291,7 @@ export async function saveDiagnosticExamResult(
 ) {
   const parsed = saveDiagnosticExamResultSchema.parse(input);
   const context = await resolveAuthorizationContext(parsed.tenantId);
-  requirePermission(context, "exams.manage");
+  requireTenantOrUnitPermission(context, "exams.manage");
   requireAal2(context);
   assertDiagnosticModality(parsed.modality);
   assertPrivateStorageRefs([...parsed.rawFileRefs, ...parsed.imageOrPdfRefs]);
@@ -271,6 +302,7 @@ export async function saveDiagnosticExamResult(
   });
 
   const supabase = await createServerSupabaseClient();
+  await requirePermissionOnExamOrder(supabase, context, parsed.examOrderId, "exams.manage");
   const { data, error } = await supabase.rpc("save_diagnostic_exam_result", {
     audit_request_id: requestId,
     correction_reason_value: parsed.correctionReason,
@@ -304,10 +336,11 @@ export async function recordLaboratorySampleEvent(
 ) {
   const parsed = recordLaboratorySampleEventSchema.parse(input);
   const context = await resolveAuthorizationContext(parsed.tenantId);
-  requirePermission(context, "exams.manage");
+  requireTenantOrUnitPermission(context, "exams.manage");
   requireAal2(context);
 
   const supabase = await createServerSupabaseClient();
+  await requirePermissionOnLaboratorySample(supabase, context, parsed.sampleId, "exams.manage");
   const { data, error } = await supabase.rpc("record_laboratory_sample_event", {
     audit_request_id: requestId,
     event_type_value: parsed.eventType,
@@ -329,7 +362,7 @@ export async function recordLaboratorySampleEvent(
 export async function saveLaboratoryResult(input: SaveLaboratoryResultInput, requestId: string) {
   const parsed = saveLaboratoryResultSchema.parse(input);
   const context = await resolveAuthorizationContext(parsed.tenantId);
-  requirePermission(context, "exams.manage");
+  requireTenantOrUnitPermission(context, "exams.manage");
   requireAal2(context);
   assertReferenceRangeConfig(parsed.referenceRangeSnapshot);
   assertLaboratoryRelease({
@@ -339,6 +372,12 @@ export async function saveLaboratoryResult(input: SaveLaboratoryResultInput, req
   });
 
   const supabase = await createServerSupabaseClient();
+  await requirePermissionOnLaboratoryOrderItem(
+    supabase,
+    context,
+    parsed.orderItemId,
+    "exams.manage",
+  );
   const { data, error } = await supabase.rpc("save_laboratory_result", {
     audit_request_id: requestId,
     correction_reason: parsed.correctionReason,

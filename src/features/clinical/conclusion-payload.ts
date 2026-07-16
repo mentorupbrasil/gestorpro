@@ -11,9 +11,7 @@ export const conclusionCodeSchema = z.enum([
 export const conclusionInputSchema = z
   .object({
     conclusionCode: conclusionCodeSchema,
-    notes: z
-      .union([z.literal(""), z.string().max(5000)])
-      .transform((value) => value.trim()),
+    notes: z.union([z.literal(""), z.string().max(5000)]).transform((value) => value.trim()),
     restrictionsText: z
       .union([z.literal(""), z.string().max(4000)])
       .transform((value) => value.trim()),
@@ -66,14 +64,12 @@ export function buildConclusionBlockers(input: {
     pendingRequiredExams: input.pendingRequiredExams,
     physicianRegistrationComplete: Boolean(
       input.physicianCredential?.councilCode &&
-        input.physicianCredential?.councilRegion &&
-        input.physicianCredential?.registrationNumber,
+      input.physicianCredential?.councilRegion &&
+      input.physicianCredential?.registrationNumber,
     ),
   });
 }
 
-export function countPendingRequiredExams(
-  orders: ReadonlyArray<{ status: string }>,
-) {
+export function countPendingRequiredExams(orders: ReadonlyArray<{ status: string }>) {
   return orders.filter((order) => ["collected", "ordered"].includes(order.status)).length;
 }

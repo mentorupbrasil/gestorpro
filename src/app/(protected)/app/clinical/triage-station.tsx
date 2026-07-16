@@ -61,7 +61,7 @@ function Field({
     <label className="grid gap-1 text-sm">
       <span className="font-medium text-slate-800">{label}</span>
       <input
-        className="rounded border border-slate-300 px-3 py-2 read-only:bg-slate-50"
+        className="gp-input read-only:bg-gp-bg"
         defaultValue={fieldValue(defaultValue)}
         inputMode={inputMode}
         max={max}
@@ -92,7 +92,7 @@ function TextArea({
     <label className="grid gap-1 text-sm">
       <span className="font-medium text-slate-800">{label}</span>
       <textarea
-        className="min-h-20 rounded border border-slate-300 px-3 py-2 read-only:bg-slate-50"
+        className="min-h-20 gp-input read-only:bg-gp-bg"
         defaultValue={fieldValue(defaultValue)}
         name={name}
         readOnly={readOnly}
@@ -167,12 +167,12 @@ export function TriageStation({
   }, [router, triageState.success]);
 
   return (
-    <section className="mt-8 rounded-lg border border-slate-200">
-      <div className="border-b border-slate-200 px-5 py-4">
+    <section className="mt-4 gp-surface">
+      <div className="border-b border-gp-border px-4 py-3">
         <div className="flex flex-wrap items-center justify-between gap-3">
           <div>
-            <h2 className="text-lg font-semibold">Estação de triagem</h2>
-            <p className="mt-1 text-sm text-slate-600">
+            <h2 className="text-base font-semibold text-gp-text">Estação de triagem</h2>
+            <p className="mt-1 text-sm text-gp-text-muted">
               {formVersionLabel} · Responsável: {professionalName}
             </p>
             {!formVersionId ? (
@@ -485,7 +485,7 @@ export function TriageStation({
                   <label className="grid gap-1 text-sm">
                     <span className="font-medium text-slate-800">Tabagismo</span>
                     <select
-                      className="rounded border border-slate-300 px-3 py-2 read-only:bg-slate-50"
+                      className="gp-input read-only:bg-gp-bg"
                       defaultValue={inputDefaults?.clinical.smoking ?? "Não informado"}
                       disabled={isClosed}
                       name="smoking"
@@ -500,7 +500,7 @@ export function TriageStation({
                   <label className="grid gap-1 text-sm">
                     <span className="font-medium text-slate-800">Consumo de álcool</span>
                     <select
-                      className="rounded border border-slate-300 px-3 py-2 read-only:bg-slate-50"
+                      className="gp-input read-only:bg-gp-bg"
                       defaultValue={inputDefaults?.clinical.alcoholConsumption ?? "Não informado"}
                       disabled={isClosed}
                       name="alcoholConsumption"
@@ -569,10 +569,10 @@ export function TriageStation({
               </Section>
 
               {!isClosed && formVersionId ? (
-                <div className="sticky bottom-0 -mx-5 border-t border-slate-200 bg-white/95 px-5 py-4 backdrop-blur">
-                  <div className="flex flex-wrap gap-3">
+                <div className="sticky bottom-0 -mx-4 border-t border-gp-border bg-gp-surface px-4 py-3">
+                  <div className="flex flex-wrap gap-2">
                     <button
-                      className="rounded bg-slate-800 px-4 py-2 text-sm font-semibold text-white disabled:opacity-60"
+                      className="gp-btn gp-btn-secondary"
                       disabled={triagePending}
                       name="intent"
                       type="submit"
@@ -581,7 +581,7 @@ export function TriageStation({
                       {triagePending ? "Salvando…" : "Salvar rascunho"}
                     </button>
                     <button
-                      className="rounded bg-emerald-800 px-4 py-2 text-sm font-semibold text-white disabled:opacity-60"
+                      className="gp-btn gp-btn-primary"
                       disabled={triagePending}
                       name="intent"
                       type="submit"

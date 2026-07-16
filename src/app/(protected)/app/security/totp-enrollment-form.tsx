@@ -1,6 +1,5 @@
 "use client";
 
-import Image from "next/image";
 import { useActionState } from "react";
 import {
   startTotpEnrollment,
@@ -23,7 +22,7 @@ export function TotpEnrollmentForm() {
   );
 
   return (
-    <section className="mt-8 border-t border-slate-200 pt-6" aria-labelledby="mfa-enroll-title">
+    <section className="mt-4 gp-surface p-4" aria-labelledby="mfa-enroll-title">
       <h2 id="mfa-enroll-title" className="text-lg font-semibold">
         Ativar aplicativo autenticador
       </h2>
@@ -32,7 +31,7 @@ export function TotpEnrollmentForm() {
       </p>
       <form action={startAction} className="mt-4">
         <button
-          className="rounded bg-emerald-800 px-4 py-2 font-semibold text-white disabled:opacity-60"
+          className="gp-btn gp-btn-primary"
           disabled={starting || Boolean(enrollmentState.enrollment)}
           type="submit"
         >
@@ -46,12 +45,13 @@ export function TotpEnrollmentForm() {
       ) : null}
       {enrollmentState.enrollment ? (
         <div className="mt-5 grid gap-5 md:grid-cols-[12rem_1fr] md:items-start">
-          <Image
+          {/* data:image/svg+xml do Supabase TOTP não é suportado por next/image */}
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
             alt="QR Code para configurar MFA"
             className="h-48 w-48 border border-slate-200 bg-white p-2"
             height={192}
             src={enrollmentState.enrollment.qrCode}
-            unoptimized
             width={192}
           />
           <div>
@@ -68,7 +68,7 @@ export function TotpEnrollmentForm() {
               <label className="grid gap-1 text-sm font-medium">
                 Código do autenticador
                 <input
-                  className="rounded border border-slate-300 px-3 py-2"
+                  className="gp-input"
                   inputMode="numeric"
                   maxLength={6}
                   name="code"
@@ -76,11 +76,7 @@ export function TotpEnrollmentForm() {
                   required
                 />
               </label>
-              <button
-                className="rounded bg-emerald-800 px-4 py-2 font-semibold text-white disabled:opacity-60"
-                disabled={verifying}
-                type="submit"
-              >
+              <button className="gp-btn gp-btn-primary" disabled={verifying} type="submit">
                 {verifying ? "Verificando…" : "Confirmar MFA"}
               </button>
             </form>

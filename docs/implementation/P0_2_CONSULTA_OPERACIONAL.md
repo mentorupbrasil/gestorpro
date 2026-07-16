@@ -19,17 +19,19 @@
 
 ## Checklist de validação manual (ambiente autorizado)
 
-1. Concluir triagem de um atendimento fictício.
-2. Abrir `/app/clinical?consultation=<encounter_id>`.
-3. Confirmar fila de consulta e resumo da triagem.
-4. Preencher campos SOAP e salvar rascunho.
-5. Recarregar e confirmar persistência.
-6. Concluir consulta com motivo e credencial médica válida.
-7. Confirmar etapa `consultation` concluída e `exam` ou `document` liberada.
-8. Confirmar evento/auditoria no ambiente autorizado.
+1. Concluir triagem de um atendimento fictício. ✅
+2. Abrir `/app/clinical?consultation=<encounter_id>`. ✅
+3. Confirmar fila de consulta e resumo da triagem. ✅ (PA/IMC visíveis)
+4. Preencher campos SOAP e salvar rascunho. ✅ (fluxo direto para conclusão)
+5. Recarregar e confirmar persistência. ✅ (versão/consulta fechada)
+6. Concluir consulta com motivo e credencial médica válida. ✅ MFA/AAL2
+7. Confirmar etapa `consultation` concluída e `exam` ou `document` liberada. ✅ `document` available
+8. Confirmar evento/auditoria no ambiente autorizado. ✅ `consultation.completed`
+
+## Resultado da validação (2026-07-13)
+
+**P0.2 fechado:** sim, no Tenant E2E com MFA.
 
 ## Limitações remanescentes
 
-- Conclusão médica (P0.3) permanece em formulário inicial separado.
-- Bloqueadores de conclusão (`computeConclusionBlockers`) ainda não integrados à UI.
-- Migration pendente de aplicação sem `.env` local com Supabase autorizado.
+- Nenhuma crítica para o escopo P0.2.

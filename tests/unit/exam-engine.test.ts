@@ -133,4 +133,61 @@ describe("calculateRequiredExams", () => {
       }),
     ).toThrow(/justificativa/);
   });
+
+  it("rejects expired PCMSO without a current replacement", () => {
+    expect(() =>
+      calculateRequiredExams({
+        asOf: "2026-07-12",
+        occupationalExamType: "admission",
+        protocols: [
+          protocol({
+            pcmsoVersion: { ...baseVersion, id: "expired-only", validUntil: "2026-01-01" },
+          }),
+        ],
+        riskCodes: [],
+      }),
+    ).toThrow(/PCMSO vencido/);
+  });
+
+  it("rejects ambiguous active employment contracts", () => {
+    expect(() =>
+      calculateRequiredExams({
+        ambiguousActiveEmployment: true,
+        asOf: "2026-07-12",
+        occupationalExamType: "admission",
+        protocols: [protocol()],
+        riskCodes: [],
+      }),
+    ).toThrow(/vínculo empregatício ativo/);
+  });
+
+  it("supports demissional and retorno ao trabalho exam types", () => {
+    for (const occupationalExamType of ["dismissal", "return_to_work"] as const) {
+      const result = calculateRequiredExams({
+        asOf: "2026-07-12",
+        occupationalExamType,
+        protocols: [protocol({ occupationalExamType })],
+        riskCodes: [],
+      });
+      expect(result.exams.map((exam) => exam.code)).toEqual(["CLINICO"]);
+      expect(result.calculationHash).toContain(occupationalExamType);
+    }
+  });
+
+  it("adds risk exams when risk appears and drops them when removed", () => {
+    const withNoise = calculateRequiredExams({
+      asOf: "2026-07-12",
+      occupationalExamType: "admission",
+      protocols: [protocol()],
+      riskCodes: ["NOISE"],
+    });
+    const withoutNoise = calculateRequiredExams({
+      asOf: "2026-07-12",
+      occupationalExamType: "admission",
+      protocols: [protocol()],
+      riskCodes: [],
+    });
+    expect(withNoise.exams.map((exam) => exam.code)).toContain("AUD");
+    expect(withoutNoise.exams.map((exam) => exam.code)).not.toContain("AUD");
+  });
 });

@@ -7,14 +7,17 @@ import { AppError } from "@/core/errors/app-error";
 import {
   createCompany,
   createExamCatalogItem,
+  createExamProtocolPackage,
+  createManualExamOverride,
   createOccupationalStructure,
   createPcmsoVersion,
   createWorker,
+  simulateRequiredExams,
 } from "@/features/occupational/service";
 import { getRequestId } from "@/lib/http/request-id";
 import { createOperationalLogger } from "@/lib/observability/logger";
 
-export type OccupationalFormState = { error?: string; success?: string };
+export type OccupationalFormState = { error?: string; result?: string; success?: string };
 
 const companyFormSchema = z.object({
   legalName: z.string(),
@@ -147,7 +150,10 @@ export async function createExamCatalogItemAction(
   if (!form.success) return { error: "Revise código, nome e tipo do exame." };
 
   try {
-    await createExamCatalogItem({ ...form.data, tenantId: selectedTenantId });
+    await createExamCatalogItem(
+      { ...form.data, tenantId: selectedTenantId },
+      getRequestId(await headers()),
+    );
   } catch (error) {
     return { error: mfaMessage(error) ?? "Não foi possível criar o exame do catálogo." };
   }
@@ -173,14 +179,15 @@ export async function createPcmsoVersionAction(
   });
   if (!form.success) return { error: "Revise empresa, vigência e versão do PCMSO." };
 
+  const requestId = getRequestId(await headers());
   try {
-    await createPcmsoVersion({ ...form.data, tenantId: selectedTenantId });
+    await createPcmsoVersion({ ...form.data, tenantId: selectedTenantId }, requestId);
   } catch (error) {
     return { error: mfaMessage(error) ?? "Não foi possível criar a versão PCMSO." };
   }
 
   revalidatePath("/app/occupational");
-  return { success: "Versão PCMSO aprovada e protegida contra alteração retroativa." };
+  return { success: "Versão PCMSO publicada com hash e proteção contra alteração retroativa." };
 }
 
 export async function createOccupationalStructureAction(
@@ -208,12 +215,156 @@ export async function createOccupationalStructureAction(
   });
   if (!form.success) return { error: "Revise empresa, trabalhador, estrutura, risco e vigência." };
 
+  const requestId = getRequestId(await headers());
   try {
-    await createOccupationalStructure({ ...form.data, tenantId: selectedTenantId });
+    await createOccupationalStructure({ ...form.data, tenantId: selectedTenantId }, requestId);
   } catch (error) {
     return { error: mfaMessage(error) ?? "Não foi possível criar estrutura e vínculo." };
   }
 
   revalidatePath("/app/occupational");
   return { success: "Estrutura ocupacional e vínculo criados com histórico." };
+}
+
+export async function createExamProtocolPackageAction(
+  _state: OccupationalFormState,
+  formData: FormData,
+): Promise<OccupationalFormState> {
+  const selectedTenantId = (await cookies()).get("gestorpro_tenant")?.value;
+  if (!selectedTenantId) return { error: "Selecione uma organização antes de continuar." };
+
+  const examCatalogIds = formData
+    .getAll("examCatalogIds")
+    .map(String)
+    .filter((value) => value.length > 0);
+  const riskCodes = String(formData.get("riskCodes") ?? "")
+    .split(",")
+    .map((value) => value.trim())
+    .filter(Boolean);
+
+  const form = z
+    .object({
+      activate: z.boolean(),
+      examCatalogIds: z.array(z.uuid()).min(1),
+      occupationalExamType: z.enum([
+        "admission",
+        "periodic",
+        "dismissal",
+        "return_to_work",
+        "change_of_risk",
+      ]),
+      pcmsoVersionId: z.uuid(),
+    })
+    .safeParse({
+      activate: formData.get("activate") === "true",
+      examCatalogIds,
+      occupationalExamType: formData.get("occupationalExamType"),
+      pcmsoVersionId: formData.get("pcmsoVersionId"),
+    });
+  if (!form.success) return { error: "Revise versão PCMSO, tipo e exames do protocolo." };
+
+  const requestId = getRequestId(await headers());
+  try {
+    await createExamProtocolPackage(
+      { ...form.data, riskCodes, tenantId: selectedTenantId },
+      requestId,
+    );
+  } catch (error) {
+    return { error: mfaMessage(error) ?? "Não foi possível criar o protocolo." };
+  }
+
+  revalidatePath("/app/occupational");
+  return { success: "Protocolo criado/ativado com auditoria." };
+}
+
+export async function simulateRequiredExamsAction(
+  _state: OccupationalFormState,
+  formData: FormData,
+): Promise<OccupationalFormState> {
+  const selectedTenantId = (await cookies()).get("gestorpro_tenant")?.value;
+  if (!selectedTenantId) return { error: "Selecione uma organização antes de continuar." };
+
+  const riskCodes = String(formData.get("riskCodes") ?? "")
+    .split(",")
+    .map((value) => value.trim())
+    .filter(Boolean);
+  const workerIdRaw = String(formData.get("workerId") ?? "");
+  const form = z
+    .object({
+      asOf: z.string(),
+      occupationalExamType: z.enum([
+        "admission",
+        "periodic",
+        "dismissal",
+        "return_to_work",
+        "change_of_risk",
+      ]),
+      workerId: z.uuid().optional(),
+    })
+    .safeParse({
+      asOf: formData.get("asOf"),
+      occupationalExamType: formData.get("occupationalExamType"),
+      workerId: workerIdRaw.length > 0 ? workerIdRaw : undefined,
+    });
+  if (!form.success) return { error: "Revise tipo e data da simulação." };
+
+  try {
+    const result = await simulateRequiredExams({
+      ...form.data,
+      riskCodes,
+      tenantId: selectedTenantId,
+    });
+    return {
+      result: JSON.stringify(result, null, 2),
+      success: `${result.exams.length} exame(s) calculados.`,
+    };
+  } catch (error) {
+    if (error instanceof AppError) {
+      return { error: error.message };
+    }
+    return { error: "Não foi possível simular o pacote de exames." };
+  }
+}
+
+export async function createManualExamOverrideAction(
+  _state: OccupationalFormState,
+  formData: FormData,
+): Promise<OccupationalFormState> {
+  const selectedTenantId = (await cookies()).get("gestorpro_tenant")?.value;
+  if (!selectedTenantId) return { error: "Selecione uma organização antes de continuar." };
+
+  const protocolRaw = String(formData.get("examProtocolId") ?? "");
+  const form = z
+    .object({
+      action: z.enum(["add", "remove"]),
+      examCatalogId: z.uuid(),
+      examProtocolId: z.uuid().nullable(),
+      justification: z.string().min(10),
+      workerId: z.uuid(),
+    })
+    .safeParse({
+      action: formData.get("action"),
+      examCatalogId: formData.get("examCatalogId"),
+      examProtocolId: protocolRaw.length > 0 ? protocolRaw : null,
+      justification: formData.get("justification"),
+      workerId: formData.get("workerId"),
+    });
+  if (!form.success) return { error: "Revise exame, trabalhador e justificativa do override." };
+
+  const requestId = getRequestId(await headers());
+  try {
+    await createManualExamOverride(
+      {
+        ...form.data,
+        employmentContractId: null,
+        tenantId: selectedTenantId,
+      },
+      requestId,
+    );
+  } catch (error) {
+    return { error: mfaMessage(error) ?? "Não foi possível registrar o override." };
+  }
+
+  revalidatePath("/app/occupational");
+  return { success: "Override registrado com auditoria." };
 }

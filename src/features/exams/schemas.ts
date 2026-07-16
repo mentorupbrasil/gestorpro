@@ -13,7 +13,7 @@ export const visualAcuityPayloadSchema = z.object({
   rightEye: eyeAcuitySchema,
 });
 
-export type VisualAcuityPayloadInput = z.infer<typeof visualAcuityPayloadSchema>;
+export type VisualAcuityPayloadInput = z.input<typeof visualAcuityPayloadSchema>;
 
 export const startVisualAcuityExamSchema = z.object({
   examOrderId: z.string().uuid(),
@@ -35,7 +35,7 @@ export const saveVisualAcuityResultSchema = z.object({
   testConditions: z.record(z.string(), z.unknown()).default({}),
 });
 
-export type SaveVisualAcuityResultInput = z.infer<typeof saveVisualAcuityResultSchema>;
+export type SaveVisualAcuityResultInput = z.input<typeof saveVisualAcuityResultSchema>;
 
 export const examOrderListSchema = z.array(
   z.object({
@@ -92,7 +92,7 @@ export const saveAudiometryResultSchema = z.object({
   thresholds: audiometryThresholdsSchema,
 });
 
-export type SaveAudiometryResultInput = z.infer<typeof saveAudiometryResultSchema>;
+export type SaveAudiometryResultInput = z.input<typeof saveAudiometryResultSchema>;
 
 export const audiometryCalibrationListSchema = z.array(
   z.object({
@@ -147,7 +147,7 @@ export const saveSpirometryManeuverSchema = z.object({
   tenantId: z.string().uuid(),
 });
 
-export type SaveSpirometryManeuverInput = z.infer<typeof saveSpirometryManeuverSchema>;
+export type SaveSpirometryManeuverInput = z.input<typeof saveSpirometryManeuverSchema>;
 
 const storageRefSchema = z.object({
   bucket: z.string(),
@@ -170,7 +170,7 @@ export const saveDiagnosticExamResultSchema = z.object({
   tenantId: z.string().uuid(),
 });
 
-export type SaveDiagnosticExamResultInput = z.infer<typeof saveDiagnosticExamResultSchema>;
+export type SaveDiagnosticExamResultInput = z.input<typeof saveDiagnosticExamResultSchema>;
 
 export const recordLaboratorySampleEventSchema = z.object({
   eventType: z.enum([
@@ -186,7 +186,7 @@ export const recordLaboratorySampleEventSchema = z.object({
   tenantId: z.string().uuid(),
 });
 
-export type RecordLaboratorySampleEventInput = z.infer<typeof recordLaboratorySampleEventSchema>;
+export type RecordLaboratorySampleEventInput = z.input<typeof recordLaboratorySampleEventSchema>;
 
 export const saveLaboratoryResultSchema = z.object({
   correctionReason: z.string().min(3).max(500),
@@ -199,4 +199,4 @@ export const saveLaboratoryResultSchema = z.object({
   tenantId: z.string().uuid(),
 });
 
-export type SaveLaboratoryResultInput = z.infer<typeof saveLaboratoryResultSchema>;
+export type SaveLaboratoryResultInput = z.input<typeof saveLaboratoryResultSchema>;

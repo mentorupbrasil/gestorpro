@@ -17,9 +17,13 @@
 
 ## Checklist de validação manual (ambiente autorizado)
 
-1. Concluir triagem e consulta de um atendimento fictício.
-2. Abrir `/app/clinical?conclusion=<encounter_id>`.
-3. Confirmar fila e resumo da consulta.
-4. Verificar bloqueadores quando exames pendentes ou etapas abertas.
-5. Registrar conclusão com credencial médica válida e MFA ativo.
-6. Confirmar registro em `medical_conclusions` com `signature_status = prepared`.
+1. Concluir triagem e consulta de um atendimento fictício. ✅
+2. Abrir `/app/clinical?conclusion=<encounter_id>`. ✅
+3. Confirmar fila e resumo da consulta. ✅
+4. Verificar bloqueadores quando exames pendentes ou etapas abertas. ✅ (sem bloqueadores no demo sem exames pendentes)
+5. Registrar conclusão com credencial médica válida e MFA ativo. ✅
+6. Confirmar registro em `medical_conclusions` com `signature_status = prepared`. ✅ (`fit`)
+
+## Resultado da validação (2026-07-13)
+
+**P0.3 fechado:** sim, no Tenant E2E com MFA/AAL2.

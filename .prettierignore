@@ -5,3 +5,4 @@ playwright-report
 phase1-scaffold
 pnpm-lock.yaml
 docs/product
+supabase/.temp

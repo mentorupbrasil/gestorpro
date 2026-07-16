@@ -32,11 +32,11 @@ const connection = postgres({
 
 try {
   const migration = await fs.readFile(
-    "supabase/migrations/202607140004_grant_operational_rpcs.sql",
+    "supabase/migrations/202607140028_p0_rpc_execute_allowlist.sql",
     "utf8",
   );
   await connection.unsafe(migration);
-  console.log("RPC grants applied.");
+  console.log("RPC execute allowlist applied.");
 } finally {
   await connection.end({ timeout: 5 });
 }

@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 import { cookies, headers } from "next/headers";
 import { z } from "zod";
 import { AppError } from "@/core/errors/app-error";
+import { stableCheckInIdempotencyKey } from "@/features/encounters/idempotency";
 import { checkInAppointment } from "@/features/encounters/service";
 import { getRequestId } from "@/lib/http/request-id";
 
@@ -28,7 +29,7 @@ export async function checkInAction(
     await checkInAppointment(
       {
         appointmentId: form.data.appointmentId,
-        idempotencyKey: `${form.data.appointmentId}:${requestId}`,
+        idempotencyKey: stableCheckInIdempotencyKey(form.data.appointmentId),
         tenantId: selectedTenantId,
       },
       requestId,
@@ -37,9 +38,15 @@ export async function checkInAction(
     if (error instanceof AppError && error.code === "MFA_REQUIRED") {
       return { error: "Confirme o MFA antes do check-in." };
     }
+    if (error instanceof AppError && error.code === "VALIDATION_FAILED") {
+      return { error: error.message };
+    }
     return { error: "Não foi possível realizar check-in sem criar duplicidade." };
   }
 
   revalidatePath("/app/check-in");
-  return { success: "Check-in realizado com snapshot, etapas, fila e outbox." };
+  return {
+    success:
+      "Check-in realizado: snapshot imutável, etapas específicas, ticket de recepção, auditoria e outbox.",
+  };
 }

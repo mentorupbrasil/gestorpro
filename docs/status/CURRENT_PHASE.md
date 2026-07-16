@@ -1,9 +1,9 @@
 # Fase atual
 
-- Fase atual: Fase A — Reauditoria e correção da fundação atual
-- Subfase atual: validação manual P0.1–P0.3
-- Tarefa atual: checklists UI com MFA em ambiente autorizado
-- Tarefas concluídas nesta unidade: **P0.3 estação de conclusão operacional**; grants RPC `202607140004`; seed demo clínico corrigido
-- Bloqueios: checklists manuais P0.1–P0.3; typegen oficial opcional
-- Branch em andamento: `feat/p0-2-consulta-operacional`
-- Atualizado em: 2026-07-13 — P0.3 conclusão operacional implementada
+- Branch: `feat/p0-security-rpc-checkin`
+- PR: https://github.com/mentorupbrasil/gestorpro/pull/12
+- Foco: pós-auditoria — fechar bloqueadores reais (CI prova, RPC, close, documentos fail-closed)
+- Head base auditado: `7778240`
+- Migration nova: `041` (não edita `037`–`040`)
+- Produção: **NO-GO**
+- Atualizado em: 2026-07-16

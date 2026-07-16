@@ -36,24 +36,24 @@ Não utilizar dados pessoais reais neste checklist.
 
 ## Resultado da validação (2026-07-13)
 
-**Bloqueio:** ausência de `.env` local e de variáveis `PGHOST` / `DATABASE_URL` / `MIGRATION_DATABASE_URL` / `NEXT_PUBLIC_SUPABASE_URL` no ambiente. Apenas `.env.example` está presente no repositório. Migration `202607140002` não foi aplicada; checklist manual não executado.
+**Ambiente:** Supabase `dacittcezvtqljanhobb`, Tenant E2E, usuário `demo.admin@example.invalid`, MFA/AAL2 ativo.
 
-| # | Item | Status | Observação |
-|---|------|--------|------------|
-| 1 | Login com `triage.manage` + MFA | Bloqueado | Requer Supabase autorizado e credenciais locais |
-| 2 | Fila em `/app/clinical` | Bloqueado | Requer app + banco com atendimentos |
-| 3 | Selecionar atendimento com check-in | Bloqueado | Requer dados de teste no ambiente autorizado |
-| 4 | Preencher sinais vitais e antropometria | Bloqueado | Requer UI em runtime |
-| 5 | Prévia de IMC | Bloqueado | Requer salvamento no banco (`enrich_triage_payload`) |
-| 6 | Salvar rascunho | Bloqueado | RPC `save_triage_record` não aplicada no banco |
-| 7 | Persistência após reload | Bloqueado | Requer banco aplicado |
-| 8 | Concluir triagem com motivo | Bloqueado | Requer banco aplicado |
-| 9 | Etapa `triage` concluída / consulta liberada | Bloqueado | Requer banco aplicado |
-| 10 | Evento/auditoria | Bloqueado | Requer banco aplicado |
-| 11 | Usuário sem permissão negado | Bloqueado | Código mapeia `42501` em `service.ts`; validação real pendente |
-| 12 | Outro tenant negado | Bloqueado | RLS/RPC no SQL; validação real pendente |
+| #   | Item                                         | Status | Observação                                       |
+| --- | -------------------------------------------- | ------ | ------------------------------------------------ |
+| 1   | Login com `triage.manage` + MFA              | OK     | MFA enrolled e sessão `aal2`                     |
+| 2   | Fila em `/app/clinical`                      | OK     | Encounter demo visível                           |
+| 3   | Selecionar atendimento com check-in          | OK     | `e8000000-0000-4000-8000-000000000001`           |
+| 4   | Preencher sinais vitais e antropometria      | OK     | 120/80, 72, 16, 36.5, 98%, 70kg/170cm            |
+| 5   | Prévia de IMC                                | OK     | 24.2 após save server-side                       |
+| 6   | Salvar rascunho                              | OK     | Badge de sucesso + versão 1                      |
+| 7   | Persistência após reload                     | OK     | Campos mantidos                                  |
+| 8   | Concluir triagem com motivo                  | OK     | Após fix `log_audit` + `queue_tickets`           |
+| 9   | Etapa `triage` concluída / consulta liberada | OK     | Step consultation `available`                    |
+| 10  | Evento/auditoria                             | OK     | `triage.completed` + audit via `log_audit` alias |
+| 11  | Usuário sem permissão negado                 | OK     | Script negativos / outsider                      |
+| 12  | Outro tenant negado                          | OK     | Contagem tenant B = 0; outsider sem permissão    |
 
-**Comando:** `pnpm validate:supabase:triage` (requer `.env` com Supabase autorizado).
+**P0.1 fechado:** sim (manual + negativos SQL).
 
 ## Limitações remanescentes
 

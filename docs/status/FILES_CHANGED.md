@@ -37,3 +37,8 @@ O inventário exato deve ser obtido com `git status --short` e registrado novame
 - Typegen/supply chain: Supabase CLI, scripts de geração/check, workflows CodeQL/dependency review, Dependabot, scanner e overrides.
 - Documentação: auditorias, matrizes de produto/testes, roadmap/gates/dependências/release, break-glass, leitura sensível, sessão/dispositivo, README, AGENTS, ADR-0008 e status.
 - Nenhum segredo, dado real, deploy ou produção. Consolidação Git em `main` autorizada pelo responsável e concluída sem reescrita ou perda de histórico.
+
+## 2026-07-14 — fix typecheck Vercel
+
+- `src/features/documents/service.ts`, `exams/schemas.ts`, `finance/service.ts`, `integrations/service.ts`, `portal/service.ts`, `scheduling/schemas.ts`, `sst/service.ts`: Input types `z.infer` → `z.input`.
+- Status: `docs/status/*` atualizados.

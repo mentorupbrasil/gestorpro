@@ -1,23 +1,28 @@
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
-import { requirePermission } from "@/core/auth/authorization";
-import { resolveAuthorizationContext } from "@/core/auth/session";
+import { PageLoadError, describeSupabaseFailure } from "@/components/ui/page-load-error";
+import { loadWorkspaceAuth } from "@/core/auth/load-workspace-auth";
+import { EXAM_ORDER_CATALOG_EMBED } from "@/lib/supabase/embeds";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 import { readEmbeddedRelation } from "@/lib/supabase/relations";
+import { PageHeader, Surface } from "@/components/ui/page-chrome";
 import { SpirometryForms } from "./spirometry-forms";
 
 export default async function SpirometryPage() {
   const selectedTenantId = (await cookies()).get("gestorpro_tenant")?.value;
   if (!selectedTenantId) redirect("/select-tenant");
 
-  const context = await resolveAuthorizationContext(selectedTenantId);
-  requirePermission(context, "exams.read");
+  const auth = await loadWorkspaceAuth(selectedTenantId, "exams.read", "tenantOrUnit");
+  if ("error" in auth) {
+    return <PageLoadError title="Espirometria" detail={auth.error} />;
+  }
+  const context = auth.context;
 
   const supabase = await createServerSupabaseClient();
   const [ordersResult, resultsResult, calibrationsResult, predictedSetsResult] = await Promise.all([
     supabase
       .from("exam_orders")
-      .select("id, encounter_id, status, exam_catalog(name, result_type)")
+      .select(`id, encounter_id, status, ${EXAM_ORDER_CATALOG_EMBED}(name, result_type)`)
       .eq("tenant_id", context.tenantId)
       .in("status", ["ordered", "collected", "resulted"]),
     supabase
@@ -45,7 +50,15 @@ export default async function SpirometryPage() {
     calibrationsResult.error ||
     predictedSetsResult.error
   ) {
-    throw new Error("Não foi possível carregar espirometria.");
+    return (
+      <PageLoadError
+        title="Espirometria"
+        detail={describeSupabaseFailure(
+          [ordersResult, resultsResult, calibrationsResult, predictedSetsResult],
+          "Não foi possível carregar espirometria.",
+        )}
+      />
+    );
   }
 
   const orders = ordersResult.data ?? [];
@@ -57,19 +70,14 @@ export default async function SpirometryPage() {
   );
 
   return (
-    <main className="mx-auto max-w-7xl px-2 py-4 sm:px-4">
-      <header className="rounded-3xl border border-white/70 bg-white/90 p-6 shadow-sm">
-        <p className="text-sm font-semibold uppercase tracking-wide text-emerald-800">
-          Exames complementares
-        </p>
-        <h1 className="mt-2 text-3xl font-semibold tracking-tight">Espirometria</h1>
-        <p className="mt-3 max-w-3xl text-sm leading-6 text-slate-600">
-          Console inicial para acompanhar pedidos, calibrações, valores previstos e resultados
-          versionados. O cálculo técnico não interpreta clinicamente nem decide aptidão.
-        </p>
-      </header>
+    <div>
+      <PageHeader
+        description="Console inicial para acompanhar pedidos, calibrações, valores previstos e resultados versionados. O cálculo técnico não interpreta clinicamente nem decide aptidão."
+        eyebrow="Exames complementares"
+        title="Espirometria"
+      />
 
-      <section className="mt-5 grid gap-4 lg:grid-cols-4">
+      <section className="mb-4 grid gap-3 sm:grid-cols-4">
         <MetricCard label="Pedidos relacionados" value={spirometryOrders.length} />
         <MetricCard label="Resultados" value={results.length} />
         <MetricCard label="Calibrações" value={calibrations.length} />
@@ -96,12 +104,12 @@ export default async function SpirometryPage() {
         }))}
       />
 
-      <section className="mt-5 grid gap-5 xl:grid-cols-2">
+      <section className="mt-4 grid gap-3 xl:grid-cols-2">
         <DataPanel empty="Nenhum resultado de espirometria iniciado." title="Resultados recentes">
           {results.map((result) => (
-            <li className="grid gap-1 py-3 sm:grid-cols-[1fr_auto]" key={result.id}>
-              <span className="font-mono text-xs text-slate-600">{result.exam_order_id}</span>
-              <span className="text-sm font-semibold text-slate-900">
+            <li className="grid gap-1 py-2.5 sm:grid-cols-[1fr_auto]" key={result.id}>
+              <span className="font-mono text-xs text-gp-text-muted">{result.exam_order_id}</span>
+              <span className="text-sm font-semibold text-gp-text">
                 {result.status} · v{result.current_version}
               </span>
             </li>
@@ -110,11 +118,11 @@ export default async function SpirometryPage() {
 
         <DataPanel empty="Nenhuma calibração cadastrada." title="Calibrações do espirômetro">
           {calibrations.map((calibration) => (
-            <li className="grid gap-1 py-3 sm:grid-cols-[1fr_auto]" key={calibration.id}>
-              <span className="font-semibold text-slate-900">
+            <li className="grid gap-1 py-2.5 sm:grid-cols-[1fr_auto]" key={calibration.id}>
+              <span className="font-semibold text-gp-text">
                 {calibration.equipment_name} · {calibration.equipment_serial}
               </span>
-              <span className="text-sm text-slate-600">
+              <span className="text-sm text-gp-text-muted">
                 {calibration.status} · válido até{" "}
                 {new Date(calibration.valid_until).toLocaleDateString("pt-BR")}
               </span>
@@ -122,16 +130,16 @@ export default async function SpirometryPage() {
           ))}
         </DataPanel>
       </section>
-    </main>
+    </div>
   );
 }
 
 function MetricCard({ label, value }: Readonly<{ label: string; value: number }>) {
   return (
-    <div className="rounded-2xl border border-white/70 bg-white/90 p-5 shadow-sm">
-      <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">{label}</p>
-      <p className="mt-2 text-3xl font-semibold text-emerald-950">{value}</p>
-    </div>
+    <Surface className="p-3">
+      <p className="text-xs font-semibold uppercase tracking-wide text-gp-text-muted">{label}</p>
+      <p className="mt-1 text-base font-semibold text-gp-text">{value}</p>
+    </Surface>
   );
 }
 
@@ -143,13 +151,13 @@ function DataPanel({
   const list = Array.isArray(children) ? children.filter(Boolean) : children;
 
   return (
-    <div className="rounded-3xl border border-white/70 bg-white/90 p-5 shadow-sm">
-      <h2 className="text-lg font-semibold">{title}</h2>
+    <Surface className="p-4">
+      <h2 className="text-base font-semibold text-gp-text">{title}</h2>
       {Array.isArray(list) && list.length === 0 ? (
-        <p className="mt-4 rounded-2xl bg-slate-100 p-4 text-sm text-slate-700">{empty}</p>
+        <p className="mt-3 text-sm text-gp-text-muted">{empty}</p>
       ) : (
-        <ul className="mt-4 divide-y divide-slate-100">{list}</ul>
+        <ul className="mt-3 divide-y divide-gp-border">{list}</ul>
       )}
-    </div>
+    </Surface>
   );
 }

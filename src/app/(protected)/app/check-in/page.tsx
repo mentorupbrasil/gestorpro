@@ -1,116 +1,176 @@
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
-import { requirePermission } from "@/core/auth/authorization";
-import { resolveAuthorizationContext } from "@/core/auth/session";
+import { z } from "zod";
+import { PageLoadError, describeSupabaseFailure } from "@/components/ui/page-load-error";
+import { loadWorkspaceAuth } from "@/core/auth/load-workspace-auth";
 import { encounterListSchema, queueTicketListSchema } from "@/features/encounters/schemas";
-import { appointmentListSchema } from "@/features/scheduling/schemas";
+import { embeddedOneSchema } from "@/lib/supabase/relations";
+import {
+  APPOINTMENT_REFERRAL_EMBED,
+  APPOINTMENT_RESOURCE_EMBED,
+  ENCOUNTER_EXAM_ORDERS_EMBED,
+  ENCOUNTER_WORKER_EMBED,
+  QUEUE_TICKET_DEFINITION_EMBED,
+  QUEUE_TICKET_ENCOUNTER_EMBED,
+  REFERRAL_COMPANY_EMBED,
+  REFERRAL_WORKER_EMBED,
+} from "@/lib/supabase/embeds";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
-import { CheckInForm } from "./check-in-form";
+import { PageHeader, Surface } from "@/components/ui/page-chrome";
+import { ReceptionStation } from "./reception-station";
+
+const receptionAppointmentSchema = z.array(
+  z.object({
+    ends_at: z.string(),
+    id: z.uuid(),
+    referrals: embeddedOneSchema(
+      z.object({
+        companies: embeddedOneSchema(
+          z.object({ trade_name: z.string().nullable(), legal_name: z.string() }),
+        ),
+        id: z.uuid(),
+        occupational_exam_type: z.string(),
+        workers: embeddedOneSchema(z.object({ full_name: z.string() })),
+      }),
+    ).nullable(),
+    schedule_resources: embeddedOneSchema(z.object({ name: z.string() })),
+    starts_at: z.string(),
+    status: z.string(),
+  }),
+);
 
 export default async function CheckInPage() {
   const selectedTenantId = (await cookies()).get("gestorpro_tenant")?.value;
   if (!selectedTenantId) redirect("/select-tenant");
 
-  const context = await resolveAuthorizationContext(selectedTenantId);
-  requirePermission(context, "encounters.read");
+  const auth = await loadWorkspaceAuth(selectedTenantId, "encounters.read", "tenantOrUnit");
+  if ("error" in auth) {
+    return <PageLoadError title="Recepção operacional" detail={auth.error} />;
+  }
+  const context = auth.context;
 
   const supabase = await createServerSupabaseClient();
   const [appointmentsResult, encountersResult, queueResult] = await Promise.all([
     supabase
       .from("appointments")
-      .select("id, starts_at, ends_at, status, schedule_resources(name)")
+      .select(
+        `id, starts_at, ends_at, status, ${APPOINTMENT_RESOURCE_EMBED}(name), ${APPOINTMENT_REFERRAL_EMBED}(id, occupational_exam_type, ${REFERRAL_WORKER_EMBED}(full_name), ${REFERRAL_COMPANY_EMBED}(trade_name, legal_name))`,
+      )
       .eq("tenant_id", context.tenantId)
       .in("status", ["scheduled", "confirmed"])
       .order("starts_at"),
     supabase
       .from("encounters")
-      .select("id, status, checked_in_at, workers(full_name)")
+      .select(
+        `id, status, checked_in_at, ${ENCOUNTER_WORKER_EMBED}(full_name), ${ENCOUNTER_EXAM_ORDERS_EMBED}(id)`,
+      )
       .eq("tenant_id", context.tenantId)
-      .order("checked_in_at", { ascending: false }),
+      .order("checked_in_at", { ascending: false })
+      .limit(30),
     supabase
       .from("queue_tickets")
       .select(
-        "id, status, priority, created_at, queue_definitions(name), encounters(workers(full_name))",
+        `id, status, priority, created_at, ${QUEUE_TICKET_DEFINITION_EMBED}(name), ${QUEUE_TICKET_ENCOUNTER_EMBED}(${ENCOUNTER_WORKER_EMBED}(full_name))`,
       )
       .eq("tenant_id", context.tenantId)
+      .in("status", ["waiting", "called", "in_service"])
       .order("priority")
       .order("created_at"),
   ]);
 
   if (appointmentsResult.error || encountersResult.error || queueResult.error) {
-    throw new Error("Não foi possível carregar check-in e filas.");
+    return (
+      <PageLoadError
+        title="Recepção operacional"
+        detail={describeSupabaseFailure(
+          [appointmentsResult, encountersResult, queueResult],
+          "Não foi possível carregar a recepção.",
+        )}
+      />
+    );
   }
 
-  const appointments = appointmentListSchema.parse(appointmentsResult.data);
-  const encounters = encounterListSchema.parse(encountersResult.data);
-  const tickets = queueTicketListSchema.parse(queueResult.data);
+  const parsedAppointments = receptionAppointmentSchema.safeParse(appointmentsResult.data);
+  const parsedEncounters = encounterListSchema.safeParse(encountersResult.data);
+  const parsedTickets = queueTicketListSchema.safeParse(queueResult.data);
+  if (!parsedAppointments.success || !parsedEncounters.success || !parsedTickets.success) {
+    return (
+      <PageLoadError
+        title="Recepção operacional"
+        detail="Dados inconsistentes retornados pelo Supabase (relação/embed)."
+      />
+    );
+  }
+
+  const rows = parsedAppointments.data.map((appointment) => ({
+    companyName:
+      appointment.referrals?.companies?.trade_name?.trim() ||
+      appointment.referrals?.companies?.legal_name ||
+      "—",
+    endsAt: appointment.ends_at,
+    examType: appointment.referrals?.occupational_exam_type ?? "—",
+    id: appointment.id,
+    referralId: appointment.referrals?.id ?? null,
+    resourceName: appointment.schedule_resources?.name ?? "Recurso",
+    startsAt: appointment.starts_at,
+    status: appointment.status,
+    workerName: appointment.referrals?.workers?.full_name ?? "Sem trabalhador",
+  }));
 
   return (
-    <main className="mx-auto max-w-6xl px-6 py-10">
-      <header className="border-b border-slate-200 pb-5">
-        <p className="text-sm font-semibold uppercase tracking-wide text-emerald-800">
-          Check-in e filas
-        </p>
-        <h1 className="mt-1 text-2xl font-semibold">Check-in transacional</h1>
-        <p className="mt-2 max-w-3xl text-sm text-slate-600">
-          O check-in cria atendimento, snapshot imutável, etapas, pedidos iniciais, ticket de fila,
-          auditoria e outbox em uma única transação.
-        </p>
-      </header>
-
-      <CheckInForm
-        appointments={appointments.map((appointment) => ({
-          id: appointment.id,
-          label: `${new Date(appointment.starts_at).toLocaleString("pt-BR")} · ${
-            appointment.schedule_resources?.name ?? "Recurso"
-          }`,
-        }))}
+    <div>
+      <PageHeader
+        description="Estação de recepção: agenda do dia, busca, divergências de encaminhamento e check-in transacional (AAL2). Sem prontuário clínico nesta tela."
+        eyebrow="Recepção"
+        title="Estação operacional"
       />
 
-      <section className="mt-10 grid gap-8 lg:grid-cols-2">
-        <div>
-          <h2 className="text-lg font-semibold">Atendimentos</h2>
-          {encounters.length === 0 ? (
-            <p className="mt-3 rounded bg-slate-100 p-4 text-sm text-slate-700">
-              Nenhum atendimento em aberto.
-            </p>
+      <ReceptionStation rows={rows} />
+
+      <section className="mt-4 grid gap-3 lg:grid-cols-2">
+        <Surface className="p-4">
+          <h2 className="text-base font-semibold text-gp-text">Atendimentos recentes</h2>
+          {parsedEncounters.data.length === 0 ? (
+            <p className="mt-3 text-sm text-gp-text-muted">Nenhum atendimento em aberto.</p>
           ) : (
-            <ul className="mt-4 divide-y divide-slate-200 text-sm">
-              {encounters.map((encounter) => (
-                <li className="py-3" key={encounter.id}>
-                  <span className="font-semibold">
+            <ul className="mt-3 divide-y divide-gp-border text-sm">
+              {parsedEncounters.data.map((encounter) => (
+                <li className="py-2.5" key={encounter.id}>
+                  <span className="font-semibold text-gp-text">
                     {encounter.workers?.full_name ?? "Trabalhador"}
                   </span>
-                  <span className="ml-2 text-slate-600">{encounter.status}</span>
+                  <span className="ml-2 text-gp-text-muted">
+                    {encounter.status}
+                    {(encounter.exam_orders?.length ?? 0) > 0
+                      ? ` · ${encounter.exam_orders?.length} exame(s)`
+                      : ""}
+                  </span>
                 </li>
               ))}
             </ul>
           )}
-        </div>
+        </Surface>
 
-        <div>
-          <h2 className="text-lg font-semibold">Fila</h2>
-          {tickets.length === 0 ? (
-            <p className="mt-3 rounded bg-slate-100 p-4 text-sm text-slate-700">
-              Nenhum ticket aguardando.
-            </p>
+        <Surface className="p-4">
+          <h2 className="text-base font-semibold text-gp-text">Fila ativa</h2>
+          {parsedTickets.data.length === 0 ? (
+            <p className="mt-3 text-sm text-gp-text-muted">Nenhum ticket aguardando.</p>
           ) : (
-            <ul className="mt-4 divide-y divide-slate-200 text-sm">
-              {tickets.map((ticket) => (
-                <li className="py-3" key={ticket.id}>
-                  <span className="font-semibold">
-                    {ticket.encounters?.workers?.full_name ?? "Trabalhador"}
+            <ul className="mt-3 divide-y divide-gp-border text-sm">
+              {parsedTickets.data.map((ticket) => (
+                <li className="py-2.5" key={ticket.id}>
+                  <span className="font-semibold text-gp-text">
+                    {ticket.encounters?.workers?.full_name ?? "Paciente"}
                   </span>
-                  <span className="ml-2 text-slate-600">
-                    {ticket.queue_definitions?.name ?? "Fila"} · prioridade {ticket.priority} ·{" "}
-                    {ticket.status}
+                  <span className="ml-2 text-gp-text-muted">
+                    {ticket.queue_definitions?.name} · {ticket.status}
                   </span>
                 </li>
               ))}
             </ul>
           )}
-        </div>
+        </Surface>
       </section>
-    </main>
+    </div>
   );
 }

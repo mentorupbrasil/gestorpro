@@ -5,13 +5,21 @@ import { cookies, headers } from "next/headers";
 import { z } from "zod";
 import { AppError } from "@/core/errors/app-error";
 import {
+  acknowledgeClinicalAlert,
   closeMedicalConsultation,
+  createClinicalAlert,
+  createConsultationAddendum,
   createMedicalConclusion,
+  pauseEncounterFlow,
+  resolveEncounterFlowPause,
   saveMedicalConsultation,
   saveTriageRecord,
 } from "@/features/clinical/service";
 import { consultationStructuredInputSchema } from "@/features/clinical/consultation-payload";
-import { conclusionInputSchema, parseRestrictionsText } from "@/features/clinical/conclusion-payload";
+import {
+  conclusionInputSchema,
+  parseRestrictionsText,
+} from "@/features/clinical/conclusion-payload";
 import { triageStructuredInputSchema } from "@/features/clinical/triage-payload";
 import { getRequestId } from "@/lib/http/request-id";
 
@@ -373,4 +381,186 @@ export async function createMedicalConclusionAction(
     encounterId: form.data.encounterId,
     success: "Conclusão médica preparada para assinatura autenticada.",
   };
+}
+
+export type ClinicalFlowFormState = { error?: string; success?: string };
+
+function flowError(error: unknown, fallback: string) {
+  if (error instanceof AppError && error.code === "MFA_REQUIRED") {
+    return "Confirme o MFA (AAL2) antes de continuar.";
+  }
+  if (error instanceof AppError && error.message) return error.message;
+  return fallback;
+}
+
+export async function createClinicalAlertAction(
+  _state: ClinicalFlowFormState,
+  formData: FormData,
+): Promise<ClinicalFlowFormState> {
+  const selectedTenantId = (await cookies()).get("gestorpro_tenant")?.value;
+  if (!selectedTenantId) return { error: "Selecione uma organização." };
+
+  const form = z
+    .object({
+      encounterId: z.string().uuid(),
+      message: z.string().trim().min(3),
+      severity: z.enum(["info", "attention", "urgent"]),
+    })
+    .safeParse({
+      encounterId: formData.get("encounterId"),
+      message: formData.get("message"),
+      severity: formData.get("severity"),
+    });
+  if (!form.success) return { error: "Revise o alerta." };
+
+  try {
+    await createClinicalAlert(
+      {
+        encounterId: form.data.encounterId,
+        message: form.data.message,
+        severity: form.data.severity,
+        sourceType: "manual",
+        tenantId: selectedTenantId,
+      },
+      getRequestId(await headers()),
+    );
+  } catch (error) {
+    return { error: flowError(error, "Não foi possível criar alerta.") };
+  }
+
+  revalidatePath("/app/clinical");
+  return { success: "Alerta criado." };
+}
+
+export async function acknowledgeClinicalAlertAction(
+  _state: ClinicalFlowFormState,
+  formData: FormData,
+): Promise<ClinicalFlowFormState> {
+  const selectedTenantId = (await cookies()).get("gestorpro_tenant")?.value;
+  if (!selectedTenantId) return { error: "Selecione uma organização." };
+
+  const form = z
+    .object({ alertId: z.string().uuid() })
+    .safeParse({ alertId: formData.get("alertId") });
+  if (!form.success) return { error: "Alerta inválido." };
+
+  try {
+    await acknowledgeClinicalAlert(
+      { alertId: form.data.alertId, tenantId: selectedTenantId },
+      getRequestId(await headers()),
+    );
+  } catch (error) {
+    return { error: flowError(error, "Não foi possível reconhecer alerta.") };
+  }
+
+  revalidatePath("/app/clinical");
+  return { success: "Alerta reconhecido." };
+}
+
+export async function createConsultationAddendumAction(
+  _state: ClinicalFlowFormState,
+  formData: FormData,
+): Promise<ClinicalFlowFormState> {
+  const selectedTenantId = (await cookies()).get("gestorpro_tenant")?.value;
+  if (!selectedTenantId) return { error: "Selecione uma organização." };
+
+  const form = z
+    .object({
+      consultationId: z.string().uuid(),
+      note: z.string().trim().min(3),
+      reason: z.string().trim().min(3),
+    })
+    .safeParse({
+      consultationId: formData.get("consultationId"),
+      note: formData.get("note"),
+      reason: formData.get("reason"),
+    });
+  if (!form.success) return { error: "Revise o adendo." };
+
+  try {
+    await createConsultationAddendum(
+      {
+        consultationId: form.data.consultationId,
+        note: form.data.note,
+        reason: form.data.reason,
+        tenantId: selectedTenantId,
+      },
+      getRequestId(await headers()),
+    );
+  } catch (error) {
+    return { error: flowError(error, "Não foi possível registrar adendo.") };
+  }
+
+  revalidatePath("/app/clinical");
+  return { success: "Adendo registrado." };
+}
+
+export async function pauseEncounterFlowAction(
+  _state: ClinicalFlowFormState,
+  formData: FormData,
+): Promise<ClinicalFlowFormState> {
+  const selectedTenantId = (await cookies()).get("gestorpro_tenant")?.value;
+  if (!selectedTenantId) return { error: "Selecione uma organização." };
+
+  const form = z
+    .object({
+      encounterId: z.string().uuid(),
+      reason: z.string().trim().min(3),
+    })
+    .safeParse({
+      encounterId: formData.get("encounterId"),
+      reason: formData.get("reason"),
+    });
+  if (!form.success) return { error: "Informe o motivo da pausa." };
+
+  try {
+    await pauseEncounterFlow(
+      {
+        encounterId: form.data.encounterId,
+        reason: form.data.reason,
+        tenantId: selectedTenantId,
+      },
+      getRequestId(await headers()),
+    );
+  } catch (error) {
+    return { error: flowError(error, "Não foi possível pausar o fluxo.") };
+  }
+
+  revalidatePath("/app/clinical");
+  return { success: "Fluxo pausado." };
+}
+
+export async function resolveEncounterFlowPauseAction(
+  _state: ClinicalFlowFormState,
+  formData: FormData,
+): Promise<ClinicalFlowFormState> {
+  const selectedTenantId = (await cookies()).get("gestorpro_tenant")?.value;
+  if (!selectedTenantId) return { error: "Selecione uma organização." };
+
+  const form = z
+    .object({
+      pauseId: z.string().uuid(),
+      resolvedNote: z.string().optional(),
+    })
+    .safeParse({
+      pauseId: formData.get("pauseId"),
+      resolvedNote: formData.get("resolvedNote") ?? "",
+    });
+  if (!form.success) return { error: "Pausa inválida." };
+
+  try {
+    await resolveEncounterFlowPause(
+      {
+        pauseId: form.data.pauseId,
+        resolvedNote: form.data.resolvedNote ?? "",
+        tenantId: selectedTenantId,
+      },
+      getRequestId(await headers()),
+    );
+  } catch (error) {
+    return { error: flowError(error, "Não foi possível retomar o fluxo.") };
+  }
+
+  revalidatePath("/app/clinical");
+  return { success: "Fluxo retomado." };
 }

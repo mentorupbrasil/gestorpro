@@ -1,78 +1,90 @@
 import { cookies } from "next/headers";
+import Link from "next/link";
 import { redirect } from "next/navigation";
-import { z } from "zod";
-import { requirePermission } from "@/core/auth/authorization";
-import { resolveAuthorizationContext } from "@/core/auth/session";
-import { loadConclusionWorkspace, loadConsultationWorkspace, loadTriageWorkspace } from "@/features/clinical/service";
-import { ConclusionStation } from "./conclusion-station";
-import { ConsultationStation } from "./consultation-station";
-import { TriageStation } from "./triage-station";
+import { PageLoadError } from "@/components/ui/page-load-error";
+import { PageHeader, Surface } from "@/components/ui/page-chrome";
+import { loadWorkspaceAuth } from "@/core/auth/load-workspace-auth";
+import { createServerSupabaseClient } from "@/lib/supabase/server";
+import { BootstrapOperationsPanel } from "../_components/bootstrap-operations-panel";
 
-type ClinicalPageProps = {
-  searchParams?: Promise<{ conclusion?: string; consultation?: string; encounter?: string }>;
-};
-
-export default async function ClinicalPage({ searchParams }: ClinicalPageProps) {
+export default async function ClinicalHubPage() {
   const selectedTenantId = (await cookies()).get("gestorpro_tenant")?.value;
   if (!selectedTenantId) redirect("/select-tenant");
 
-  const context = await resolveAuthorizationContext(selectedTenantId);
-  requirePermission(context, "clinical.read");
+  const auth = await loadWorkspaceAuth(selectedTenantId, "clinical.read", "tenantOrUnit");
+  if ("error" in auth) {
+    return <PageLoadError title="Clínica ocupacional" detail={auth.error} />;
+  }
 
-  const resolvedSearchParams = searchParams ? await searchParams : undefined;
-  const selectedEncounterId = resolvedSearchParams?.encounter
-    ? z.uuid().safeParse(resolvedSearchParams.encounter).data
-    : undefined;
-  const selectedConsultationId = resolvedSearchParams?.consultation
-    ? z.uuid().safeParse(resolvedSearchParams.consultation).data
-    : undefined;
-  const selectedConclusionId = resolvedSearchParams?.conclusion
-    ? z.uuid().safeParse(resolvedSearchParams.conclusion).data
-    : undefined;
-
-  const [triageWorkspace, consultationWorkspace, conclusionWorkspace] = await Promise.all([
-    loadTriageWorkspace(selectedTenantId, selectedEncounterId),
-    loadConsultationWorkspace(selectedTenantId, selectedConsultationId),
-    loadConclusionWorkspace(selectedTenantId, selectedConclusionId),
+  const permissions = auth.context.permissions;
+  const supabase = await createServerSupabaseClient();
+  const [{ count: unitCount }, { count: formCount }] = await Promise.all([
+    supabase
+      .from("clinic_units")
+      .select("id", { count: "exact", head: true })
+      .eq("tenant_id", selectedTenantId)
+      .eq("status", "active"),
+    supabase
+      .from("triage_form_versions")
+      .select("id", { count: "exact", head: true })
+      .eq("tenant_id", selectedTenantId)
+      .eq("status", "approved"),
   ]);
+  const needsBootstrap = (unitCount ?? 0) === 0 || (formCount ?? 0) === 0;
+  const stations = [
+    {
+      href: "/app/clinical/triage",
+      label: "Triagem",
+      enabled: permissions.has("triage.manage") || permissions.has("clinical.read"),
+      detail: "Sinais vitais, fila e conclusão de etapa de enfermagem.",
+    },
+    {
+      href: "/app/clinical/consultation",
+      label: "Consulta",
+      enabled: permissions.has("consultations.manage") || permissions.has("clinical.read"),
+      detail: "Consulta ocupacional com credencial e SOAP estruturado.",
+    },
+    {
+      href: "/app/clinical/conclusion",
+      label: "Conclusão / ASO",
+      enabled: permissions.has("conclusions.manage") || permissions.has("clinical.read"),
+      detail: "Conclusão médica humana — sem aptidão automática.",
+    },
+  ].filter((station) => station.enabled);
+
+  if (stations.length === 1) {
+    redirect(stations[0]!.href);
+  }
 
   return (
-    <main className="mx-auto max-w-7xl px-6 py-10">
-      <header className="border-b border-slate-200 pb-5">
-        <p className="text-sm font-semibold uppercase tracking-wide text-emerald-800">
-          Clínica ocupacional
+    <div>
+      <PageHeader
+        description="Estações separadas por perfil. Dados clínicos exigem MFA na escrita e não aparecem na recepção nem no portal empresarial."
+        eyebrow="Clínica ocupacional"
+        title="Estações clínicas"
+      />
+      {needsBootstrap ? (
+        <BootstrapOperationsPanel
+          canBootstrap={permissions.has("roles.manage")}
+          reason="Tenant sem unidade e/ou formulário de triagem aprovado — as estações abrem, mas não operam."
+        />
+      ) : null}
+      <div className="mt-4 grid gap-3 md:grid-cols-3">
+        {stations.map((station) => (
+          <Surface className="p-4" key={station.href}>
+            <h2 className="text-base font-semibold text-gp-text">{station.label}</h2>
+            <p className="mt-2 text-sm text-gp-text-muted">{station.detail}</p>
+            <Link className="gp-btn gp-btn-primary mt-4 inline-flex" href={station.href}>
+              Abrir estação
+            </Link>
+          </Surface>
+        ))}
+      </div>
+      {stations.length === 0 ? (
+        <p className="mt-4 text-sm text-gp-text-muted">
+          Seu perfil não possui estação clínica habilitada.
         </p>
-        <h1 className="mt-1 text-2xl font-semibold">Triagem, consulta e conclusão médica</h1>
-        <p className="mt-2 max-w-3xl text-sm text-slate-600">
-          Dados clínicos são sensíveis, exigem MFA para escrita e ficam separados da recepção e da
-          empresa. Alertas são auxiliares; aptidão final continua sendo decisão humana do médico.
-        </p>
-      </header>
-
-      <TriageStation
-        formVersionId={triageWorkspace.formVersion.id}
-        formVersionLabel={triageWorkspace.formVersion.label}
-        professionalName={triageWorkspace.professionalName}
-        queue={triageWorkspace.queue}
-        selectedEncounter={triageWorkspace.selectedEncounter}
-        selectedRecord={triageWorkspace.selectedRecord}
-      />
-
-      <ConsultationStation
-        physicians={consultationWorkspace.physicians}
-        professionalName={consultationWorkspace.professionalName}
-        queue={consultationWorkspace.queue}
-        selectedEncounter={consultationWorkspace.selectedEncounter}
-        selectedRecord={consultationWorkspace.selectedRecord}
-      />
-
-      <ConclusionStation
-        physicians={conclusionWorkspace.physicians}
-        professionalName={conclusionWorkspace.professionalName}
-        queue={conclusionWorkspace.queue}
-        selectedEncounter={conclusionWorkspace.selectedEncounter}
-        selectedRecord={conclusionWorkspace.selectedRecord}
-      />
-    </main>
+      ) : null}
+    </div>
   );
 }

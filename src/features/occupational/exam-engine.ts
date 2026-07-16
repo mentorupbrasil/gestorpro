@@ -40,6 +40,8 @@ export type CalculateRequiredExamsInput = Readonly<{
   protocols: readonly ExamProtocolSnapshot[];
   riskCodes: readonly string[];
   overrides?: readonly ExamProtocolOverrideSnapshot[];
+  /** When true, blocks calculation until human resolves duplicate active contracts. */
+  ambiguousActiveEmployment?: boolean;
 }>;
 
 export type CalculatedExam = Readonly<{
@@ -53,6 +55,7 @@ export type CalculatedExamPackage = Readonly<{
   exams: readonly CalculatedExam[];
   pcmsoVersionId: string;
   protocolId: string;
+  calculationHash: string;
 }>;
 
 function isVersionEffective(version: PcmsoVersionSnapshot, asOf: string) {
@@ -71,6 +74,14 @@ function itemApplies(item: ExamProtocolItemSnapshot, riskCodes: ReadonlySet<stri
 }
 
 export function calculateRequiredExams(input: CalculateRequiredExamsInput): CalculatedExamPackage {
+  if (input.ambiguousActiveEmployment) {
+    throw new AppError(
+      "EMPLOYMENT_AMBIGUOUS",
+      "Há mais de um vínculo empregatício ativo; resolva a ambiguidade antes do protocolo.",
+      { status: 409 },
+    );
+  }
+
   const activeProtocols = input.protocols.filter(
     (protocol) =>
       protocol.status === "approved" &&
@@ -79,10 +90,24 @@ export function calculateRequiredExams(input: CalculateRequiredExamsInput): Calc
   );
 
   if (activeProtocols.length === 0) {
-    throw new AppError("PROTOCOL_MISSING", "Nenhum protocolo vigente encontrado.", {
-      details: { occupationalExamType: input.occupationalExamType },
-      status: 409,
-    });
+    const expiredOnly = input.protocols.some(
+      (protocol) =>
+        protocol.status === "approved" &&
+        protocol.occupationalExamType === input.occupationalExamType &&
+        protocol.pcmsoVersion.status === "approved" &&
+        protocol.pcmsoVersion.validUntil != null &&
+        protocol.pcmsoVersion.validUntil <= input.asOf,
+    );
+    throw new AppError(
+      expiredOnly ? "PCMSO_EXPIRED" : "PROTOCOL_MISSING",
+      expiredOnly
+        ? "PCMSO vencido; nenhum protocolo vigente encontrado."
+        : "Nenhum protocolo vigente encontrado.",
+      {
+        details: { occupationalExamType: input.occupationalExamType },
+        status: 409,
+      },
+    );
   }
 
   if (activeProtocols.length > 1) {
@@ -133,8 +158,20 @@ export function calculateRequiredExams(input: CalculateRequiredExamsInput): Calc
     });
   }
 
+  const sorted = Array.from(exams.values()).sort((left, right) =>
+    left.code.localeCompare(right.code),
+  );
+
   return {
-    exams: Array.from(exams.values()).sort((left, right) => left.code.localeCompare(right.code)),
+    calculationHash: [
+      protocol.id,
+      protocol.pcmsoVersion.id,
+      input.occupationalExamType,
+      input.asOf,
+      [...riskCodes].sort().join(","),
+      sorted.map((exam) => `${exam.id}:${exam.reason}`).join("|"),
+    ].join("#"),
+    exams: sorted,
     pcmsoVersionId: protocol.pcmsoVersion.id,
     protocolId: protocol.id,
   };
